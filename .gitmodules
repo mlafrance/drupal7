@@ -4,3 +4,6 @@
 [submodule "sites/all/modules/monster_menus"]
 	path = sites/all/modules/monster_menus
 	url = http://git.drupal.org/sandbox/gribnif/1118296.git
+[submodule "sites/all/modules/devel"]
+	path = sites/all/modules/devel
+	url = http://git.drupal.org/project/devel.git
