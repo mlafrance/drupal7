@@ -25,3 +25,6 @@
 [submodule "sites/all/modules/better_exposed_filters"]
 	path = sites/all/modules/better_exposed_filters
 	url = http://git.drupal.org/project/better_exposed_filters.git
+[submodule "sites/all/modules/insert_view"]
+	path = sites/all/modules/insert_view
+	url = http://git.drupal.org/project/insert_view.git
