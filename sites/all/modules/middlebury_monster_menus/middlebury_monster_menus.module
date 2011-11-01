@@ -106,7 +106,8 @@ function middlebury_monster_menus_get_nid_url($nid, $mmtid = NULL) {
 
   if ($mmtid == NULL) {
     $tid = db_result(db_query_range('SELECT n.mmtid FROM {mm_node2tree} n WHERE n.nid = %d', array($nid), 0, 1));
-  } else {
+  }
+  else {
     $tid = db_result(db_query_range('SELECT n.mmtid FROM {mm_node2tree} n JOIN {mm_tree} m ON (m.mmtid = n.mmtid) JOIN {mm_tree_parents} t ON (m.mmtid = t.mmtid) WHERE n.nid = %d AND (m.mmtid = %d OR m.parent = %d OR t.parent = %d)', array($nid, $mmtid, $mmtid, $mmtid), 0, 1));
   }
 
@@ -136,7 +137,8 @@ function middlebury_monster_menus_get_simplepie($url, $cache = TRUE) {
   $feed->set_feed_url($url);
   if ($cache) {
     $feed->set_cache_location(variable_get('rss_page_cache_path', RSS_PAGE_CACHE_PATH_DEFAULT));
-  } else {
+  }
+  else {
     $feed->enable_cache($cache);
   }
   $feed->init();
