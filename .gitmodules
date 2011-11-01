@@ -37,3 +37,6 @@
 [submodule "sites/all/modules/colorbox"]
 	path = sites/all/modules/colorbox
 	url = http://git.drupal.org/project/colorbox.git
+[submodule "sites/all/modules/features"]
+	path = sites/all/modules/features
+	url = http://git.drupal.org/project/features.git
