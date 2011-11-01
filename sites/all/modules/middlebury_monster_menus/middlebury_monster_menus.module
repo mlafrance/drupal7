@@ -45,7 +45,7 @@ function middlebury_monster_menus_form_page_node_form_alter(&$form, &$form_state
 function middlebury_monster_menus_get_image($nid, $width = NULL, $height = NULL, $size = 'original', $alt = '', &$vars = FALSE) {
   $sizes = middlebury_monster_menus_get_image_sizes();
 
-  $image_node = node_load(array('nid' => $nid));
+  $image_node = node_load($nid);
 
   while ($size != 'original' && (!isset($image_node->images[$size]) || is_null($image_node->images[$size]))) {
     $size = $sizes[array_search($size, $sizes) - 1];
