@@ -34,3 +34,6 @@
 [submodule "sites/all/modules/libraries"]
 	path = sites/all/modules/libraries
 	url = http://git.drupal.org/project/libraries.git
+[submodule "sites/all/modules/colorbox"]
+	path = sites/all/modules/colorbox
+	url = http://git.drupal.org/project/colorbox.git
