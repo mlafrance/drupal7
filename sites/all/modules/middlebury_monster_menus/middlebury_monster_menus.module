@@ -1,0 +1,255 @@
+<?php
+
+/**
+ * Implements hook_form_alter().
+*/
+function middlebury_monster_menus_form_mm_ui_content_edit_alter(&$form, &$form_state) {
+  $form['settings_general']['#weight'] = 1;
+  $form['flags']['#weight'] = 2;
+  $form['settings_perms']['#weight'] = 3;
+  $form['settings_appearance']['#weight'] = 4;
+  $form['settings_node_types']['#weight'] = 5;
+  $form['settings_archive']['#weight'] = 6;
+  $form['buttons']['#weight'] = 10;
+  
+  foreach($form['settings_perms']['table']['groups'] as &$group) {
+    if (is_array($group) && !empty($group[0][0][0])) {
+      $group[0][0][0]['#value'] = preg_replace('/<a href=\"[^\"]*\">Edit this group<\/a>/', '<a href="https://login.middlebury.edu/groups">Edit this group</a>', $group[0][0][0]['#value']);
+    }
+  }
+}
+
+function middlebury_monster_menus_form_page_node_form_alter(&$form, &$form_state) {
+  $form['revision_information']['#collapsed'] = TRUE;
+}
+
+/**
+ * Get the img element tag for an image based on the node id of a File Upload node.
+ *
+ * @param $nid
+ *   Drupal node ID of a File Upload node containing an image.
+ * @param $width
+ *   Numeric value of a desired width attribute for the img tag, or NULL.
+ * @param $height
+ *   Numeric value of a desired height attribute for the img tag, or NULL.
+ * @param $size
+ *   String value of the Media module size type (e.g. original, thumbnail, etc.) to use.
+ * @param $alt
+ *   String value of a desired alt attribute for the img tag.
+ * @param $vars
+ *   The node variable array from a node preprocess hook function, which will include a caption string.
+ */
+function middlebury_monster_menus_get_image($nid, $width = NULL, $height = NULL, $size = 'original', $alt = '', &$vars = FALSE) {
+  $sizes = middlebury_monster_menus_get_image_sizes();
+  
+  $image_node = node_load(array('nid' => $nid));
+  
+  while($size != 'original' && (!isset($image_node->images[$size]) || is_null($image_node->images[$size]))) {
+    $size = $sizes[array_search($size, $sizes) - 1];
+  }
+  
+  $image_path = file_create_path($image_node->images[$size]);
+  
+  if ($image_path === FALSE) return '';
+  
+  $image_info = image_get_info($image_path);
+  
+  if (!is_null($width) && $image_info['width'] > $width) {
+    $image_info['height'] = $width * $image_info['height'] / $image_info['width'];
+    $image_info['width'] = $width;
+  }
+  
+  if (!is_null($height) && $image_info['height'] > $height) {
+    $image_info['width'] = $height * $image_info['width'] / $image_info['height'];
+    $image_info['height'] = $height;
+  }
+  
+  $image = '<img src="'. $GLOBALS['base_url'] . '/media/view/'. $image_node->nid .'/'. $size .'/'. $image_node->uploadedfilename .'" width="'. $image_info['width'] .'" height="'. $image_info['height'] .'" alt="'. $alt .'" />';
+  
+  if ($vars && (!isset($vars['caption']) || $vars['caption'] == '') && $image_node->body) {
+    $vars['caption'] = $image_node->body;
+  }
+  
+  return $image;
+}
+
+/**
+ * Get a reverse-ordered list (largest to smallest) of the media module's image size labels.
+ */
+function middlebury_monster_menus_get_image_sizes() {
+  $sizes = array(0 => 'original');
+  
+  $medias = array();
+  foreach(_media_image_get_sizes() as $id => $media) {
+    $medias[$media['width']] = $media['label'];
+  }
+  krsort($medias);
+  
+  foreach($medias as $width => $label) {
+    $sizes[] = $label;
+  }
+  
+  return $sizes;
+}
+
+/**
+ * Get the full site URL for a node based on its node id or, if it appears on more the one page, its nid and mmtid.
+ *
+ * @param $nid
+ *   The node id of the node to retrieve.
+ * @param $mmtid
+ *   Optionally, a mmtid of a page used to bound the search for the node.
+ */
+function middlebury_monster_menus_get_nid_url($nid, $mmtid = null) {
+  $url = 'node/' . $nid;
+  $tid = null;
+
+  if ($mmtid == null) {
+    $tid = db_result(db_query_range('SELECT n.mmtid FROM {mm_node2tree} n WHERE n.nid = %d', array($nid), 0, 1));
+  } else {
+    $tid = db_result(db_query_range('SELECT n.mmtid FROM {mm_node2tree} n JOIN {mm_tree} m ON (m.mmtid = n.mmtid) JOIN {mm_tree_parents} t ON (m.mmtid = t.mmtid) WHERE n.nid = %d AND (m.mmtid = %d OR m.parent = %d OR t.parent = %d)', array($nid, $mmtid, $mmtid, $mmtid), 0, 1));
+  }
+
+  if ($tid) {
+    $tid = 'mm/' . $tid;
+    custom_url_rewrite_outbound($tid, $options, $tid);
+    $url = $tid;
+  }
+
+  return $url;
+}
+
+/**
+ * Get a new SimplePie feed object.
+ *
+ * @param $url
+ *   The URL of the RSS feed.
+ * @param $cache
+ *   Whether to enable the feed cache.
+ */
+function middlebury_monster_menus_get_simplepie($url, $cache = TRUE) {
+  if (!class_exists('SimplePie')) {
+    module_load_include('inc', 'rss_page', 'simplepie');
+  }
+
+  $feed = new SimplePie();  
+  $feed->set_feed_url($url);
+  if ($cache) {
+    $feed->set_cache_location(variable_get('rss_page_cache_path', RSS_PAGE_CACHE_PATH_DEFAULT));
+  } else {
+    $feed->enable_cache($cache);
+  }
+  $feed->init();
+
+  if (isset($feed->error) && $feed->error) return FALSE;
+  
+  $feed->handle_content_type();
+
+  return $feed;
+}
+
+/**
+ * Implementation of hook_init().
+ */
+function middlebury_monster_menus_init() {
+  drupal_add_js(drupal_get_path('module', 'middlebury_monster_menus') .'/editconsole.js', 'module', 'footer');
+  drupal_add_js(drupal_get_path('module', 'middlebury_monster_menus') .'/jquery.cookie.js', 'module', 'footer');
+  drupal_add_js(drupal_get_path('module', 'middlebury_monster_menus') .'/tabledrag.js', 'module', 'footer');
+  drupal_add_css(drupal_get_path('module', 'middlebury_monster_menus') .'/middlebury_monster_menus.css', 'module', 'all');
+  jquery_ui_add('effects.core');
+}
+
+/**
+ * Implementation of hook_link_alter().
+ */
+function middlebury_monster_menus_link_alter(&$links, $node) {
+  $title = $node->title;
+
+  if (empty($node->title)) {
+    $n = node_load($node->nid);
+    if (empty($n->title)) return;
+    $title = $n->title;
+  }
+
+  $title = ' "' . (mb_strlen($title) > 20 ? mb_substr($title, 0, 20) . '...' : $title) . '"';
+
+  foreach($links as &$link) {
+    switch($link['title']) {
+      case 'Edit':
+      case 'Delete':
+        $link['title'] .= $title;
+        break;
+      case 'Revisions':
+        $link['title'] = 'View ' . $link['title'] . ' of' . $title;
+        break;
+      default:
+        break;
+    }
+  }
+
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function middlebury_monster_menus_menu() {
+  $items['middlebury_monster_menus/show_hide_links'] = array(
+    'page callback' => 'middlebury_monster_menus_show_hide_links',
+    'access callback' => 'user_access',
+    'access arguments' => array('acccess user profiles'),
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+function middlebury_monster_menus_show_hide_links() {
+  global $user;
+  profile_load_profile($user);
+  $edit = array(
+    'profile_new_edit_console' => $user->profile_new_edit_console,
+    'profile_show_links_content' => $user->profile_show_links_content,
+    'profile_show_links_2' => $user->profile_show_links_2,
+    'profile_show_links_4' => $user->profile_show_links_4,
+    'profile_show_links_5' => $user->profile_show_links_5,
+    'profile_show_links_6' => $user->profile_show_links_6,
+    'profile_show_links_7' => $user->profile_show_links_7,
+    'profile_show_links_8' => $user->profile_show_links_8,
+    'profile_show_links_9' => $user->profile_show_links_9,
+  );
+  $edit[$_GET['profile']] = $_GET['show'];
+  profile_save_profile($edit, $user, "Interface Settings");
+}
+
+/**
+ * Implementation of hook_preprocess_node().
+ */
+function middlebury_monster_menus_preprocess_node(&$vars) {
+  if (isset($vars['node']->template_files)) {
+    $vars['template_files'] = array_merge($vars['template_files'], $vars['node']->template_files);
+    unset($vars['node']->template_files);
+  }
+}
+
+/**
+ * Implementation of hook_preprocess_page().
+ */
+function middlebury_monster_menus_preprocess_page(&$vars) {
+  if (!empty($vars['scripts'])) {
+    $scripts = drupal_add_js();
+
+    unset($scripts['core']['misc/jquery.js']);
+    unset($scripts['core']['misc/tabledrag.js']);
+    $vars['scripts'] = drupal_get_js('header', $scripts);
+
+    $version = '1.5.2';
+    if ($vars['is_front'] && strpos($_SERVER['HTTP_USER_AGENT'], "MSIE 7.0") !== FALSE) $version = '1.4.2';
+    $vars['scripts'] = '<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/'.$version.'/jquery.min.js"></script>'. $vars['scripts'];
+  }
+
+  if (in_array('page-mm-settings', $vars['template_files'])) {
+    drupal_add_css(drupal_get_path('module', 'middlebury_monster_menus') .'/settings_page.css', 'module', 'all');
+    $vars['styles'] = drupal_get_css();
+  }
+}
+
+?>

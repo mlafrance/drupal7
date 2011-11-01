@@ -1,0 +1,6 @@
+name = Midd Monster Menus Module
+description = Utilities and Overrides for Monster Menus
+package = "Middlebury"
+core = 6.x
+dependencies[] = "jquery_ui"
+dependencies[] = "monster_menus"

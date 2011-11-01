@@ -1,0 +1,24 @@
+/* Editing Interface */
+div#TB_window { z-index: 600; }
+body > div#tabs-wrapper { position: absolute; left: 0; float: left; z-index: 600; }
+span#tabs-title { background: #5a8a84; color: #fff; width: 100px; padding: 2px; }
+div#tabs-content { background: #fff; border: solid 2px #5a8a84; }
+a#login { color: #fff; font-size:0.929em; color:#D2D4D6; margin-top:20px; display:block; float:left; border-bottom:none; text-decoration:underline; padding:3px; }
+a#login:hover,#left.blue a#login:hover { background-color:#036; }
+html.js .resizable-textarea textarea { width: 94%; }
+
+/* Date Picker */
+#ui-datepicker-div { background: #fff; border:1px solid black; }
+
+#autocomplete { background: #fff; }
+
+/* Media Assist */
+.fg-menu-container { background: #fff; }
+.mm-page-wrapper { background: transparent; padding:4px; }
+.media-assist #mmtree-browse #mmtree-browse-nav { background: #071427; }
+
+/* Add new Content table */
+div.mm-admin-types { float:left; margin-top:20px; }
+
+/* Disable Preview button */
+#edit-preview { display:none; }

@@ -1,0 +1,5 @@
+/* www.middlebury.edu */
+body.sidebar div#content.container div#page div#body div.sidebar { display:none; }
+body.sidebar div#content.container div#page div#body form#mm-ui-content-edit { width: 660px; }
+body.sidebar div#content.container div#page div#body form#mm-ui-content-edit div fieldset { width: 100%; }
+body.sidebar div#content.container div#page div#body td>div#block-monster-menus-2 { display:none; }
