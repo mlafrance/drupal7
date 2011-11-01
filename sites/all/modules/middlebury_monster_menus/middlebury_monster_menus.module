@@ -80,12 +80,12 @@ function middlebury_monster_menus_get_image_sizes() {
   $sizes = array(0 => 'original');
 
   $medias = array();
-  foreach(_media_image_get_sizes() as $id => $media) {
+  foreach (_media_image_get_sizes() as $id => $media) {
     $medias[$media['width']] = $media['label'];
   }
   krsort($medias);
 
-  foreach($medias as $width => $label) {
+  foreach ($medias as $width => $label) {
     $sizes[] = $label;
   }
 
@@ -173,8 +173,8 @@ function middlebury_monster_menus_link_alter(&$links, $node) {
 
   $title = ' "' . (mb_strlen($title) > 20 ? mb_substr($title, 0, 20) . '...' : $title) . '"';
 
-  foreach($links as &$link) {
-    switch($link['title']) {
+  foreach ($links as &$link) {
+    switch ($link['title']) {
       case 'Edit':
       case 'Delete':
         $link['title'] .= $title;
