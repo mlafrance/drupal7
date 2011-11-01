@@ -100,11 +100,11 @@ function middlebury_monster_menus_get_image_sizes() {
  * @param $mmtid
  *   Optionally, a mmtid of a page used to bound the search for the node.
  */
-function middlebury_monster_menus_get_nid_url($nid, $mmtid = null) {
+function middlebury_monster_menus_get_nid_url($nid, $mmtid = NULL) {
   $url = 'node/' . $nid;
-  $tid = null;
+  $tid = NULL;
 
-  if ($mmtid == null) {
+  if ($mmtid == NULL) {
     $tid = db_result(db_query_range('SELECT n.mmtid FROM {mm_node2tree} n WHERE n.nid = %d', array($nid), 0, 1));
   } else {
     $tid = db_result(db_query_range('SELECT n.mmtid FROM {mm_node2tree} n JOIN {mm_tree} m ON (m.mmtid = n.mmtid) JOIN {mm_tree_parents} t ON (m.mmtid = t.mmtid) WHERE n.nid = %d AND (m.mmtid = %d OR m.parent = %d OR t.parent = %d)', array($nid, $mmtid, $mmtid, $mmtid), 0, 1));
