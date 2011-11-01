@@ -31,3 +31,6 @@
 [submodule "sites/all/modules/views_random_seed"]
 	path = sites/all/modules/views_random_seed
 	url = http://git.drupal.org/project/views_random_seed.git
+[submodule "sites/all/modules/libraries"]
+	path = sites/all/modules/libraries
+	url = http://git.drupal.org/project/libraries.git
