@@ -22,3 +22,6 @@
 [submodule "sites/all/modules/views"]
 	path = sites/all/modules/views
 	url = http://git.drupal.org/project/views.git
+[submodule "sites/all/modules/better_exposed_filters"]
+	path = sites/all/modules/better_exposed_filters
+	url = http://git.drupal.org/project/better_exposed_filters.git
