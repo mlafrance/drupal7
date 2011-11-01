@@ -253,5 +253,3 @@ function middlebury_monster_menus_preprocess_page(&$vars) {
     $vars['styles'] = drupal_get_css();
   }
 }
-
-?>
