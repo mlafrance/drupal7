@@ -44,7 +44,7 @@ function middlebury_monster_menus_get_image($nid, $width = NULL, $height = NULL,
   
   $image_node = node_load(array('nid' => $nid));
   
-  while($size != 'original' && (!isset($image_node->images[$size]) || is_null($image_node->images[$size]))) {
+  while ($size != 'original' && (!isset($image_node->images[$size]) || is_null($image_node->images[$size]))) {
     $size = $sizes[array_search($size, $sizes) - 1];
   }
   
