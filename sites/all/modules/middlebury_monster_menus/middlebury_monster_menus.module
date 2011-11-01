@@ -12,7 +12,7 @@ function middlebury_monster_menus_form_mm_ui_content_edit_alter(&$form, &$form_s
   $form['settings_archive']['#weight'] = 6;
   $form['buttons']['#weight'] = 10;
   
-  foreach($form['settings_perms']['table']['groups'] as &$group) {
+  foreach ($form['settings_perms']['table']['groups'] as &$group) {
     if (is_array($group) && !empty($group[0][0][0])) {
       $group[0][0][0]['#value'] = preg_replace('/<a href=\"[^\"]*\">Edit this group<\/a>/', '<a href="https://login.middlebury.edu/groups">Edit this group</a>', $group[0][0][0]['#value']);
     }
