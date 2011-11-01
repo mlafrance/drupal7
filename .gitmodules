@@ -28,3 +28,6 @@
 [submodule "sites/all/modules/insert_view"]
 	path = sites/all/modules/insert_view
 	url = http://git.drupal.org/project/insert_view.git
+[submodule "sites/all/modules/views_random_seed"]
+	path = sites/all/modules/views_random_seed
+	url = http://git.drupal.org/project/views_random_seed.git
