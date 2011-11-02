@@ -3,7 +3,7 @@
 	url = git://github.com/middlebury/drupal.git
 [submodule "sites/all/modules/monster_menus"]
 	path = sites/all/modules/monster_menus
-	url = http://git.drupal.org/sandbox/gribnif/1118296.git
+	url = git://github.com/middlebury/monster_menus.git
 [submodule "sites/all/modules/devel"]
 	path = sites/all/modules/devel
 	url = http://git.drupal.org/project/devel.git
