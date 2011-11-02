@@ -13,17 +13,10 @@ function middlebury_monster_menus_form_mm_ui_content_edit_alter(&$form, &$form_s
   $form['buttons']['#weight'] = 10;
 
   foreach ($form['settings_perms']['table']['groups'] as &$group) {
-    if (is_array($group) && !empty($group[0][0][0])) {
+    if (is_array($group) && !empty($group[0][0][0]) && !empty($group[0][0][0]['#value'])) {
       $group[0][0][0]['#value'] = preg_replace('/<a href=\"[^\"]*\">Edit this group<\/a>/', '<a href="https://login.middlebury.edu/groups">Edit this group</a>', $group[0][0][0]['#value']);
     }
   }
-}
-
-/**
- * Implements hook_form_alter().
- */
-function middlebury_monster_menus_form_page_node_form_alter(&$form, &$form_state) {
-  $form['revision_information']['#collapsed'] = TRUE;
 }
 
 /**
