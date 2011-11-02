@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Installation script for the Midd Go module
+ */
+
+/**
  * Upgrade middlebury_go module from D6 to D7, rename from go.module to middlebury_go.module
  */
 function middlebury_go_update_7000() {

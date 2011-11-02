@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * @file
@@ -7,17 +6,16 @@
  */
 
 /**
- * Implementation of hook_menu()
- *
+ * Implements hook_menu().
  */
-function middlebury_go_menu () {
+function middlebury_go_menu() {
   $items['middlebury_go/search'] = array(
-    'page callback' => 'middlebury_go_handle_search',
+    'page callback' => 'middlebury_go_handle_query',
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
-   $items['admin/settings/middlebury_go'] = array(
-    'title' => t('Go Settings'),
+  $items['admin/settings/middlebury_go'] = array(
+    'title' => 'Go Settings',
     'description' => 'Configure settings for Go search.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('middlebury_go_admin_settings'),
@@ -32,7 +30,7 @@ function middlebury_go_menu () {
  *
  * @return array
  */
-function middlebury_go_admin_settings () {
+function middlebury_go_admin_settings() {
   $form['database'] = array(
     '#type' => 'fieldset',
     '#title' => t('Go Database Settings'),
@@ -83,10 +81,15 @@ function middlebury_go_admin_settings () {
 }
 
 /**
- * Implementation of hook_perm().
+ * Implements hook_permission().
  */
-function middlebury_go_perm() {
-  return array('administer go');
+function middlebury_go_permission() {
+  return array(
+    'administer go' => array(
+      'title' => t('Administer Midd Go'),
+      'description' => t('Perform administration tasks for Midd Go.'),
+    ),
+  );
 }
 
 /**
@@ -94,8 +97,8 @@ function middlebury_go_perm() {
  *
  * @return void
  */
-function middlebury_go_handle_search () {
-  drupal_set_header('Content-Type: text/plain');
+function middlebury_go_handle_query() {
+  drupal_add_http_header('Content-Type', 'text/plain');
 
   try {
     if (isset($_GET['limit']))
@@ -107,14 +110,14 @@ function middlebury_go_handle_search () {
     else
       $all = 0;
     foreach (middlebury_go_query($_GET['query'], $limit, $all) as $name) {
-      print $name."\n";
+      print $name . "\n";
     }
   } catch (InvalidArgumentException $e) {
-    drupal_set_header('HTTP/1.1 400 Bad Request');
+    drupal_add_http_header('Status', '400 Bad Request');
     print $e->getMessage();
     watchdog('MiddleburyGO', $e->getMessage(), array(), WATCHDOG_NOTICE);
   } catch (Exception $e) {
-    drupal_set_header('HTTP/1.1 500 Internal Server Error');
+    drupal_add_http_header('Status', '500 Internal Server Error');
     print $e->getMessage();
     watchdog('MiddleburyGO', $e->getMessage(), array(), WATCHDOG_ERROR);
   }
@@ -128,7 +131,7 @@ function middlebury_go_handle_search () {
  * @param bool $all
  * @return array
  */
-function middlebury_go_query ($query, $max = 100, $all = 0) {
+function middlebury_go_query($query, $max = 100, $all = 0) {
   if (!is_string($query))
     throw new InvalidArgumentException('$query must be a string.');
 
@@ -140,14 +143,15 @@ function middlebury_go_query ($query, $max = 100, $all = 0) {
   $pdo = middlebury_go_pdo();
 
   if ($inst = variable_get('middlebury_go_scope_institution', '')) {
-    $stmt = $pdo->prepare("SELECT name FROM (SELECT code.name FROM code WHERE code.unsearchable=:all AND code.name LIKE (:name1) AND code.institution=:inst1 UNION SELECT alias.name FROM alias WHERE alias.name LIKE (:name2) AND alias.institution=:inst2) as code_alias ORDER BY name ASC LIMIT ".$max);
+    $stmt = $pdo->prepare("SELECT name FROM (SELECT code.name FROM code WHERE code.unsearchable=:all AND code.name LIKE (:name1) AND code.institution=:inst1 UNION SELECT alias.name FROM alias WHERE alias.name LIKE (:name2) AND alias.institution=:inst2) as code_alias ORDER BY name ASC LIMIT " . $max);
     $stmt->bindValue(":inst1", $inst);
     $stmt->bindValue(":inst2", $inst);
-  } else {
-    $stmt = $pdo->prepare("SELECT name FROM (SELECT code.name FROM code WHERE code.unsearchable=:all AND code.name LIKE (:name1) UNION SELECT alias.name FROM alias WHERE alias.name LIKE (:name2) ) as code_alias ORDER BY name ASC LIMIT ".$max);
   }
-  $stmt->bindValue(":name1", $query.'%');
-  $stmt->bindValue(":name2", $query.'%');
+  else {
+    $stmt = $pdo->prepare("SELECT name FROM (SELECT code.name FROM code WHERE code.unsearchable=:all AND code.name LIKE (:name1) UNION SELECT alias.name FROM alias WHERE alias.name LIKE (:name2) ) as code_alias ORDER BY name ASC LIMIT " . $max);
+  }
+  $stmt->bindValue(":name1", $query . '%');
+  $stmt->bindValue(":name2", $query . '%');
   $stmt->bindValue(":all", $all);
   $stmt->execute();
   return $stmt->fetchAll(PDO::FETCH_COLUMN);
@@ -161,7 +165,7 @@ function middlebury_go_query ($query, $max = 100, $all = 0) {
  * @param string $query
  * @return string
  */
-function middlebury_go_fetch_url ($name, $all = 0) {
+function middlebury_go_fetch_url($name, $all = 0) {
   if (!is_string($name))
     throw new InvalidArgumentException('$name must be a string.');
 
@@ -174,18 +178,19 @@ function middlebury_go_fetch_url ($name, $all = 0) {
     $stmt = $pdo->prepare("SELECT code.url FROM code LEFT JOIN alias ON (code.name = alias.code) WHERE code.unsearchable=:all AND ((code.name=:name1 AND code.institution=:inst1) OR (alias.name=:name2 AND alias.institution=:inst2))");
     $stmt->bindValue(":inst1", $inst);
     $stmt->bindValue(":inst2", $inst);
-  } else {
+  }
+  else {
     $stmt = $pdo->prepare("SELECT code.url FROM code LEFT JOIN alias ON (code.name = alias.code) WHERE code.unsearchable=:all AND (code.name=:name1 OR alias.name=:name2)");
   }
   $stmt->bindValue(":name1", $name);
   $stmt->bindValue(":name2", $name);
   $stmt->bindValue(":all", $all);
   $stmt->execute();
-  
+
   $row = $stmt->fetch(PDO::FETCH_ASSOC);
   if (!$row)
     throw new Exception('No result matches.');
-  
+
   return $row['url'];
 }
 
@@ -197,7 +202,7 @@ function middlebury_go_fetch_url ($name, $all = 0) {
  * @param string $query
  * @return string
  */
-function middlebury_go_fetch_primary_name ($name, $all = 0) {
+function middlebury_go_fetch_primary_name($name, $all = 0) {
   if (!is_string($name))
     throw new InvalidArgumentException('$name must be a string.');
 
@@ -210,7 +215,8 @@ function middlebury_go_fetch_primary_name ($name, $all = 0) {
     $stmt = $pdo->prepare("SELECT code.name FROM code LEFT JOIN alias ON (code.name = alias.code) WHERE code.unsearchable=:all AND ((code.name=:name1 AND code.institution=:inst1) OR (alias.name=:name2 AND alias.institution=:inst2))");
     $stmt->bindValue(":inst1", $inst);
     $stmt->bindValue(":inst2", $inst);
-  } else {
+  }
+  else {
     $stmt = $pdo->prepare("SELECT code.name FROM code LEFT JOIN alias ON (code.name = alias.code) WHERE code.unsearchable=:all AND (code.name=:name1 OR alias.name=:name2)");
   }
   $stmt->bindValue(":name1", $name);
@@ -230,7 +236,7 @@ function middlebury_go_fetch_primary_name ($name, $all = 0) {
  *
  * @return PDO
  */
-function middlebury_go_pdo () {
+function middlebury_go_pdo() {
   $pdo = new PDO(variable_get('middlebury_go_db_dsn', ''), variable_get('middlebury_go_db_user', ''), variable_get('middlebury_go_db_password', ''));
   $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
   return $pdo;
