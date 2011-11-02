@@ -1,0 +1,23 @@
+<?php
+
+/**
+ * Upgrade middlebury_go module from D6 to D7, rename from go.module to middlebury_go.module
+ */
+function middlebury_go_update_7000() {
+  // Rename variables
+  $rename = array(
+    'middlebury_go_db_dsn' => 'go_db_dsn',
+    'middlebury_go_db_user' => 'go_db_user',
+    'middlebury_go_db_password' => 'go_db_password',
+    'middlebury_go_scope_institution' => 'go_scope_institution',
+  );
+
+  foreach ($rename as $new => $old) {
+    if (($val = variable_get($old, '-1234abcd-')) !== '-1234abcd-') {
+      variable_set($new, $val);
+      variable_delete($old);
+    }
+  }
+
+  return t('Renamed variables to migrate go module to middlebury_go module.');
+}

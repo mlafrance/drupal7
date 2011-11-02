@@ -11,16 +11,16 @@
  *
  */
 function middlebury_go_menu () {
-  $items['go/search'] = array(
-    'page callback' => 'go_handle_search',
+  $items['middlebury_go/search'] = array(
+    'page callback' => 'middlebury_go_handle_search',
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
-   $items['admin/settings/go'] = array(
+   $items['admin/settings/middlebury_go'] = array(
     'title' => t('Go Settings'),
     'description' => 'Configure settings for Go search.',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('go_admin_settings'),
+    'page arguments' => array('middlebury_go_admin_settings'),
     'access arguments' => array('administer go'),
     'type' => MENU_NORMAL_ITEM,
   );
@@ -40,26 +40,26 @@ function middlebury_go_admin_settings () {
     '#collapsed' => FALSE,
   );
 
-  $form['database']['go_db_dsn'] = array(
+  $form['database']['middlebury_go_db_dsn'] = array(
     '#type' => 'textfield',
     '#title' => t('DSN'),
-    '#default_value' => variable_get('go_db_dsn', ''),
+    '#default_value' => variable_get('middlebury_go_db_dsn', ''),
     '#size' => 75,
     '#description' => t('A PDO DSN<br/><br/>Example: <code>mysql:host=host.example.edu;dbname=go</code>'),
   );
 
-  $form['database']['go_db_user'] = array(
+  $form['database']['middlebury_go_db_user'] = array(
     '#type' => 'textfield',
     '#title' => t('Username'),
-    '#default_value' => variable_get('go_db_user', ''),
+    '#default_value' => variable_get('middlebury_go_db_user', ''),
     '#size' => 75,
     '#description' => t('The username to use to connect to the go database.'),
   );
 
-  $form['database']['go_db_password'] = array(
+  $form['database']['middlebury_go_db_password'] = array(
     '#type' => 'textfield',
     '#title' => t('Password'),
-    '#default_value' => variable_get('go_db_password', ''),
+    '#default_value' => variable_get('middlebury_go_db_password', ''),
     '#size' => 75,
     '#description' => t('The password to use to connect to the go database.'),
   );
@@ -71,10 +71,10 @@ function middlebury_go_admin_settings () {
     '#collapsed' => FALSE,
   );
 
-  $form['scope']['go_scope_institution'] = array(
+  $form['scope']['middlebury_go_scope_institution'] = array(
     '#type' => 'textfield',
     '#title' => t('Scope'),
-    '#default_value' => variable_get('go_scope_institution', ''),
+    '#default_value' => variable_get('middlebury_go_scope_institution', ''),
     '#size' => 75,
     '#description' => t('The institution whose go links you want to search. Ex: middlebury.edu'),
   );
@@ -106,17 +106,17 @@ function middlebury_go_handle_search () {
       $all = intval($_GET['all']);
     else
       $all = 0;
-    foreach (go_query($_GET['query'], $limit, $all) as $name) {
+    foreach (middlebury_go_query($_GET['query'], $limit, $all) as $name) {
       print $name."\n";
     }
   } catch (InvalidArgumentException $e) {
     drupal_set_header('HTTP/1.1 400 Bad Request');
     print $e->getMessage();
-    watchdog('SubmitStory', $e->getMessage(), array(), WATCHDOG_NOTICE);
+    watchdog('MiddleburyGO', $e->getMessage(), array(), WATCHDOG_NOTICE);
   } catch (Exception $e) {
     drupal_set_header('HTTP/1.1 500 Internal Server Error');
     print $e->getMessage();
-    watchdog('SubmitStory', $e->getMessage(), array(), WATCHDOG_ERROR);
+    watchdog('MiddleburyGO', $e->getMessage(), array(), WATCHDOG_ERROR);
   }
 }
 
@@ -137,9 +137,9 @@ function middlebury_go_query ($query, $max = 100, $all = 0) {
 
   $max = max(1, intval($max));
 
-  $pdo = go_pdo();
+  $pdo = middlebury_go_pdo();
 
-  if ($inst = variable_get('go_scope_institution', '')) {
+  if ($inst = variable_get('middlebury_go_scope_institution', '')) {
     $stmt = $pdo->prepare("SELECT name FROM (SELECT code.name FROM code WHERE code.unsearchable=:all AND code.name LIKE (:name1) AND code.institution=:inst1 UNION SELECT alias.name FROM alias WHERE alias.name LIKE (:name2) AND alias.institution=:inst2) as code_alias ORDER BY name ASC LIMIT ".$max);
     $stmt->bindValue(":inst1", $inst);
     $stmt->bindValue(":inst2", $inst);
@@ -168,9 +168,9 @@ function middlebury_go_fetch_url ($name, $all = 0) {
   if (!strlen($name))
     return array();
 
-  $pdo = go_pdo();
+  $pdo = middlebury_go_pdo();
 
-  if ($inst = variable_get('go_scope_institution', '')) {
+  if ($inst = variable_get('middlebury_go_scope_institution', '')) {
     $stmt = $pdo->prepare("SELECT code.url FROM code LEFT JOIN alias ON (code.name = alias.code) WHERE code.unsearchable=:all AND ((code.name=:name1 AND code.institution=:inst1) OR (alias.name=:name2 AND alias.institution=:inst2))");
     $stmt->bindValue(":inst1", $inst);
     $stmt->bindValue(":inst2", $inst);
@@ -204,7 +204,7 @@ function middlebury_go_fetch_primary_name ($name, $all = 0) {
   if (!strlen($name))
     return array();
 
-  $pdo = go_pdo();
+  $pdo = middlebury_go_pdo();
 
   if ($inst = variable_get('go_scope_institution', '')) {
     $stmt = $pdo->prepare("SELECT code.name FROM code LEFT JOIN alias ON (code.name = alias.code) WHERE code.unsearchable=:all AND ((code.name=:name1 AND code.institution=:inst1) OR (alias.name=:name2 AND alias.institution=:inst2))");
@@ -231,7 +231,7 @@ function middlebury_go_fetch_primary_name ($name, $all = 0) {
  * @return PDO
  */
 function middlebury_go_pdo () {
-  $pdo = new PDO(variable_get('go_db_dsn', ''), variable_get('go_db_user', ''), variable_get('go_db_password', ''));
+  $pdo = new PDO(variable_get('middlebury_go_db_dsn', ''), variable_get('middlebury_go_db_user', ''), variable_get('middlebury_go_db_password', ''));
   $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
   return $pdo;
 }
