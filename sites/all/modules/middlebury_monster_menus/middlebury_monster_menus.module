@@ -159,9 +159,7 @@ function middlebury_monster_menus_get_simplepie($url, $cache = TRUE) {
 function middlebury_monster_menus_init() {
   drupal_add_js(drupal_get_path('module', 'middlebury_monster_menus') . '/editconsole.js', 'module', 'footer');
   drupal_add_js(drupal_get_path('module', 'middlebury_monster_menus') . '/jquery.cookie.js', 'module', 'footer');
-  drupal_add_js(drupal_get_path('module', 'middlebury_monster_menus') . '/tabledrag.js', 'module', 'footer');
   drupal_add_css(drupal_get_path('module', 'middlebury_monster_menus') . '/middlebury_monster_menus.css', 'module', 'all');
-  jquery_ui_add('effects.core');
 }
 
 /**
@@ -242,18 +240,6 @@ function middlebury_monster_menus_preprocess_node(&$vars) {
  * Implements hook_preprocess_page().
  */
 function middlebury_monster_menus_preprocess_page(&$vars) {
-  if (!empty($vars['scripts'])) {
-    $scripts = drupal_add_js();
-
-    unset($scripts['core']['misc/jquery.js']);
-    unset($scripts['core']['misc/tabledrag.js']);
-    $vars['scripts'] = drupal_get_js('header', $scripts);
-
-    $version = '1.5.2';
-    if ($vars['is_front'] && strpos($_SERVER['HTTP_USER_AGENT'], "MSIE 7.0") !== FALSE) $version = '1.4.2';
-    $vars['scripts'] = '<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/' . $version . '/jquery.min.js"></script>' . $vars['scripts'];
-  }
-
   if (in_array('page-mm-settings', $vars['template_files'])) {
     drupal_add_css(drupal_get_path('module', 'middlebury_monster_menus') . '/settings_page.css', 'module', 'all');
     $vars['styles'] = drupal_get_css();
