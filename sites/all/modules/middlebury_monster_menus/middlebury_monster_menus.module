@@ -230,7 +230,7 @@ function middlebury_monster_menus_preprocess_node(&$vars) {
  * Implements hook_preprocess_page().
  */
 function middlebury_monster_menus_preprocess_page(&$vars) {
-  if (in_array('page-mm-settings', $vars['template_files'])) {
+  if (!empty($vars['template_files']) && in_array('page-mm-settings', $vars['template_files'])) {
     drupal_add_css(drupal_get_path('module', 'middlebury_monster_menus') . '/settings_page.css', 'module', 'all');
     $vars['styles'] = drupal_get_css();
   }
