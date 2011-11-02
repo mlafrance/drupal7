@@ -3,4 +3,5 @@ description = Utilities and Overrides for Monster Menus
 core = 7.x
 package = Middlebury
 dependencies[] = libraries
+dependencies[] = mm_media
 dependencies[] = monster_menus
