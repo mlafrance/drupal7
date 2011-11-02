@@ -31,6 +31,13 @@ function middlebury_video_filter_flash($video, $params = array()) {
 }
 
 /**
+ * Wrapper that calls the theme function.
+ */
+function middlebury_video_filter_hulu_flash($video, $params = array()) {
+  return theme('middlebury_video_filter_hulu', $video, $params);
+}
+
+/**
  * Implements hook_menu().
  *
  * @return an array of menu items
@@ -178,6 +185,17 @@ function theme_middlebury_video_filter_flash($video, $params) {
 }
 
 /**
+ * Function that outputs the <object> element.
+ *
+ * @ingroup themeable
+ */
+function theme_middlebury_video_filter_hulu($video, $params) {
+  $output = '<object width="' . $video['width'] . '" height="' . $video['height'] . '"><param name="movie" value="' . $video['source'] . '"></param><param name="allowFullScreen" value="true"></param><embed src="' . $video['source'] . '" type="application/x-shockwave-flash" width="' . $video['width'] . '" height="' . $video['height'] . '" allowFullScreen="true"></embed></object>';
+
+  return $output;
+}
+
+/**
  * Wrapper that calls the theme function.
  */
 function middlebury_video_filter_iframe($video, $params = array()) {
@@ -207,6 +225,9 @@ function theme_middlebury_video_filter_iframe($video, $params) {
 function middlebury_video_filter_theme($existing, $type, $theme, $path) {
   return array(
     'middlebury_video_filter_flash' => array(
+      'arguments' => array('video' => NULL, 'params' => array()),
+    ),
+    'middlebury_video_filter_hulu_flash' => array(
       'arguments' => array('video' => NULL, 'params' => array()),
     ),
     'middlebury_video_filter_iframe' => array(

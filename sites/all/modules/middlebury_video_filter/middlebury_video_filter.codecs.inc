@@ -8,6 +8,13 @@
 function middlebury_video_filter_codec_info() {
   $codecs = array();
 
+  $codecs['hulu'] = array(
+    'name' => t('Hulu'),
+    'callback' => 'middlebury_video_filter_hulu',
+    'regexp' => '/hulu.com\/embed\/([a-zA-Z0-9\-_]+)$/i',
+    'ratio' => 512 / 288,
+  );
+
   $codecs['middmedia'] = array(
     'name' => t('MiddMedia'),
     'callback' => 'middlebury_video_filter_middmedia',
@@ -16,6 +23,12 @@ function middlebury_video_filter_codec_info() {
   );
 
   return $codecs;
+}
+
+function middlebury_video_filter_hulu($video) {
+  $video['source'] = 'http://www.hulu.com/embed/' . $video['codec']['matches'][1];
+
+  return middlebury_video_filter_hulu_flash($video);
 }
 
 function middlebury_video_filter_middmedia($video) {
