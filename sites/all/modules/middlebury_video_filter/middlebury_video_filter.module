@@ -6,21 +6,21 @@ module_load_include('inc', 'middlebury_video_filter', 'middlebury_video_filter.c
  * Returns the markup to embed a video from MiddMedia
  */
 function middlebury_video_filter_embed() {
-	header('Content-Type: text/html');
-	$keys = array('width', 'height', 'align', 'autoplay', 'autorewind', 'loop', 'image', 'ratio');
+  drupal_add_http_header('Content-Type', 'text/html');
+  $keys = array('width', 'height', 'align', 'autoplay', 'autorewind', 'loop', 'image', 'ratio');
 
-	if (!in_array('video', array_keys($_GET))) return;
-	$video = '[video:'. str_replace(' ', '%20', $_GET['video']) .' ';
-	$video = str_replace('youtube.com/v/', 'youtube.com/watch?v=', $video);
+  if (!in_array('video', array_keys($_GET))) return;
+  $video = '[video:' . str_replace(' ', '%20', $_GET['video']) . ' ';
+  $video = str_replace('youtube.com/v/', 'youtube.com/watch?v=', $video);
 
-	foreach($_GET as $key => $value) {
-		if (in_array($key, $keys)) {
-			$video .= $key .':'. $value .' ';
-		}
-	}
+  foreach ($_GET as $key => $value) {
+    if (in_array($key, $keys)) {
+      $video .= $key . ':' . $value . ' ';
+    }
+  }
 
-	$video = trim($video) .']';
-	print video_filter_process($video);
+  $video = trim($video) . ']';
+  print video_filter_process($video);
 }
 
 /**
@@ -31,7 +31,7 @@ function middlebury_video_filter_flash($video, $params = array()) {
 }
 
 /**
- * Implement hook_menu().
+ * Implements hook_menu().
  *
  * @return an array of menu items
  */
@@ -39,11 +39,11 @@ function middlebury_video_filter_menu() {
   $items = array();
 
   $items['middlebury_video_filter/embed'] = array(
-  	'title' => t('Midd Embed Code'),
-  	'description' => t('Returns the markup to embed a video from MiddMedia'),
-  	'page callback' => 'middlebury_video_filter_embed',
-  	'access callback' => TRUE,
-  	'type' => MENU_CALLBACK,
+    'title' => 'Midd Embed Code',
+    'description' => 'Returns the markup to embed a video from MiddMedia',
+    'page callback' => 'middlebury_video_filter_embed',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
   );
 
   return $items;
@@ -55,26 +55,26 @@ function middlebury_video_filter_menu() {
  * @ingroup themeable
  */
 function theme_middlebury_video_filter_flash($video, $params) {
-  drupal_add_js(drupal_get_path('module', 'middlebury_video_filter') .'/middlebury_video_filter.js', 'module', 'footer');
+  drupal_add_js(drupal_get_path('module', 'middlebury_video_filter') . '/middlebury_video_filter.js', 'module', 'footer');
 
   $output = '';
   if (isset($video['extension']) && $video['extension'] == "mp3") {
-    $output .= '<audio src="http://middmedia.middlebury.edu/media/'. $video['user'] .'/mp3/'. urldecode($video['filename']) . '.' . $video['extension'] . '" controls="true"';
-      
+    $output .= '<audio src="http://middmedia.middlebury.edu/media/' . $video['user'] . '/mp3/' . urldecode($video['filename']) . '.' . $video['extension'] . '" controls="true"';
+
     if (isset($video['align']) && !empty($video['align'])) {
-      $output .= ' style="float:'.$video['align'].'" ';
+      $output .= ' style="float:' . $video['align'] . '" ';
     }
-      
+
     if (isset($video['autoplay']) && !empty($video['autoplay'])) {
-      $output .= ' autoplay="'. $video['autoplay'] .'"';
+      $output .= ' autoplay="' . $video['autoplay'] . '"';
     }
-      
+
     if (isset($video['loop']) && !empty($video['loop'])) {
-      $output .= ' loop="'. $video['loop'] .'"';
+      $output .= ' loop="' . $video['loop'] . '"';
     }
 
     $output .= '>';
-    
+
     $output .= '<script type="text/javascript" src="http://middmedia.middlebury.edu/AudioPlayer/audio-player.js"></script>';
 
     $output .= '<object width="290" height="24" ';
@@ -82,7 +82,7 @@ function theme_middlebury_video_filter_flash($video, $params) {
     $output .= 'data="http://middmedia.middlebury.edu/AudioPlayer/player.swf" ';
 
     $output .= 'type="application/x-shockwave-flash">';
-    
+
     $output .= '<param value="http://middmedia.middlebury.edu/AudioPlayer/player.swf" name="movie" />';
 
     $output .= '<param value="high" name="quality" />';
@@ -91,34 +91,35 @@ function theme_middlebury_video_filter_flash($video, $params) {
 
     $output .= '<param value="transparent" name="wmode" />';
 
-    $output .= '<param value="soundFile=http://middmedia.middlebury.edu/media/'. $video['user'] .'/mp3/'. urldecode($video['filename']) . '.' . $video['extension'] . '" name="FlashVars" />';
+    $output .= '<param value="soundFile=http://middmedia.middlebury.edu/media/' . $video['user'] . '/mp3/' . urldecode($video['filename']) . '.' . $video['extension'] . '" name="FlashVars" />';
 
     $output .= '</object>';
 
-    $output .= '</audio>'."\n";
-  } else {
+    $output .= '</audio>' . "\n";
+  }
+  else {
     if (!isset($video['image'])) $video['image'] = 'http://middmedia.middlebury.edu/media/' . $video['user'] . '/full_frame/' . $video['filename'] . '.jpg';
 
     if ($video['extension'] != 'flv') {
-      $output .= '<video width="'. $video['width'] .'" height="'. $video['height'] .'" controls poster="' . $video['image'] .'"';
-  
+      $output .= '<video width="' . $video['width'] . '" height="' . $video['height'] . '" controls poster="' . $video['image'] . '"';
+
       if (isset($video['align']) && !empty($video['align'])) {
-        $output .= ' style="float:'.$video['align'].'" ';
+        $output .= ' style="float:' . $video['align'] . '" ';
       }
-        
+
       if (isset($video['autoplay']) && !empty($video['autoplay'])) {
-        $output .= ' autoplay="'. $video['autoplay'] .'"';
+        $output .= ' autoplay="' . $video['autoplay'] . '"';
       }
-        
+
       if (isset($video['loop']) && !empty($video['loop'])) {
-        $output .= ' loop="'. $video['loop'] .'"';
+        $output .= ' loop="' . $video['loop'] . '"';
       }
-  
+
       $output .= '>';
-  
-      $output .= '<source src="http://middmedia.middlebury.edu/media/'. $video['user'] . '/mp4/' . $video['filename'] .'.mp4" type=\'video/mp4; codecs="avc1.42E01E, mp4a.40.2"\' />';
-      
-      $output .= '<source src="http://middmedia.middlebury.edu/media/'. $video['user'] . '/webm/' . $video['filename'] .'.webm" type=\'video/webm; codecs="vp8, vorbis"\' />';
+
+      $output .= '<source src="http://middmedia.middlebury.edu/media/' . $video['user'] . '/mp4/' . $video['filename'] . '.mp4" type=\'video/mp4; codecs="avc1.42E01E, mp4a.40.2"\' />';
+
+      $output .= '<source src="http://middmedia.middlebury.edu/media/' . $video['user'] . '/webm/' . $video['filename'] . '.webm" type=\'video/webm; codecs="vp8, vorbis"\' />';
     }
 
     $output .= '<embed src="http://middmedia.middlebury.edu/flowplayer/FlowPlayerLight.swf?config=%7B';
@@ -134,23 +135,24 @@ function theme_middlebury_video_filter_flash($video, $params) {
     $output .= '%2CinitialScale%3A%27fit%27';
 
     if (isset($video['extension']) && $video['extension'] == "flv") {
-      $output .= '%2CvideoFile%3A%27' . $video['user'] .'/'. $video['filename'] . '%27';
-    } else {
-      $output .= '%2CvideoFile%3A%27' . $video['extension'] . ':' . $video['user'] .'/'. $video['filename'] . '.' . $video['extension'] . '%27';
+      $output .= '%2CvideoFile%3A%27' . $video['user'] . '/' . $video['filename'] . '%27';
+    }
+    else {
+      $output .= '%2CvideoFile%3A%27' . $video['extension'] . ':' . $video['user'] . '/' . $video['filename'] . '.' . $video['extension'] . '%27';
     }
 
-    $output .= '%2CsplashImageFile%3A%27'. $video['image'] .'%27';
+    $output .= '%2CsplashImageFile%3A%27' . $video['image'] . '%27';
 
     $output .= '%7D" ';
 
     if (isset($video['align']) && !empty($video['align'])) {
-      $output .= 'style="float:'.$video['align'].'" ';
+      $output .= 'style="float:' . $video['align'] . '" ';
     }
 
-    $output .= 'width="'.$video['width'].'" height="'.$video['height'].'" '."\n";
+    $output .= 'width="' . $video['width'] . '" height="' . $video['height'] . '" ' . "\n";
 
     $output .= 'scale="fit" ';
-    
+
     $output .= 'wmode="transparent" ';
 
     $output .= 'bgcolor="#111111" ';
@@ -162,7 +164,7 @@ function theme_middlebury_video_filter_flash($video, $params) {
     $output .= 'allowNetworking="all" ';
 
     if (isset($video['align']) && !empty($video['align'])) {
-      $output .= 'style="float:'.$video['align'].'" ';
+      $output .= 'style="float:' . $video['align'] . '" ';
     }
 
     $output .= 'pluginspage="http://www.macromedia.com/go/getflashplayer"></embed>';
@@ -188,19 +190,19 @@ function middlebury_video_filter_iframe($video, $params = array()) {
  * @ingroup themeable
  */
 function theme_middlebury_video_filter_iframe($video, $params) {
-  $output = '<iframe class="youtube-player" type="text/html" width="'. $video['width'] .'" height="'. $video['height'] .'" src="'. $video['source']. '" frameborder="0"';
+  $output = '<iframe class="youtube-player" type="text/html" width="' . $video['width'] . '" height="' . $video['height'] . '" src="' . $video['source'] . '" frameborder="0"';
 
   if (isset($video['align']) && !empty($video['align'])) {
-    $output .= ' align="'. $video['align'] . '"';
+    $output .= ' align="' . $video['align'] . '"';
   }
 
-  $output .='></iframe>';
+  $output .= '></iframe>';
 
   return $output;
 }
 
 /**
- * Implementation of hook_theme().
+ * Implements hook_theme().
  */
 function middlebury_video_filter_theme($existing, $type, $theme, $path) {
   return array(

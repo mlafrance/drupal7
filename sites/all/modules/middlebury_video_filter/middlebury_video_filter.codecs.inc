@@ -1,5 +1,9 @@
 <?php
-// $Id: video_filter.codecs.inc,v 1.3.2.7 2009/03/29 20:09:53 blackdog Exp $
+
+/**
+ * @file
+ * Codecs and regular expressions used to parse input content in the middlebury_video_filter module.
+ */
 
 function middlebury_video_filter_codec_info() {
   $codecs = array();
@@ -34,9 +38,9 @@ function middlebury_video_filter_codec_alter(&$codecs) {
 function middlebury_video_filter_youtube($video) {
   $url = $video['codec']['matches'][1];
 
-  if (isset($video['codec']['matches'][3])) $url = 'p/'. $video['codec']['matches'][4];
+  if (isset($video['codec']['matches'][3])) $url = 'p/' . $video['codec']['matches'][4];
 
-  $video['source'] = 'http://www.youtube.com/embed/'.$url.'?'.($video['autoplay'] ? '&amp;autoplay=1' : '').($video['related'] ? '' : '&amp;rel=0');
+  $video['source'] = 'http://www.youtube.com/embed/' . $url . '?' . ($video['autoplay'] ? '&amp;autoplay=1' : '') . ($video['related'] ? '' : '&amp;rel=0');
 
   return middlebury_video_filter_iframe($video);
 }
