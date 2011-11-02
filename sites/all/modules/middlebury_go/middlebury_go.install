@@ -6,9 +6,19 @@
  */
 
 /**
- * Upgrade middlebury_go module from D6 to D7, rename from go.module to middlebury_go.module
+ * Implements hook_install().
  */
-function middlebury_go_update_7000() {
+function middlebury_go_install() {
+  db_update('system')
+    ->fields(
+      array(
+        'filename' => drupal_get_path('module', 'middlebury_go') . 'middlebury_go.module',
+      )
+    )
+    ->condition('name', 'go')
+    ->condition('type', 'module')
+    ->execute();
+
   // Rename variables
   $rename = array(
     'middlebury_go_db_dsn' => 'go_db_dsn',
@@ -24,5 +34,5 @@ function middlebury_go_update_7000() {
     }
   }
 
-  return t('Renamed variables to migrate go module to middlebury_go module.');
+  return t('Renamed variables and paths to migrate go module to middlebury_go module.');
 }
