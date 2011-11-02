@@ -130,10 +130,15 @@ function middlebury_monster_menus_get_nid_url($nid, $mmtid = NULL) {
  *   The URL of the RSS feed.
  * @param $cache
  *   Whether to enable the feed cache.
+ *
+ * @return A SimplePie object representing the feed, or FALSE if the feed could not be loaded.
  */
 function middlebury_monster_menus_get_simplepie($url, $cache = TRUE) {
   if (!class_exists('SimplePie')) {
-    module_load_include('inc', 'rss_page', 'simplepie');
+    $result = libraries_load('simplepie');
+    if ($result['installed'] == FALSE || $result['loaded'] == FALSE) {
+      return FALSE;
+    }
   }
 
   $feed = new SimplePie();
@@ -158,6 +163,28 @@ function middlebury_monster_menus_get_simplepie($url, $cache = TRUE) {
  */
 function middlebury_monster_menus_init() {
   drupal_add_css(drupal_get_path('module', 'middlebury_monster_menus') . '/middlebury_monster_menus.css', 'module', 'all');
+}
+
+/**
+ * Implements hook_libraries_info().
+ */
+function middlebury_monster_menus_libraries_info() {
+  $libraries['simplepie'] = array(
+    'name' => 'SimplePie',
+    'vendor url' => 'http://simplepie.org/',
+    'download url' => 'http://simplepie.org/downloads/',
+    'version arguments' => array(
+      'file' => 'simplepie.inc',
+      'pattern' => '@version\s+([0-9a-zA-Z\.-]+)@',
+      'lines' => 36,
+    ),
+    'files' => array(
+      'php' => array(
+        'simplepie.inc',
+      ),
+    ),
+  );
+  return $libraries;
 }
 
 /**
