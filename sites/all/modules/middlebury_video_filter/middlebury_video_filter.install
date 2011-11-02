@@ -1,0 +1,23 @@
+<?php
+
+/**
+ * @file
+ * Installation routines for Midd Video Filter
+ */
+
+/**
+ * Implements hook_install().
+ */
+function middlebury_video_filter_install() {
+  db_update('system')
+    ->fields(
+      array(
+        'filename' => drupal_get_path('module', 'middlebury_video_filter') . 'middlebury_video_filter.module',
+      )
+    )
+    ->condition('name', 'middmedia_video_filter')
+    ->condition('type', 'module')
+    ->execute();
+
+  return st('Moved middmedia_video_filter module.');
+}
