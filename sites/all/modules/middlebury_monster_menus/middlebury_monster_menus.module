@@ -157,8 +157,6 @@ function middlebury_monster_menus_get_simplepie($url, $cache = TRUE) {
  * Implements hook_init().
  */
 function middlebury_monster_menus_init() {
-  drupal_add_js(drupal_get_path('module', 'middlebury_monster_menus') . '/editconsole.js', 'module', 'footer');
-  drupal_add_js(drupal_get_path('module', 'middlebury_monster_menus') . '/jquery.cookie.js', 'module', 'footer');
   drupal_add_css(drupal_get_path('module', 'middlebury_monster_menus') . '/middlebury_monster_menus.css', 'module', 'all');
 }
 
@@ -189,41 +187,6 @@ function middlebury_monster_menus_link_alter(&$links, $node) {
         break;
     }
   }
-
-}
-
-/**
- * Implements hook_menu().
- */
-function middlebury_monster_menus_menu() {
-  $items['middlebury_monster_menus/show_hide_links'] = array(
-    'page callback' => 'middlebury_monster_menus_show_hide_links',
-    'access callback' => 'user_access',
-    'access arguments' => array('acccess user profiles'),
-    'type' => MENU_CALLBACK,
-  );
-  return $items;
-}
-
-/**
- * Update the user's profile to show or hide links based on selections in the Edit Console.
- */
-function middlebury_monster_menus_show_hide_links() {
-  global $user;
-  profile_load_profile($user);
-  $edit = array(
-    'profile_new_edit_console' => $user->profile_new_edit_console,
-    'profile_show_links_content' => $user->profile_show_links_content,
-    'profile_show_links_2' => $user->profile_show_links_2,
-    'profile_show_links_4' => $user->profile_show_links_4,
-    'profile_show_links_5' => $user->profile_show_links_5,
-    'profile_show_links_6' => $user->profile_show_links_6,
-    'profile_show_links_7' => $user->profile_show_links_7,
-    'profile_show_links_8' => $user->profile_show_links_8,
-    'profile_show_links_9' => $user->profile_show_links_9,
-  );
-  $edit[$_GET['profile']] = $_GET['show'];
-  profile_save_profile($edit, $user, "Interface Settings");
 }
 
 /**
