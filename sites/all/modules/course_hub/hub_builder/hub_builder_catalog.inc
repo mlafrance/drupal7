@@ -77,10 +77,12 @@ class HubBuilder_Catalog {
       WHERE id = '%s'";
       if (db_query($sql, $this->id, $this->class_group_base_dn, $this->main_data_url, $this->instructor_course_list_url, json_encode($this->types_to_import), $this->dbId)) {
         $this->dbId = $this->id;
-      } else {
+      }
+      else {
         throw new Exception('Update failed.');
       }
-    } else {
+    }
+    else {
       $sql = "
       INSERT INTO {hub_builder_catalog}
       (id, class_group_base_dn, main_data_url, instructor_course_list_url, types_to_import)
@@ -88,7 +90,8 @@ class HubBuilder_Catalog {
       if (db_query($sql, $this->id, $this->class_group_base_dn, $this->main_data_url, $this->instructor_course_list_url, json_encode($this->types_to_import))) {
         $this->dbId = $this->id;
         $this->exists = true;
-      } else {
+      }
+      else {
         throw new Exception('Insert failed.');
       }
     }
@@ -101,7 +104,8 @@ class HubBuilder_Catalog {
     if (db_query($sql, $this->dbId)) {
       $this->dbId = null;
       $this->exists = false;
-    } else {
+    }
+    else {
       throw new Exception("Delete failed.");
     }
   }
@@ -109,7 +113,8 @@ class HubBuilder_Catalog {
   public function __get($name) {
     if (array_key_exists($name, $this->data)) {
       return $this->data[$name];
-    } else {
+    }
+    else {
       return null;
     }
   }

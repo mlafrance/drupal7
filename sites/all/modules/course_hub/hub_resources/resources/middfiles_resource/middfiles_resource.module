@@ -245,9 +245,11 @@ function _middfiles_resource_get_updates_for_dir($fs_base, $dir, $url_base) {
 
     if (strpos($fname, '.') === 0) {
       continue;
-    } elseif (is_dir($file_path)) {
+    }
+    elseif (is_dir($file_path)) {
       $updates = array_merge($updates, _middfiles_resource_get_updates_for_dir($fs_base, $dir . '/' . $fname, $url_base . '/' . rawurlencode($fname)));
-    } else {
+    }
+    else {
       $short_path = _middfiles_resource_get_short_path($dir);
       if (strlen($fname) > 25)
         $short_name = substr($fname, 0, 10) . '...' . substr($fname, strlen($fname) - 10);
@@ -382,7 +384,8 @@ function middfiles_resource_scan() {
 
             watchdog('middfiles_resource', "Created Middfiles resource for @code based on scan.", array("@code" => $code), WATCHDOG_NOTICE, l('Resource Page', $resource_page_path));
             $new++;
-          } else {
+          }
+          else {
 //             print t("<div>Middfiles resource already exists for @code</div>\n", array("@code" => $code));
             $existing++;
           }
@@ -442,7 +445,8 @@ function middfiles_html_resource_scan() {
 
             watchdog('middfiles_resource', "Created Middfiles HTML resource for @code based on scan.", array("@code" => $code), WATCHDOG_NOTICE, l('Resource Page', $resource_page_path));
             $new++;
-          } else {
+          }
+          else {
 //             print t("<div>Middfiles resource already exists for @code</div>\n", array("@code" => $code));
             $existing++;
           }

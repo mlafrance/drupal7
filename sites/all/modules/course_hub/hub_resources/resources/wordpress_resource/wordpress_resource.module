@@ -57,9 +57,11 @@ function wordpress_resource_sitename_validate($form, &$form_state) {
       $visibility = $form_state['values']['field_hub_perms'][0]['value'];
       if ($visibility == 'class') {
         $public = -2;
-      } elseif ($visibility == 'institution') {
+      }
+      elseif ($visibility == 'institution') {
         $public = -1;
-      } else {
+      }
+      else {
         $public = 1;
       }
 
@@ -67,7 +69,8 @@ function wordpress_resource_sitename_validate($form, &$form_state) {
 
       if ($successMessage) {
         drupal_set_message($successMessage);
-      } else {
+      }
+      else {
         form_set_error('', t('Creating the site failed.'));
         return;
       }

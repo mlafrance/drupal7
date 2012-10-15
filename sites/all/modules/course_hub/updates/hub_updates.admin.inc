@@ -162,7 +162,8 @@ function hub_updates_disable_submit(&$form, &$form_state) {
 
   if ($form_state['values']['toggle_direction'] == 'enable') {
     hub_updates_enable_update_fetching($mmtid);
-  } else {
+  }
+  else {
     hub_updates_disable_update_fetching($mmtid);
   }
 }

@@ -62,7 +62,8 @@ function hub_dashboard_view() {
   if (!$term) {
     drupal_set_breadcrumb($breadcrumb);
     return t('You have no terms available.');
-  } else {
+  }
+  else {
     $breadcrumb[] = l('Semester Dashboard', 'dashboard');
     drupal_set_breadcrumb($breadcrumb);
     $terms = hub_dashboard_get_terms_for_user();
@@ -119,7 +120,8 @@ function hub_dashboard_list_instructor_sections($term_id) {
       $section['has_resources'] = count($resources) || count($syllabusNodeIds);
       $section['can_add'] = false;
       $section['can_delete'] = ($section['can_manage'] && !$section['has_resources']);
-    } else {
+    }
+    else {
       $section['has_resources'] = false;
       $section['can_add'] = $section['can_manage'];
       $section['can_delete'] = false;
@@ -157,7 +159,8 @@ function hub_dashboard_manage_instructor_section($op, $term_id, $offering_id) {
               watchdog('hub_dashboard', 'Error building site XML: !message', array('!message' => $e->getMessage()), WATCHDOG_ERROR);
               drupal_set_message(t('Error building site XML: !message', array('!message' => $e->getMessage())), 'error');
             }
-          } else {
+          }
+          else {
             drupal_set_message(t('A site already exists at %path. can\'t create new site.', array('%path' => $s['path'])), 'error');
           }
           break;
@@ -165,13 +168,15 @@ function hub_dashboard_manage_instructor_section($op, $term_id, $offering_id) {
           $site_mmtid = course_hub_tid_from_path($s['path']);
           if (is_null($site_mmtid)) {
             drupal_set_message(t('No site exists at %path. can\'t delete.', array('%path' => $s['path'])), 'error');
-          } else {
+          }
+          else {
             $resources = hub_updates_get_resource_nodes($site_mmtid);
             $syllabusPageTID = course_hub_tid_from_path($s['path'] . '/syllabus/class');
             $syllabusNodeIds = mm_content_get_nids_by_mmtid($syllabusPageTID);
             if (!count($resources) && !count($syllabusNodeIds)) {
               mm_content_delete($site_mmtid, true);
-            } else {
+            }
+            else {
               drupal_set_message(t('%code has resources or a syllabus. Can\'t delete.', array('%code' => $s['subject'] . ' ' . $s['number'] . $s['sectionIdentifier'])), 'error');
             }
           }
@@ -279,7 +284,8 @@ function hub_dashboard_json() {
               'url' => url(file_create_path($node->images['original']), array('absolute' => true)),
             );
           }
-        } else {
+        }
+        else {
           $items[] = array(
             'type' => 'html',
             'title' => t('Syllabus'),
@@ -300,7 +306,8 @@ function hub_dashboard_json() {
         if (count($urls)) {
           $item['type'] = 'link';
           $item['url'] = $urls[0];
-        } else {
+        }
+        else {
           $item['type'] = 'html';
         }
 
@@ -530,11 +537,13 @@ function hub_dashboard_preprocess_hub_dashboard_site(&$vars) {
     $syllabus_node = current($syllabusNodes);
     if ($syllabus_node->type == 'syllabus_link') {
       $syllabus_url = $syllabus_node->field_link[0]['url'];
-    } else {
+    }
+    else {
       $syllabus_url = base_path() . $coursePath . '/syllabus';
     }
     $vars['about_links'] .= '<li><a href="' . $syllabus_url . '">' . t('Syllabus') . '</a></li>';
-  } else {
+  }
+  else {
     $syllabusPath = $coursePath . '/syllabus';
     $classPageTID = course_hub_tid_from_path($syllabusPath . '/class');
     if (mm_content_user_can($classPageTID, 'u')) {

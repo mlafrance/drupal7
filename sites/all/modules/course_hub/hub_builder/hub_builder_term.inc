@@ -93,7 +93,8 @@ class HubBuilder_Term {
       $this->data['last_built'] = date('Y-m-d H:i:s');
       $this->data['last_built_by'] = $user->uid;
       $this->data['last_built_by_name'] = $user->name;
-    } else {
+    }
+    else {
       throw new Exception('Update failed.');
     }
   }
@@ -109,10 +110,12 @@ class HubBuilder_Term {
       WHERE id = '%s'";
       if (db_query($sql, $this->catalog_id, $this->id, $this->display_name, $this->import_path, $this->dbId)) {
         $this->dbId = $this->id;
-      } else {
+      }
+      else {
         throw new Exception('Update failed.');
       }
-    } else {
+    }
+    else {
       $sql = "
       INSERT INTO {hub_builder_term}
       (catalog_id, id, display_name, import_path)
@@ -120,7 +123,8 @@ class HubBuilder_Term {
       if (db_query($sql, $this->catalog_id, $this->id, $this->display_name, $this->import_path)) {
         $this->dbId = $this->id;
         $this->exists = true;
-      } else {
+      }
+      else {
         throw new Exception('Insert failed.');
       }
     }
@@ -133,7 +137,8 @@ class HubBuilder_Term {
     if (db_query($sql, $this->dbId)) {
       $this->dbId = null;
       $this->exists = false;
-    } else {
+    }
+    else {
       throw new Exception("Delete failed.");
     }
   }
@@ -141,7 +146,8 @@ class HubBuilder_Term {
   public function __get($name) {
     if (array_key_exists($name, $this->data)) {
       return $this->data[$name];
-    } else {
+    }
+    else {
       return null;
     }
   }

@@ -506,7 +506,8 @@ function _moodle_resource_add_course(MoodleResource_SoapClient $client, $node) {
     $errors = $doc->getElementsByTagName('error');
     if ($errors->length) {
       throw new Exception('Could not create a new Moodle Course site for this course. The following error occured: <br/><br/>' . $errors->item(0)->nodeValue);
-    } else {
+    }
+    else {
       throw new Exception('Could not create the Moodle Course site. <br/><br/>' . htmlentities($client->__getLastRequest()) . '<br/><br/>' . htmlentities($client->__getLastResponse()));
     }
 
@@ -921,7 +922,8 @@ function _moodle_resource_ensure_user(MoodleResource_SoapClient $client, $user) 
     $errors = $doc->getElementsByTagName('error');
     if ($errors->length) {
       throw new Exception('Error creating user. The following error occured: <br/>' . $errors->item(0)->nodeValue);
-    } else {
+    }
+    else {
       throw new Exception('Error creating user. <br/><br/>' . htmlentities($client->__getLastRequest()) . '<br/><br/>' . htmlentities($client->__getLastResponse()));
     }
   }

@@ -421,7 +421,8 @@ function hub_builder_get_section_data(HubBuilder_Term $term, DOMElement $item, D
     $second = trim($titleLines[1]);
     if (strpos($second, $first) === 0) {
       $title = $second;
-    } else {
+    }
+    else {
       $title = $first . "\n" . $second;
     }
     if (count($titleLines) > 2) {

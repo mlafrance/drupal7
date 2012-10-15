@@ -12,7 +12,8 @@ function course_hub_stats_resource_stats() {
   if (empty($_GET['page'])) {
     $pages = course_hub_stats_get_pages();
     $current_page = key($pages);
-  } else {
+  }
+  else {
     $pages = course_hub_stats_get_pages($_GET['page']);
     $current_page = $_GET['page'];
   }
@@ -55,7 +56,8 @@ function course_hub_stats_resource_stats() {
   foreach ($stats as $type => $t_stats) {
     if ($type == 'all') {
       $name = t('Any/All Resources');
-    } else {
+    }
+    else {
       $name = node_get_types('name', $type);
       if ($type == 'media')
         $name = 'Syllabus Upload';
@@ -131,7 +133,8 @@ function course_hub_stats_resource_list_public($mmtid) {
   $cache = cache_get('course_hub_list_public');
   if (!empty($cache->data)) {
     drupal_json(unserialize($cache->data));
-  } else {
+  }
+  else {
     $resources = array();
     $resource_types = module_invoke_all('hub_get_resource_types');
     foreach($resource_types as $resource_type) {
@@ -355,7 +358,8 @@ function course_hub_stats_get_resource_stats($resource_type, $mmtid) {
     while($site_mmtid = db_result($r)) {
       $mmtids[] = $site_mmtid;
     }
-  } else {
+  }
+  else {
     $mmtids = array();
   }
 

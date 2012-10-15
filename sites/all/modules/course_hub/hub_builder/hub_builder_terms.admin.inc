@@ -95,7 +95,8 @@ function hub_builder_term_edit_form(&$form_state, $term_id = null) {
       '#type' => 'hidden',
       '#value' => $term_id,
     );
-  } else {
+  }
+  else {
     $term = new HubBuilder_Term();
   }
 
@@ -162,7 +163,8 @@ function hub_builder_term_edit_form_submit($form, &$form_state) {
 
   if ($form_state['values']['orig_id']) {
     $term = hub_builder_get_term($form_state['values']['orig_id']);
-  } else {
+  }
+  else {
     $term = new HubBuilder_Term();
   }
 
@@ -194,7 +196,8 @@ function hub_builder_term_test($term_id) {
   if ($destinationTID > 0) {
     $result['success'] = true;
     $result['content'] = t('@path exists with mmtid @tid', array('@path' => $term->import_path, '@tid' => $destinationTID));
-  } else {
+  }
+  else {
     $result['success'] = false;
     $result['content'] = t('@path doesn\'t exist.', array('@path' => $term->import_path));
   }
@@ -284,7 +287,8 @@ function hub_builder_term_test($term_id) {
                   $exampleInstructorId = key($instructors);
                   $exampleInstructorName = current($instructors);
                 }
-              } else {
+              }
+              else {
                 $missingGroups[] = $data['instructorGroupDN'];
               }
             }
@@ -322,7 +326,8 @@ function hub_builder_term_test($term_id) {
   if (count($missingGroups)) {
     $result['success'] = false;
     $result['content'] = count($missingGroups) . " class-groups are missing: <br/><br/>" . implode("\n<br/>", $missingGroups);
-  } else {
+  }
+  else {
     $result['success'] = true;
     $result['content'] = t('All class groups exist');
   }
