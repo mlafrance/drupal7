@@ -800,7 +800,7 @@ function hub_builder_get_instructors_course_data($user_external_id, $term_id) {
   $cache_key = 'hb_courses:' . $user_external_id . ':' . $term_id;
   $data = hub_builder_cache_get_data($cache_key, 'cache');
   if ($data === 0) {
-    $data = hub_builder_fetch_instructors_course_data ($user_external_id, $term_id);
+    $data = hub_builder_fetch_instructors_course_data($user_external_id, $term_id);
     cache_set($cache_key, $data, 'cache', time() + 3600);
   }
   return $data;

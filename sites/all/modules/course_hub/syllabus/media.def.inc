@@ -1,6 +1,6 @@
 <?php
 
-$content['type']  = array (
+$content['type']  = array(
   'name' => 'File upload',
   'type' => 'media',
   'description' => 'Upload images, PDFs, audio and other media files (after uploading files, you can insert them in articles).',
@@ -9,7 +9,7 @@ $content['type']  = array (
   'min_word_count' => 0,
   'help' => '',
   'node_options' =>
-  array (
+  array(
     'status' => TRUE,
     'promote' => TRUE,
     'sticky' => FALSE,
@@ -35,9 +35,9 @@ $content['type']  = array (
   'ant_pattern' => 'Syllabus',
   'ant_php' => 0,
 );
-$content['fields']  = array (
+$content['fields']  = array(
   0 =>
-  array (
+  array(
     'label' => 'Who can view the file?',
     'field_name' => 'field_hub_perms',
     'type' => 'text',
@@ -46,9 +46,9 @@ $content['fields']  = array (
     'weight' => '-2',
     'description' => '',
     'default_value' =>
-    array (
+    array(
       0 =>
-      array (
+      array(
         'value' => 'class',
       ),
     ),
@@ -67,9 +67,9 @@ public|Public / Anyone in the world.',
     'module' => 'text',
     'widget_module' => 'optionwidgets',
     'columns' =>
-    array (
+    array(
       'value' =>
-      array (
+      array(
         'type' => 'text',
         'size' => 'big',
         'not null' => FALSE,
@@ -78,32 +78,32 @@ public|Public / Anyone in the world.',
       ),
     ),
     'display_settings' =>
-    array (
+    array(
       'weight' => '11',
       'parent' => '',
       'label' =>
-      array (
+      array(
         'format' => 'above',
       ),
       'teaser' =>
-      array (
+      array(
         'format' => 'default',
         'exclude' => 1,
       ),
       'full' =>
-      array (
+      array(
         'format' => 'default',
         'exclude' => 1,
       ),
       4 =>
-      array (
+      array(
         'format' => 'default',
         'exclude' => 0,
       ),
     ),
   ),
 );
-$content['extra']  = array (
+$content['extra']  = array(
   'title' => '-5',
   'body_field' => '-3',
   'revision_information' => '0',
