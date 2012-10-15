@@ -286,8 +286,7 @@ function _middfiles_resource_get_short_path($dir) {
   return implode('/', $parts);
 }
 
-function _middfiles_resource_file_size($file, $setup = NULL)
-{
+function _middfiles_resource_file_size($file, $setup = NULL) {
   $FZ = ($file && @is_file($file)) ? filesize($file) : NULL;
   $FS = array("B","kB","MB","GB","TB","PB","EB","ZB","YB");
 
