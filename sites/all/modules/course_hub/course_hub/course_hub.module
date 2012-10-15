@@ -344,23 +344,23 @@ function course_hub_menu() {
     'access callback' => TRUE,
   );
   $items['admin/course_hub'] = array(
-    'title' => t('Course Hub'),
-    'description' => t('Configure the Course Hub.'),
+    'title' => 'Course Hub',
+    'description' => 'Configure the Course Hub.',
     'page callback' => 'course_hub_admin_overview',
     'access arguments' => array('view coursehub statistics'),
     'type' => MENU_NORMAL_ITEM,
   );
   $items['admin/course_hub/stats'] = array(
-    'title' => t('Statistics'),
-    'description' => t('Information and Statistics about Course Hub usage.'),
+    'title' => 'Statistics',
+    'description' => 'Information and Statistics about Course Hub usage.',
     'page callback' => 'course_hub_stats_resource_stats',
     'access arguments' => array('view coursehub statistics'),
     'type' => MENU_NORMAL_ITEM,
     'file' => 'course_hub_stats.inc',
   );
   $items['admin/course_hub/stats/usage'] = array(
-    'title' => t('Resource Usage'),
-    'description' => t('Graphs of resource usage.'),
+    'title' => 'Resource Usage',
+    'description' => 'Graphs of resource usage.',
     'page callback' => 'course_hub_stats_resource_stats',
     'access arguments' => array('view coursehub statistics'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
@@ -368,8 +368,8 @@ function course_hub_menu() {
     'file' => 'course_hub_stats.inc',
   );
   $items['admin/course_hub/stats/usage/resources/%/%'] = array(
-    'title' => t('Resource Detail'),
-    'description' => t('Listing of resources of a certain type.'),
+    'title' => 'Resource Detail',
+    'description' => 'Listing of resources of a certain type.',
     'page callback' => 'course_hub_stats_resource_list',
     'page arguments' => array(5, 6),
     'access arguments' => array('view coursehub statistics'),
@@ -378,8 +378,8 @@ function course_hub_menu() {
     'file' => 'course_hub_stats.inc',
   );
   $items['admin/course_hub/stats/usage/public/%'] = array(
-    'title' => t('Public Resource List'),
-    'description' => t('A list of publicly accessible resources'),
+    'title' => 'Public Resource List',
+    'description' => 'A list of publicly accessible resources',
     'page callback' => 'course_hub_stats_resource_list_public',
     'page arguments' => array(5),
     'access callback' => TRUE,
@@ -388,8 +388,8 @@ function course_hub_menu() {
     'file' => 'course_hub_stats.inc',
   );
   $items['admin/course_hub/stats/usage/sites/%/%'] = array(
-    'title' => t('Site-Resource Detail'),
-    'description' => t('Listing of sites using resources of a certain type.'),
+    'title' => 'Site-Resource Detail',
+    'description' => 'Listing of sites using resources of a certain type.',
     'page callback' => 'course_hub_stats_resource_sites',
     'page arguments' => array(5, 6),
     'access arguments' => array('view coursehub statistics'),
@@ -398,8 +398,8 @@ function course_hub_menu() {
     'file' => 'course_hub_stats.inc',
   );
   $items['admin/course_hub/stats/usage/instructors/%/%'] = array(
-    'title' => t('Instructor-Resource Detail'),
-    'description' => t('Listing of instructors using resources of a certain type.'),
+    'title' => 'Instructor-Resource Detail',
+    'description' => 'Listing of instructors using resources of a certain type.',
     'page callback' => 'course_hub_stats_resource_instructors',
     'page arguments' => array(5, 6),
     'access arguments' => array('view coursehub statistics'),
@@ -408,8 +408,8 @@ function course_hub_menu() {
     'file' => 'course_hub_stats.inc',
   );
   $items['admin/course_hub/stats/sites_in_use'] = array(
-    'title' => t('Sites In Use'),
-    'description' => t('Sites that have resources or syllabus added to them.'),
+    'title' => 'Sites In Use',
+    'description' => 'Sites that have resources or syllabus added to them.',
     'page callback' => 'course_hub_admin_sites_in_use',
     'access arguments' => array('view coursehub statistics'),
     'type' => MENU_LOCAL_TASK,

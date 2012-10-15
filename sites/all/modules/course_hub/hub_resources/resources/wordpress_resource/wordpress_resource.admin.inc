@@ -13,8 +13,8 @@ function wordpress_resource_menu() {
   $items = array();
 
   $items['admin/course_hub/resources/wordpress'] = array(
-    'title' => t('WordPress Resource'),
-    'description' => t('Configure the Wordpress Resource.'),
+    'title' => 'WordPress Resource',
+    'description' => 'Configure the Wordpress Resource.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('wordpress_resource_admin_settings'),
     'access arguments' => array('administer site configuration'),

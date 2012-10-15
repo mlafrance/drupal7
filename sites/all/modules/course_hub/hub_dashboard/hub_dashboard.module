@@ -19,24 +19,24 @@ function hub_dashboard_menu() {
     'access callback' => 'course_hub_is_authenticated',
   );
   $items['dashboard/%/instructor'] = array(
-    'title' => t('Manage Course Hub Sites'),
-    'description' => t('Manage which additional sections (labs/discussions) have course hub sites.'),
+    'title' => 'Manage Course Hub Sites',
+    'description' => 'Manage which additional sections (labs/discussions) have course hub sites.',
     'page callback' => 'hub_dashboard_list_instructor_sections',
     'page arguments' => array(1),
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
   $items['dashboard/%/instructor/add/%'] = array(
-    'title' => t('Add an Additional Course Hub site'),
-    'description' => t('Add a course site for an additional lab/discussion section.'),
+    'title' => 'Add an Additional Course Hub site',
+    'description' => 'Add a course site for an additional lab/discussion section.',
     'page callback' => 'hub_dashboard_manage_instructor_section',
     'page arguments' => array(3, 1, 4),
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
   $items['dashboard/%/instructor/delete/%'] = array(
-    'title' => t('Remove an Additional Course Hub site'),
-    'description' => t('Remove a course site for an additional lab/discussion section.'),
+    'title' => 'Remove an Additional Course Hub site',
+    'description' => 'Remove a course site for an additional lab/discussion section.',
     'page callback' => 'hub_dashboard_manage_instructor_section',
     'page arguments' => array(3, 1, 4),
     'access callback' => TRUE,

@@ -15,8 +15,8 @@ function hub_builder_menu() {
   $items = array();
 
   $items['admin/course_hub/builder'] = array(
-    'title' => t('Site Building'),
-    'description' => t('Build Course Hub sites from external data.'),
+    'title' => 'Site Building',
+    'description' => 'Build Course Hub sites from external data.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('hub_builder_admin_settings'),
     'access arguments' => array('administer site configuration'),
@@ -25,8 +25,8 @@ function hub_builder_menu() {
   );
 
   $items['admin/course_hub/builder/settings'] = array(
-    'title' => t('Settings'),
-    'description' => t('Build Course Hub sites from external data.'),
+    'title' => 'Settings',
+    'description' => 'Build Course Hub sites from external data.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('hub_builder_admin_settings'),
     'access arguments' => array('administer site configuration'),
@@ -36,8 +36,8 @@ function hub_builder_menu() {
   );
 
   $items['admin/course_hub/builder/catalogs'] = array(
-    'title' => t('Catalogs'),
-    'description' => t('Configure groupings of terms'),
+    'title' => 'Catalogs',
+    'description' => 'Configure groupings of terms',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('hub_builder_catalogs_form'),
     'access arguments' => array('administer site configuration'),
@@ -47,8 +47,8 @@ function hub_builder_menu() {
   );
 
   $items['admin/course_hub/builder/terms'] = array(
-    'title' => t('Terms'),
-    'description' => t('Configure, Build, and Update course sites for terms'),
+    'title' => 'Terms',
+    'description' => 'Configure, Build, and Update course sites for terms',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('hub_builder_terms_form'),
     'access arguments' => array('administer site configuration'),
@@ -58,8 +58,8 @@ function hub_builder_menu() {
   );
 
   $items['admin/course_hub/builder/terms/list'] = array(
-    'title' => t('List'),
-    'description' => t('Configure, Build, and Update course sites for terms'),
+    'title' => 'List',
+    'description' => 'Configure, Build, and Update course sites for terms',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('hub_builder_terms_form'),
     'access arguments' => array('administer site configuration'),
@@ -69,8 +69,8 @@ function hub_builder_menu() {
   );
 
   $items['admin/course_hub/builder/terms/add'] = array(
-    'title' => t('Add'),
-    'description' => t('Add a new term'),
+    'title' => 'Add',
+    'description' => 'Add a new term',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('hub_builder_term_edit_form'),
     'access arguments' => array('administer site configuration'),
@@ -80,8 +80,8 @@ function hub_builder_menu() {
   );
 
   $items['admin/course_hub/builder/terms/%/edit'] = array(
-    'title' => t('Edit'),
-    'description' => t('Edit a new term'),
+    'title' => 'Edit',
+    'description' => 'Edit a new term',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('hub_builder_term_edit_form', 4),
     'access callback'=> 'hub_builder_terms_show_tab',
@@ -92,8 +92,8 @@ function hub_builder_menu() {
   );
 
   $items['admin/course_hub/builder/terms/%/test'] = array(
-    'title' => t('Test'),
-    'description' => t('Test term urls.'),
+    'title' => 'Test',
+    'description' => 'Test term urls.',
     'page callback' => 'hub_builder_term_test',
     'page arguments' => array(4),
     'access callback'=> 'hub_builder_terms_show_tab',
@@ -104,8 +104,8 @@ function hub_builder_menu() {
   );
 
   $items['admin/course_hub/builder/terms/%/build'] = array(
-    'title' => t('Build'),
-    'description' => t('Build sites for a term.'),
+    'title' => 'Build',
+    'description' => 'Build sites for a term.',
     'page callback' => 'hub_builder_build_term',
     'page arguments' => array(4),
     'access callback'=> 'hub_builder_terms_show_tab',
@@ -116,8 +116,8 @@ function hub_builder_menu() {
   );
 
   $items['admin/course_hub/builder/build_one'] = array(
-    'title' => t('Build Single Course'),
-    'description' => t('Build a single course site.'),
+    'title' => 'Build Single Course',
+    'description' => 'Build a single course site.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('hub_builder_build_single_form'),
     'access arguments' => array('administer site configuration'),

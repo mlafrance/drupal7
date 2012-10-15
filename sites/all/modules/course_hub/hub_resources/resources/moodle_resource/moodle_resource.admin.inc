@@ -13,8 +13,8 @@ function moodle_resource_menu() {
   $items = array();
 
   $items['admin/course_hub/resources/moodle'] = array(
-    'title' => t('Moodle Resource'),
-    'description' => t('Configure the Moodle Resource.'),
+    'title' => 'Moodle Resource',
+    'description' => 'Configure the Moodle Resource.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('moodle_resource_admin_settings'),
     'access arguments' => array('administer site configuration'),

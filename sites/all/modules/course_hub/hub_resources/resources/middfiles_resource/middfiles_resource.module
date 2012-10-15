@@ -7,8 +7,8 @@ function middfiles_resource_menu() {
   $items = array();
 
   $items['admin/course_hub/resources/middfiles'] = array(
-    'title' => t('Middfiles Resource'),
-    'description' => t('Configure the Middfiles Resource.'),
+    'title' => 'Middfiles Resource',
+    'description' => 'Configure the Middfiles Resource.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('middfiles_resource_admin_settings'),
     'access arguments' => array('administer site configuration'),

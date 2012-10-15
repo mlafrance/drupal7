@@ -13,8 +13,8 @@ function hub_updates_menu() {
   $items = array();
 
   $items['admin/course_hub/updates'] = array(
-    'title' => t('Update Fetching'),
-    'description' => t('Configure and run updates from remote resources.'),
+    'title' => 'Update Fetching',
+    'description' => 'Configure and run updates from remote resources.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('hub_updates_admin_settings'),
     'access arguments' => array('administer site configuration'),
@@ -22,8 +22,8 @@ function hub_updates_menu() {
   );
 
   $items['admin/course_hub/updates/settings'] = array(
-    'title' => t('Settings'),
-    'description' => t('Configure updates from remote resources.'),
+    'title' => 'Settings',
+    'description' => 'Configure updates from remote resources.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('hub_updates_admin_settings'),
     'access arguments' => array('administer site configuration'),
@@ -32,8 +32,8 @@ function hub_updates_menu() {
   );
 
   $items['admin/course_hub/updates/fetch'] = array(
-    'title' => t('Fetch'),
-    'description' => t('Fetch new updates.'),
+    'title' => 'Fetch',
+    'description' => 'Fetch new updates.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('hub_updates_fetch_form'),
     'access arguments' => array('administer site configuration'),
@@ -42,8 +42,8 @@ function hub_updates_menu() {
   );
 
   $items['admin/course_hub/updates/disable'] = array(
-    'title' => t('Enable/Disable'),
-    'description' => t('Enable or disable updates for terms.'),
+    'title' => 'Enable/Disable',
+    'description' => 'Enable or disable updates for terms.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('hub_updates_disable_form'),
     'access arguments' => array('administer site configuration'),
