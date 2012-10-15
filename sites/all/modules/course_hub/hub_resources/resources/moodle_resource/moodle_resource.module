@@ -1,0 +1,1016 @@
+<?php
+
+require_once dirname(__FILE__).'/moodle_resource.admin.inc';
+
+/**
+ * Implements hook_perm()
+ */
+function moodle_resource_perm() {
+  return array('attach to any moodle site');
+}
+
+/**
+ * Implementation of hook_preprocess_node().
+ */
+function moodle_resource_preprocess_node(&$vars) {
+  if (!empty($vars['node']) && $vars['node']->type == 'moodle_resource') {
+    try {
+      $vars['moodle_url'] = _moodle_resource_get_url($vars['node']);
+    } catch (UnexpectedValueException $e) {
+    }
+    if (node_access('update', $vars['node'])) {
+      $vars['sync_state'] = $vars['node']->field_sync_state[0]['value'];
+    }
+  }
+}
+
+/**
+ * Implementation of hook_theme_registry_alter()
+ */
+function moodle_resource_theme_registry_alter(&$theme_registry) {
+  $path = drupal_get_path('module', 'moodle_resource');
+  if (!in_array($path, $theme_registry['node']['theme paths']))
+	array_unshift($theme_registry['node']['theme paths'], $path);
+}
+
+/**
+ * Answer the URL for an moodle resource node.
+ *
+ * Throws an InvalidArgumentException if not passed an moodle_resource node.
+ * Throws an UnexpectedValueException if the moodle_resource node passed does not have a course id.
+ *
+ * @param object $node
+ * @return string
+ */
+function _moodle_resource_get_url ($node) {
+	if ($node->type != 'moodle_resource')
+	  throw new InvalidArgumentException(t('@func expects and moodle_resource node, got @type', array('@func' => __FUNCTION__, '@type' => $node->type)));
+	if (!isset($node->field_moodle_course_id[0]['value']))
+	  throw new UnexpectedValueException(t('@func expects the node to have a cid value, none found.', array('@func' => __FUNCTION__)));
+	if (!$node->field_moodle_course_id[0]['value'])
+	  throw new UnexpectedValueException(t('@func expects the node to have a cid value, none found.', array('@func' => __FUNCTION__)));
+
+	return variable_get('moodle_resource_base_url', 'http://moodle.middlebury.edu/').'course/view.php?id='.$node->field_moodle_course_id[0]['value'];
+}
+
+/**
+ * Implementation of hook_hub_get_resource_types()
+ *
+ * @return array
+ *    An array of node-type strings.
+ */
+function moodle_resource_hub_get_resource_types() {
+  return array('moodle_resource');
+}
+
+/**
+ * Hook hook_hub_get_resource_url()
+ *
+ * @param object $resourceNode
+ * @return array
+ *    An array of url strings.
+ */
+function moodle_resource_hub_get_resource_url($resourceNode) {
+  if ($resourceNode->type == 'moodle_resource') {
+    try {
+      return _moodle_resource_get_url($resourceNode);
+    } catch (UnexpectedValueException $e) {
+    }
+  }
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function moodle_resource_form_alter(&$form, &$form_state, $form_id) {
+  // Create/Edit form changes
+  if ($form_id == 'moodle_resource_node_form') {
+    // Set a default title
+    if (empty($form['#node']->title))
+      $form['title']['#default_value'] = 'Moodle Site';
+    else
+      $form['title']['#default_value'] = $form['#node']->title;
+
+    // Availability of the Moodle site.
+    $form['moodle_visibility'] = array(
+      '#type' => 'radios',
+      '#title' => t('Available to students?'),
+      '#description' => t('By default, Moodle sites are not available to students to allow you time to set up the course site. Changing availability here is equivalent to changing the setting in the Moodle site under <strong>Administration</strong> &raquo; <strong>Settings</strong> &raquo; <strong>Availability</strong>.'),
+      '#default_value' => 0,
+      '#options' => array(
+        0 => t('This course site is not available to students'),
+        1 => t('This course site is available to students'),
+      ),
+    );
+    // If we are editing an existing node, get the Availability value from Moodle
+    if (!empty($form['#node']->nid)) {
+      try {
+        module_load_include('inc', 'moodle_resource', 'MoodleResource_SoapClient');
+        $client = new MoodleResource_SoapClient();
+        // If the Moodle Course no longer exists, note that.
+        $courses = $client->get_course_byid($form['#node']->field_moodle_course_id[0]['value']);
+        if (count($courses) && $courses[0]->id) {
+          $form['moodle_visibility']['#default_value'] = $courses[0]->visible;
+        }
+      } catch (Exception $e) {
+        form_set_error('Can not communicate with Moodle. Error: '.$e->getMessage());
+      }
+    }
+
+
+    // Hide elements from non-admins
+    if (!user_access('administer all menus')) {
+      $form['field_teachers_synced']['#access'] = false;
+      $form['field_students_synced']['#access'] = false;
+      $form['field_sync_state']['#access'] = false;
+    }
+
+    // Hide the course-id for update forms.
+    if (!empty($form['nid']['#value'])) {
+      $form['field_moodle_course_id']['#access'] = false;
+    }
+
+    // Add validation
+    $form['#validate'][] = 'moodle_resource_site_validate';
+  }
+
+
+  // Delete form changes
+  // Add a confirmation to delete the Moodle site.
+  if ($form_id == 'mm_ui_node_delete_confirm') {
+    $numUpdates = count(hub_updates_update_nids_for_resource($form['nid']['#value']));
+    $node = node_load($form['nid']['#value']);
+    if ($node->type == 'moodle_resource') {
+      // Add our form text
+      $form['description']['#value'] = t('Are you sure that you wish to delete the %name Resource?', array('%name' => $node->title));
+
+      // If integration is disabled, Just delete the node and ignore Moodle.
+      if (!intval(variable_get('moodle_resource_enable', 1))) {
+        return;
+      }
+
+      try {
+        module_load_include('inc', 'moodle_resource', 'MoodleResource_SoapClient');
+        $client = new MoodleResource_SoapClient();
+
+        // If the Moodle Course no longer exists, note that.
+        $courses = $client->get_course_byid($node->field_moodle_course_id[0]['value']);
+        if (!count($courses) || !$courses[0]->id) {
+          $form['description']['#value'] .= '<br/><br/>'.t('The Moodle course site this Resource was connected to no longer exists. No additional Moodle data will be removed.');
+        }
+        // If the Moodle Course exists, determine if it should be deleted.
+        else {
+          $course = $courses[0];
+          $course_site_tid = course_hub_get_course_site_tid_for_nid($node->nid);
+          $metadata = course_hub_get_course_site_metadata($course_site_tid);
+
+          // If the course has the same idnumber as our course, then we will delete it.
+          if ($course->idnumber == $metadata->field_offering_id[0]['value']) {
+            $sharing_info = _moodle_resource_get_resources_sharing_moodle_course($node->field_moodle_course_id[0]['value'], $node->nid);
+            if (count($sharing_info)) {
+              ob_start();
+              print "\n<ul>";
+              foreach($sharing_info as $info) {
+                print "\n\t<li>";
+                print l(
+                  t('%node_title on %site_title', array('%node_title' => $info['node_title'], '%site_title' => $info['site_title'])),
+                  $info['resource_page_path'],
+                  array('html' => true, 'attributes' => array('target' => '_blank'))
+                );
+                print "</li>";
+              }
+              print "\n</ul>";
+              form_set_error('', t('Other Course Hub sites are connected to the Moodle course site. The following Resources must be deleted before the Moodle site can be deleted: !list', array('!list' => ob_get_clean())));
+            }
+            // This is the only section using the Moodle course site.
+            else {
+              $form['description']['#value'] .= '<br/><br/>'.t(
+                'Deleting this resource will also delete the connected !link and all of its data.',
+                array(
+                  '%name' => $node->title,
+                  '!link' => l('Moodle course site', _moodle_resource_get_url($node), array('attributes' => array('target' => '_blank')))
+                )
+              );
+
+              // if submitted, delete the Moodle site
+              // (Attaching a submit handler via $form['#submit'][] didn't seem to work.)
+              if ($form_state['post']['confirm'] == '1') {
+                $client->delete_course($node->field_moodle_course_id[0]['value'], 'id');
+              }
+            }
+          }
+          // If we are attached to a course for another offering, don't delete the Moodle site.
+          else {
+            $form['description']['#value'] .= '<br/><br/>'.t(
+              'The !link this Resource is attached to was created for another section. Deleting this Resource will un-enroll the students in this section from the !link, but will not delete the !link or affect students from other sections.',
+              array(
+                '%name' => $node->title,
+                '!link' => l('Moodle course site', _moodle_resource_get_url($node), array('attributes' => array('target' => '_blank')))
+              )
+            );
+
+            // if submitted, unenroll our students from the Moodle course.
+            // (Attaching a submit handler via $form['#submit'][] didn't seem to work.)
+            if ($form_state['post']['confirm'] == '1') {
+              _moodle_resource_unenroll_all_students($client, $node->field_moodle_course_id[0]['value'], $node);
+            }
+          }
+        }
+      } catch (Exception $e) {
+        form_set_error('Can not delete the resource due to error: '.$e->getMessage());
+      }
+      $form['description']['#value'] .= '<br/><br/>';
+    }
+  }
+}
+
+/**
+ * Answer an array of info related to other Moodle Resource nodes that are sharing
+ * a node's Moodle Course. If $nid is empty, all Resources using the $moodle_course_id will be returned.
+ *
+ * @param int $moodle_course_id
+ * @param optional int $nid
+ * @return array
+ */
+function _moodle_resource_get_resources_sharing_moodle_course ($moodle_course_id, $nid = 0) {
+  $res = db_query(
+"SELECT
+  n.nid
+FROM
+  {node} n
+  INNER JOIN {content_type_moodle_resource} m ON n.nid = m.nid
+  LEFT JOIN {mm_recycle} r ON (r.type = 'node' AND r.id = n.nid)
+WHERE
+  n.nid != %d
+  AND m.field_moodle_course_id_value = %d
+  AND r.recycle_date IS NULL
+  ", $nid, $moodle_course_id);
+
+  $info = array();
+  while ($other_nid = db_result($res)) {
+    $node = node_load($other_nid);
+    $course_site_tid = course_hub_get_course_site_tid_for_nid($other_nid);
+    $course_site_page = mm_content_get($course_site_tid);
+    $info[] = array(
+      'nid' => $other_nid,
+      'node_title' => $node->title,
+      'resource_page_path' => course_hub_get_path($course_site_tid).'/resources',
+      'site_title' => $course_site_page->name,
+    );
+  }
+  return $info;
+}
+
+/**
+ * Implementation of hook_fieldgroup_form().
+ */
+function moodle_resource_fieldgroup_form(&$form, $form_state, $form_id, $group) {
+  // Hide elements from non-admins
+  if ($group['group_name'] == 'group_sync_data' && !user_access('administer all menus'))
+    $form['group_sync_data']['#type'] = 'hidden';
+}
+
+/**
+ * Validate that the moodle site entered exists.
+ *
+ * @param object $form
+ * @param array $form_state
+ * @return void
+ */
+function moodle_resource_site_validate ($form, &$form_state) {
+  $course_id = $form_state['values']['field_moodle_course_id'][0]['value'];
+
+  // If integration is disabled, just validate that an id was entered.
+  if (!intval(variable_get('moodle_resource_enable', 1))) {
+    if (!is_numeric($course_id) || !intval($course_id)) {
+      form_set_error('field_moodle_course_id', t('You must enter a Moodle course ID.'));
+    }
+    return;
+  }
+
+  // Initialize our client
+  try {
+    module_load_include('inc', 'moodle_resource', 'MoodleResource_SoapClient');
+    $client = new MoodleResource_SoapClient();
+
+    // Connecting to existing course.
+    if ($course_id) {
+      // Updating existing resource node that is connected to a Moodle site.
+      if ($form_state['values']['nid']) {
+        // Verify that the Moodle course still exists.
+        $courses = $client->get_course_byid($course_id);
+        if (!count($courses) || !$courses[0]->id) {
+          form_set_error('field_moodle_course_id', t('The Moodle course site has gone away.'));
+          return;
+        }
+        // Continue, we'll create the course and sync enrollment in the hook_nodeapi implementation.
+      }
+      // Creating new resource node and connecting to an existing Moodle site.
+      else {
+        // Verify that the Moodle course exists
+        $courses = $client->get_course_byid($course_id);
+        if (!count($courses) || !$courses[0]->id) {
+          form_set_error('field_moodle_course_id', t('No Moodle course site with this ID exists.'));
+          return;
+        }
+
+        // Verify that this course isn't a duplicate for our section.
+        $course_site_tid = course_hub_get_course_site_tid();
+        $metadata = course_hub_get_course_site_metadata($course_site_tid);
+        if ($courses[0]->idnumber == $metadata->field_offering_id[0]['value']) {
+          // If there is another Moodle Resource pointing at this Moodle course, give an error.
+          $sharing_info = _moodle_resource_get_resources_sharing_moodle_course($course_id);
+          if (count($sharing_info)) {
+            form_set_error('field_moodle_course_id', t('A Moodle course site has already been created for this section. Do you want to attach to a different Moodle course site?'));
+          }
+          // If this is the first Resource to connect to the course, allow it.
+          else {
+          }
+        }
+
+        // Verify that the current user is an instructor of the Moodle course
+        if (!user_access('attach to any moodle site')) {
+          $teachers = $client->get_users_bycourse($course_id, 'id', 3); // 3 == 'teacher'
+          $is_teacher = false;
+          global $user;
+          foreach ($teachers as $teacher) {
+            if (strtolower($teacher->username) == strtolower($user->init)) {
+              $is_teacher = true;
+              break;
+            }
+          }
+          if (!$is_teacher) {
+            form_set_error('field_moodle_course_id', t('You must be an instructor of the Moodle course site or an admin to connect to it.'));
+            return;
+          }
+        }
+      }
+      // Continue, we'll create the course and sync enrollment in the hook_nodeapi implementation.
+    }
+    // Create a new Moodle course.
+    else {
+      // Verify that there isn't already a Moodle course site created for this section.
+      $course_site_tid = course_hub_get_course_site_tid();
+      $metadata = course_hub_get_course_site_metadata($course_site_tid);
+      try {
+        if (empty($metadata->field_offering_id[0]['value'])) {
+          form_set_error('', t('The metadata for this course hub site needs to be updated. Please notify an administrator.'));
+          return;
+        }
+        $courses = $client->get_course_byidnumber($metadata->field_offering_id[0]['value']);
+        if (count($courses) && $courses[0]->id) {
+          form_set_error('field_moodle_course_id', t('A Moodle course site has already been created for this section. Do you want to attach to a different Moodle course site?'));
+          return;
+        }
+      } catch (SoapFault $e) {
+        // Ignore SoapFaults caused by not being able to find a course with that Id since
+        // that just means that one doesn't exist.
+      }
+
+      // Continue, we'll create the course and sync enrollment in the hook_nodeapi implementation.
+    }
+  } catch (Exception $e) {
+    // Nice message for users
+    form_set_error('field_moodle_course_id', t('Error communicating with Moodle.'));
+    // Detailed message for admins comment out after development.
+    drupal_set_message($e->getMessage(), 'error');
+    watchdog('moodle_resource', $e->getMessage(), array(), WATCHDOG_WARNING);
+    return;
+  }
+}
+
+function moodle_resource_nodeapi (&$node, $op, $a3 = NULL, $a4 = NULL) {
+  if ($node->type != 'moodle_resource')
+    return;
+
+  switch ($op) {
+    case 'presave':
+      // If integration is disabled, just save normally
+      if (!intval(variable_get('moodle_resource_enable', 1))) {
+        $node->field_sync_state[0]['value'] = t('Moodle roster synchronization is disabled system-wide. This message will disappear when synchronization is enabled.');
+        return;
+      }
+
+      // Initialize our client
+      module_load_include('inc', 'moodle_resource', 'MoodleResource_SoapClient');
+      try {
+        $client = new MoodleResource_SoapClient();
+      } catch (Exception $e) {
+        // Nice message for users
+        drupal_set_message(t('Could not communicate with Moodle.'), 'error');
+        // Detailed message for admins comment out after development.
+        drupal_set_message($e->getMessage(), 'error');
+        watchdog('moodle_resource', $e->getMessage(), array(), WATCHDOG_WARNING);
+        return;
+      }
+
+      if (empty($node->field_moodle_course_id[0]['value'])) {
+        // Create the new Moodle course
+        try {
+          $course_id = _moodle_resource_add_course($client, $node);
+        } catch (Exception $e) {
+          // Detailed message for admins comment out after development.
+          drupal_set_message($e->getMessage(), 'error');
+          $node->field_sync_state[0]['value'] = $e->getMessage();
+          watchdog('moodle_resource', $e->getMessage(), array(), WATCHDOG_WARNING);
+          return;
+        }
+      }
+      // Update the visibility
+      else {
+        try {
+          $datum = array(
+            'action' => 'update',
+            'category' => null,
+            'cost' => null,
+            'enrolperiod' => null,
+            'error' => null,
+            'format' => null,
+            'fullname' => null,
+            'groupmode' => null,
+            'groupmodeforce' => null,
+            'guest' => null,
+            'hiddensections' => null,
+            'id' => $node->field_moodle_course_id[0]['value'],
+            'idnumber' => null,
+            'lang' => null,
+            'marker' => null,
+            'maxbytes' => null,
+            'metacourse' => null,
+            'newsitems' => null,
+            'numsections' => null,
+            'password' => null,
+            'shortname' => null,
+            'showgrades' => null,
+            'sortorder' => null,
+            'startdate' => null,
+            'student' => null,
+            'students' => null,
+            'summary' => null,
+            'teacher' => null,
+            'teachers' => null,
+            'theme' => null,
+            'visible' => $node->moodle_visibility,
+          );
+          $client->update_course($datum, 'id');
+          $error = $client->getError();
+          if ($error) {
+            drupal_set_message(t('Error updating course visibility: %error', array('%error' => $error)), 'error');
+          }
+          else {
+            if ($node->moodle_visibility)
+              $args = array('%visibility' => 'This course is available to students');
+            else
+              $args = array('%visibility' => 'This course is not available to students');
+            drupal_set_message(t('Updated Moodle site visibility to %visibility.', $args));
+          }
+        } catch (Exception $e) {
+          // Detailed message for admins comment out after development.
+          drupal_set_message($e->getMessage(), 'error');
+          watchdog('moodle_resource', $e->getMessage(), array(), WATCHDOG_WARNING);
+        }
+      }
+
+      // Sync the course enrollment.
+      try {
+        _moodle_resource_sync_enrollment($client, $node);
+      } catch (Exception $e) {
+        // Nice message for users
+        drupal_set_message(t('Enrollment sync failed.'), 'error');
+        // Detailed message for admins comment out after development.
+        drupal_set_message($e->getMessage(), 'error');
+        watchdog('moodle_resource', $e->getMessage(), array(), WATCHDOG_WARNING);
+      }
+      return;
+    case 'delete':
+      // Un-enroll students and instructors.
+      // Currently being done in moodle_resource_form_alter().
+  }
+}
+
+/**
+ * Create a course and set the new id into the node.
+ *
+ * @param MoodleResource_SoapClient $client
+ * @param object $node
+ * @return int The course id.
+ */
+function _moodle_resource_add_course (MoodleResource_SoapClient $client, $node) {
+  $datum = _moodle_resource_get_default_course_values($client, $node);
+  $datum['action'] = 'add';
+  $courses_created = $client->add_course($datum);
+
+  if (!count($courses_created) || !$courses_created[0]->id) {
+    $doc = new DomDocument();
+    $doc->loadXML($client->__getLastResponse());
+    $errors = $doc->getElementsByTagName('error');
+    if ($errors->length) {
+      throw new Exception('Could not create a new Moodle Course site for this course. The following error occured: <br/><br/>'.$errors->item(0)->nodeValue);
+    } else {
+      throw new Exception('Could not create the Moodle Course site. <br/><br/>'.htmlentities($client->__getLastRequest()).'<br/><br/>'.htmlentities($client->__getLastResponse()));
+    }
+
+  }
+
+  drupal_set_message(t('Moodle site created'));
+  $node->field_moodle_course_id[0]['value'] = $courses_created[0]->id;
+
+  watchdog('moodle_resource', 'Created Moodle course @cid for @course via Moodle Resource node @nid.', array('@cid' => $courses_created[0]->id, '@course' => $datum['shortname'], '@nid' => $node->nid), WATCHDOG_NOTICE);
+
+  return $courses_created[0]->id;
+}
+
+/**
+ * Answer the default values for a course.
+ *
+ * @param MoodleResource_SoapClient $client
+ * @param object $node
+ * @return array
+ */
+function _moodle_resource_get_default_course_values (MoodleResource_SoapClient $client, $node) {
+  if (empty($node->nid))
+    $course_site_tid = course_hub_get_course_site_tid();
+  else
+    $course_site_tid = course_hub_get_course_site_tid_for_nid($node->nid);
+  $metadata = course_hub_get_course_site_metadata($course_site_tid);
+
+  return array(
+    // General
+    'category'  => _moodle_resource_get_category($client, $node),
+    'fullname'  => str_replace('"', "&quot;", str_replace("'", "&#39;", $metadata->field_short_name[0]['value'].': '.$metadata->title)),
+    'summary'   => str_replace('"', "&quot;", str_replace("'", "&#39;", $metadata->body)),
+    'shortname' => $metadata->field_short_name[0]['value'].' ('.$metadata->field_term_label[0]['value'].')',
+    'idnumber'  => $metadata->field_offering_id[0]['value'],
+    'id'        => 0,
+
+    // Format
+    'format'    => 'weeks',
+    'startdate' => strtotime($metadata->field_term_start_date[0]['value']),
+    'numsections' => intval($metadata->field_term_weeks[0]['value']),
+    'hiddensections'  => 0,
+    'newsitems' => 5,
+    'showgrades'  => 1,
+    'marker'    => 0,         // Not sure what this is...
+    'maxbytes'  => variable_get('moodle_resource_max_bytes', 52428800),  // 50 MB
+    'metacourse'  => 0,
+    'sortorder' => 0,         // Not sure what this is...
+    'theme'     => '',
+
+    // Enrolment
+    'cost'      => 0,
+    'enrolperiod' => 0,
+
+    // Groups
+    'groupmode' => 0,
+    'groupmodeforce'  => 0,
+
+    // Availability
+    'visible'   => $node->moodle_visibility,
+    'guest'     => 0,
+    'password'  => '',
+
+    // Language
+    'lang'      => '',
+
+    // Role Naming
+    'student'   => '',
+    'students'  => '',
+    'teacher'   => '',
+    'teachers'  => '',
+  );
+}
+
+/**
+ * Get the id for the category the course should be in.
+ *
+ * @param MoodleResource_SoapClient $client
+ * @param object $node
+ * @return integer
+ */
+function _moodle_resource_get_category (MoodleResource_SoapClient $client, $node) {
+  if (empty($node->nid))
+    $course_site_tid = course_hub_get_course_site_tid();
+  else
+    $course_site_tid = course_hub_get_course_site_tid_for_nid($node->nid);
+  $path = course_hub_get_path($course_site_tid);
+  $path = explode('/', $path);
+  // chop of the hub and course id from the path
+  array_shift($path);
+  array_pop($path);
+
+  return _moodle_resource_map_category_path($client, 0, $path);
+}
+
+/**
+ * Recursively map a path to a category id.
+ *
+ * @param MoodleResource_SoapClient $client
+ * @param int $parent_id
+ * @param array $path
+ * @return int
+ */
+function _moodle_resource_map_category_path (MoodleResource_SoapClient $client, $parent_id, $path, $depth = 1) {
+  // Escape clause, we are at the bottom of the category tree.
+  if (!count($path))
+    return $parent_id;
+
+  // Find the category id.
+  $name = array_shift($path);
+  $id = null;
+  $categories = $client->get_categories($parent_id, 'parent');
+  foreach ($categories as $category) {
+    if ($category->name == $name) {
+      $id = $category->id;
+      break;
+    }
+  }
+
+  // If not found, create a new category.
+  if (is_null($id)) {
+    $categories_created = $client->add_category(
+      array(
+        'action'      => 'add',
+        'depth'       => $depth,
+        'description' => '',
+        'id'          => 0,
+        'name'        => $name,
+        'parent'      => $parent_id,
+        'path'        => '',
+        'sortorder'   =>  999,
+        'theme'       => '',
+        'visible'     => 1,
+      )
+    );
+    if (!count($categories_created) || !$categories_created[0]->id) {
+      throw new Exception(t('Could not create a category for %name', array('%name' => $name)));
+    }
+
+    $id = $categories_created[0]->id;
+  }
+
+  // continue searching children.
+  return _moodle_resource_map_category_path($client, $id, $path, $depth++);
+}
+
+/**
+ * Sync teacher and student enrollments.
+ *
+ * @param MoodleResource_SoapClient $client
+ * @param object $node
+ * @return void
+ */
+function _moodle_resource_sync_enrollment (MoodleResource_SoapClient $client, $node) {
+  $node->field_sync_state[0]['value'] = '';
+  try {
+    if (empty($node->nid))
+      $course_site_tid = course_hub_get_course_site_tid();
+    else
+      $course_site_tid = course_hub_get_course_site_tid_for_nid($node->nid);
+    $metadata = course_hub_get_course_site_metadata($course_site_tid);
+
+    $moodle_course_id = $node->field_moodle_course_id[0]['value'];
+
+    // Get our group ids.
+    if (empty($metadata->field_instructors_dn[0]['value']))
+      throw new Exception('No instructor group defined.');
+    $instructors_mmtid = casmmsync_get_group_by_dn($metadata->field_instructors_dn[0]['value']);
+
+    if (empty($metadata->field_students_dn[0]['value']))
+      throw new Exception('No students group defined.');
+    $students_mmtid = casmmsync_get_group_by_dn($metadata->field_students_dn[0]['value']);
+
+    if (empty($metadata->field_audits_dn[0]['value']))
+      throw new Exception('No audits group defined.');
+    $audits_mmtid = casmmsync_get_group_by_dn($metadata->field_audits_dn[0]['value']);
+
+    // Verify teacher enrollment
+    $existing_teachers = $client->get_users_bycourse($moodle_course_id, 'id', 3);
+    if ($instructors_mmtid)
+      $teacher_uids = array_unique(mm_content_get_uids_in_group($instructors_mmtid));
+    else
+      $teacher_uids = array();
+    $teachers_synced_this_time = array();
+    foreach ($teacher_uids as $uid) {
+      try {
+        _moodle_resource_ensure_teacher($client, $moodle_course_id, $uid, $existing_teachers);
+        $teachers_synced_this_time[] = array('value' => $uid);
+      } catch (Exception $e) {
+        watchdog('moodle_resource', $e->getMessage(), array(), WATCHDOG_ERROR);
+        drupal_set_message($e->getMessage(), 'error');
+        if (empty($node->field_sync_state[0]['value']))
+          $node->field_sync_state[0]['value'] = t('Enrollment sync failed.');
+        $node->field_sync_state[0]['value'] .= ' '.$e->getMessage();      }
+    }
+    // Remove any teachers that we previously synced, but that are no longer in our groups.
+    foreach ($node->field_teachers_synced as $key => $value) {
+      if (!empty($value['value']) && !in_array($value['value'], $teacher_uids)) {
+        _moodle_resource_remove_teacher($client, $moodle_course_id, $value['value']);
+      }
+    }
+    $node->field_teachers_synced = $teachers_synced_this_time;
+
+    // Verify student Enrollment
+    $existing_students = $client->get_users_bycourse($moodle_course_id, 'id', 5);
+    if ($students_mmtid)
+      $student_uids = mm_content_get_uids_in_group($students_mmtid);
+    else
+      $student_uids = array();
+    if ($audits_mmtid)
+      $student_uids = array_merge($student_uids, mm_content_get_uids_in_group($audits_mmtid));
+    $students_synced_this_time = array();
+    foreach ($student_uids as $uid) {
+      try {
+        _moodle_resource_ensure_student($client, $moodle_course_id, $uid, $existing_students);
+        $students_synced_this_time[] = array('value' => $uid);
+      } catch (Exception $e) {
+        watchdog('moodle_resource', $e->getMessage(), array(), WATCHDOG_ERROR);
+        drupal_set_message($e->getMessage(), 'error');
+        if (empty($node->field_sync_state[0]['value']))
+          $node->field_sync_state[0]['value'] = t('Enrollment sync failed.');
+        $node->field_sync_state[0]['value'] .= ' '.$e->getMessage();
+      }
+    }
+    // Remove any students that we previously synced, but that are no longer in our groups.
+    foreach ($node->field_students_synced as $key => $value) {
+      if (!empty($value['value']) && !in_array($value['value'], $student_uids)) {
+        _moodle_resource_remove_student($client, $moodle_course_id, $value['value']);
+      }
+    }
+    $node->field_students_synced = $students_synced_this_time;
+
+    // Record our sync time
+    $node->field_last_sync[0]['value'] = time();
+
+    watchdog('moodle_resource', 'MoodleResource node @nid synced enrollment for @course to Moodle course @cid.', array('@cid' => $moodle_course_id, '@course' => $metadata->field_short_name[0]['value'], '@nid' => $node->nid), WATCHDOG_NOTICE);
+  } catch (Exception $e) {
+    // Recorde our sync state and time
+    $node->field_sync_state[0]['value'] = t('Enrollment sync failed.');
+    $node->field_last_sync[0]['value'] = time();
+    throw $e;
+  }
+}
+
+/**
+ * Un-enroll all students from a moodle course
+ *
+ * @param MoodleResource_SoapClient $client
+ * @param int $moodle_course_id
+ * @param object $node
+ * @return void
+ */
+function _moodle_resource_unenroll_all_students (MoodleResource_SoapClient $client, $moodle_course_id, $node) {
+  // Remove any students that we previously synced
+  foreach ($node->field_students_synced as $key => $value) {
+    _moodle_resource_remove_student($client, $moodle_course_id, $value['value']);
+  }
+}
+
+/**
+ * Remove a user as a teacher from a moodle course.
+ *
+ * @param MoodleResource_SoapClient $client
+ * @param int $moodle_course_id
+ * @param int $uid
+ * @return void
+ */
+function _moodle_resource_remove_teacher (MoodleResource_SoapClient $client, $moodle_course_id, $uid) {
+  $user = user_load($uid);
+
+  $result = $client->remove_teacher($moodle_course_id, 'id', $user->init, 'username');
+  if (!$result->status)
+    throw new Exception(t('Error removing teacher @user from Moodle Course @cid.', array('@user' => $user->name, '@cid' => $moodle_course_id)));
+
+  watchdog('moodle_resource', 'Removed %user as teacher of Moodle course @cid. WebId: %id Moodle Id: %moodle_id', array('@cid' => $moodle_course_id, '%user' => $user->name, '%id' => $user->init, '%moodle_id' => $moodle_user_id), WATCHDOG_NOTICE);
+
+}
+
+/**
+ * Remove a user as a teacher from a moodle course.
+ *
+ * @param MoodleResource_SoapClient $client
+ * @param int $moodle_course_id
+ * @param int $uid
+ * @return void
+ */
+function _moodle_resource_remove_student (MoodleResource_SoapClient $client, $moodle_course_id, $uid) {
+  $user = user_load($uid);
+
+  $result = $client->remove_student($moodle_course_id, 'id', $user->init, 'username');
+  if (!$result->status)
+    throw new Exception(t('Error removing student @user from Moodle Course @cid.', array('@user' => $user->name, '@cid' => $moodle_course_id)));
+
+  watchdog('moodle_resource', 'Removed %user as student of Moodle course @cid. WebId: %id Moodle Id: %moodle_id', array('@cid' => $moodle_course_id, '%user' => $user->name, '%id' => $user->init, '%moodle_id' => $moodle_user_id), WATCHDOG_NOTICE);
+}
+
+/**
+ * Ensure that a user is a teacher of the moodle course.
+ *
+ * @param MoodleResource_SoapClient $client
+ * @param int $moodle_course_id
+ * @param int $uid
+ * @param array $existing_teachers
+ *      An array of course members returned from Moodle.
+ * @return void
+ */
+function _moodle_resource_ensure_teacher (MoodleResource_SoapClient $client, $moodle_course_id, $uid, array $existing_teachers) {
+  $user = user_load($uid);
+  // Just skip if already a teacher
+  foreach ($existing_teachers as $teacher) {
+    if (strtolower($teacher->username) == strtolower($user->init))
+      return;
+  }
+
+  // If the user wasn't a teacher, ensure they exist
+  $moodle_user_id = _moodle_resource_ensure_user($client, $user);
+  // Add them as a teacher.
+  $result = $client->add_teacher($moodle_course_id, 'id', $moodle_user_id, 'id');
+  if (!$result->status)
+    throw new Exception(t('Error adding teacher @user to Moodle Course @cid.', array('@user' => $user->name, '@cid' => $moodle_course_id)));
+
+  watchdog('moodle_resource', 'Added %user as teacher of Moodle course @cid. WebId: %id Moodle Id: %moodle_id', array('@cid' => $moodle_course_id, '%user' => $user->name, '%id' => $user->init, '%moodle_id' => $moodle_user_id), WATCHDOG_NOTICE);
+}
+
+/**
+ * Ensure that a user is a student of the moodle course.
+ *
+ * @param MoodleResource_SoapClient $client
+ * @param int $moodle_course_id
+ * @param int $uid
+ * @param array $existing_students
+ *      An array of course members returned from Moodle.
+ * @return void
+ */
+function _moodle_resource_ensure_student (MoodleResource_SoapClient $client, $moodle_course_id, $uid, array $existing_students) {
+  $user = user_load($uid);
+  // Just skip if already a student
+  foreach ($existing_students as $student) {
+    if (strtolower($student->username) == strtolower($user->init))
+      return;
+  }
+
+  // If the user wasn't a student, ensure they exist
+  $moodle_user_id = _moodle_resource_ensure_user($client, $user);
+  // Add them as a student.
+  $result = $client->add_student($moodle_course_id, 'id', $moodle_user_id, 'id');
+  if (!$result->status)
+    throw new Exception(t('Error adding student @user to Moodle Course @cid.', array('@user' => $user->name, '@cid' => $moodle_course_id)));
+
+  watchdog('moodle_resource', 'Added %user as student of Moodle course @cid. WebId: %id Moodle Id: %moodle_id', array('@cid' => $moodle_course_id, '%user' => $user->name, '%id' => $user->init, '%moodle_id' => $moodle_user_id), WATCHDOG_NOTICE);
+}
+
+/**
+ * Ensure that a user exists in the Moodle database
+ *
+ * @param MoodleResource_SoapClient $client
+ * @param object $user
+ * @return int
+ *      The Moodle user-id for the user.
+ */
+function _moodle_resource_ensure_user (MoodleResource_SoapClient $client, $user) {
+  // Check to see if the user exists.
+  $result = $client->get_user_byusername($user->init);
+  if (!empty($result[0]->id))
+    return $result[0]->id;
+
+  // If not, add them.
+  if (strlen(trim($user->profile_language))) {
+    $languages = explode(',', $user->profile_language);
+    $lang = strtolower(str_replace('-', '_', $languages[0]));
+  }
+  if (empty($lang))
+    $lang = 'en_us';
+
+  $result = $client->add_user(array(
+    'action'        => 'add',
+    'confirmed'     => 1,
+    'policyagreed'  => 1,
+    'deleted'       => 0,
+    'mnethostid'    => 1,
+    'username'      => strtolower($user->init),
+    'auth'          => 'cas',
+    'password'      => '',
+    'passwordmd5'   => uniqid(),
+    'idnumber'      => '',
+    'firstname'     => strval($user->profile_first_name),
+    'lastname'      => strval($user->profile_last_name),
+    'email'         => strval($user->mail),
+    'icq'           => '',
+    'skype'         => '',
+    'yahoo'         => '',
+    'aim'           => '',
+    'msn'           => '',
+    'phone1'        => strval($user->profile_telephone_number),
+    'phone2'        => '',
+    'institution'   => strval($user->profile_institution),
+    'department'    => strval($user->profile_department),
+    'address'       => '',
+    'city'          => 'Middlebury',
+    'country'       => 'US',
+    'lang'          => $lang,
+    'timezone'      => 99,
+    'lastip'        => '',
+    'description'   => strval($user->profile_title),
+    'emailstop'     => 0,
+    'id'            => 0,
+    'idnumber'      => $user->init,
+    'theme'         => '',
+  ));
+  if (empty($result[0]->id)) {
+    $doc = new DomDocument();
+    $doc->loadXML($client->__getLastResponse());
+    $errors = $doc->getElementsByTagName('error');
+    if ($errors->length) {
+      throw new Exception('Error creating user. The following error occured: <br/>'.$errors->item(0)->nodeValue);
+    } else {
+      throw new Exception('Error creating user. <br/><br/>'.htmlentities($client->__getLastRequest()).'<br/><br/>'.htmlentities($client->__getLastResponse()));
+    }
+  }
+
+  watchdog('moodle_resource', 'Created account in Moodle for %user.', array('%user' => $user->name), WATCHDOG_NOTICE);
+
+  return $result[0]->id;
+}
+
+/**
+ * Hook hook_hub_get_resource_updates().
+ *
+ * Answer an array of updates fetched by the resource. Each update must be an array
+ * with the following items:
+ *
+ *  Required elements:
+ *    'guid'      A globally unique identifier string for the update. Will be used to prevent duplicates.
+ *    'title'     A title for the update.
+ *
+ *  Optional elements:
+ *    'timestamp' An ISO 8601 date/time that reflects when the update item occurred.
+ *                If not supplied, defaults to NOW().
+ *    'visibility'  One of 'class', 'institution', or 'public'. If not supplied,
+ *                  defaults to 'class'.
+ *    'url'       A URL for the item.
+ *    'body'      An HTML string representing the content of the update.
+ *
+ * @return array
+ *    An array of updates
+ */
+function moodle_resource_hub_get_resource_updates($resourceNode) {
+  if ($resourceNode->type != 'moodle_resource')
+    return array();
+
+  // Run our user sync.
+  // While this could be done as a separate cron hook, we only want to sync enrollment
+  // when update-fetching is enabled for the site.
+  _moodle_resource_cronsync($resourceNode);
+
+  // Fetch updates
+  try {
+    module_load_include('inc', 'moodle_resource', 'MoodleResource_SoapClient');
+    $client = new MoodleResource_SoapClient();
+
+    if (isset($resourceNode->field_hub_perms[0]['value']))
+      $visibility = $resourceNode->field_hub_perms[0]['value'];
+    else
+      $visibility = 'class';
+
+    $updates = array();
+    $changes = $client->get_last_changes($resourceNode->field_moodle_course_id[0]['value'], 'id', 50);
+    foreach ($changes as $c) {
+      if (!$c->visible)
+        continue;
+
+      $action = preg_replace('/^(add)(.*)$/', '\1ed\2', $c->type);
+      $action = preg_replace('/^(update)(.*)$/', '\1d\2', $action);
+      $action = preg_replace('/^(.+) post$/', '\1 a post in', $action);
+      $title = $c->author.' '.$action.' "'.$c->name.'"';
+      $updates[] = array(
+        'guid' => $c->type.'-'.$c->id,
+        'title' => $title,
+        'timestamp' => date('c', $c->timestamp),
+        'visibility' => $visibility,
+        'url' => $c->link,
+      );
+    }
+    return $updates;
+  } catch (UnexpectedValueException $e) {
+    // Ignore if we don't have a cid.
+  } catch (Exception $e) {
+    watchdog('moodle_resource', 'Error fetching updates: %message.', array('%message' => $e->getMessage()), WATCHDOG_WARNING);
+  }
+}
+
+/**
+ * Implementation of hook_cron()
+ */
+function _moodle_resource_cronsync ($node) {
+  // If integration is disabled, don't sync users.
+  if (!intval(variable_get('moodle_resource_enable', 1))) {
+    return;
+  }
+
+  // Loop through all moodle_resource nodes and sync if they haven't been done recently.
+  $cuttoff = time() - variable_get('moodle_resource_sync_frequency', 10800);  // 10800 == 3 hours
+
+  if ($node->field_last_sync[0]['value'] < $cuttoff) {
+    // Perform the sync.
+    node_save($node);
+  }
+}

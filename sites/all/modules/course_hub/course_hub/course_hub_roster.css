@@ -1,0 +1,13 @@
+.course_hub_roster_person {
+  clear: left;
+}
+.course_hub_roster_person img.course_hub_roster_photo {
+  float: left;
+  width: 200px;
+  padding-right: 10px;
+  padding-bottom: 5px;
+}
+
+.roster h2 {
+  clear: left;
+}

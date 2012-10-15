@@ -1,0 +1,9 @@
+; $Id$
+name = Course Hub Site Builder
+description = "Generates course hub sites from external data sources."
+package = Course Hub Resources
+core = 6.x
+
+dependencies[] = "course_hub"
+dependencies[] = "monster_menus"
+dependencies[] = "mmporter_importer"

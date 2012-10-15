@@ -1,0 +1,8 @@
+; $Id$
+name = Course Hub Middfiles Resource
+description = "Middfiles Resources to provide the class with a link to the Middfiles share for the course and updates of new document uploads."
+package = Course Hub Resources
+core = 6.x
+dependencies[] = "hub_resources"
+dependencies[] = "auto_nodetitle"
+dependencies[] = "content"

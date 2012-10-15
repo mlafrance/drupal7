@@ -1,0 +1,319 @@
+<?php
+
+/**
+ * Implements hook_block().
+ */
+function hub_resources_block($op = 'list', $delta = 0, $edit = array()) {
+  if ($op == 'list') {
+    $blocks[0] = array(
+      'info' => t('Resources Controls'),
+      'weight' => 0,
+      'status' => 1,
+      'region' => 'content_top',
+      'cache' => BLOCK_NO_CACHE,
+      'visibility' => 2,
+      'pages' => '<?php return hub_resources_controls_visible(); ?>',
+    );
+    $blocks[1] = array(
+      'info' => t('Resource Link Sidebar'),
+      'weight' => 0,
+      'status' => 1,
+      'region' => 'right',
+      'cache' => BLOCK_NO_CACHE,
+      'visibility' => 2,
+    );
+
+    return $blocks;
+  }
+  else if ($op == 'configure' && $delta == 0) {
+    // no options for now.
+  }
+  else if ($op == 'save' && $delta == 0) {
+    // no options for now.
+  }
+  else if ($op == 'view') {
+    switch ($delta) {
+      case 0:
+        // Your module will need to define this function to render the block.
+        $block = array(
+          'subject' => t('Resources'),
+          'content' => hub_resources_get_controls(),
+        );
+        break;
+      case 1:
+        // Your module will need to define this function to render the block.
+        $block = array(
+          'subject' => '<none>',
+          'content' => hub_resources_get_link_sidebar(),
+        );
+        break;
+    }
+    return $block;
+  }
+}
+
+/**
+ * Answer true if we are on a resources page and the block should be displayed.
+ */
+function hub_resources_controls_visible () {
+  return preg_match('/.+\/resources([?#].+)?$/', course_hub_get_path());
+}
+
+/**
+ * Answer the block contents for the Resources controls.
+ *
+ */
+function hub_resources_get_controls () {
+  ob_start();
+  $classPageTID = course_hub_get_course_site_tid('resources/class');
+  $path = course_hub_get_path($classPageTID);
+  if (mm_content_user_can($classPageTID, 'u')) {
+    print "\n<p>";
+    print '<button onclick="window.location=\''.base_path().$path.'/contents/add\'">+ Add a Resource</button>';
+    if (hub_resources_get_num_resources() > 1) {
+      print '&nbsp; &nbsp; <button onclick="window.location=\''.base_path().$path.'/contents/reorder\'">Reorder Resources</button>';
+    }
+    print "<p>\n";
+  }
+
+  return ob_get_clean();
+}
+
+/**
+ * Answer the block contents for the Resources controls.
+ *
+ */
+function hub_resources_get_link_sidebar () {
+  $view = views_get_view('course_site_links');
+  if (!empty($view))
+    return $view->execute_display('default', array(course_hub_get_course_site_tid('resources'), course_hub_get_course_site_tid('resources/class')));
+
+}
+
+function hub_resources_preprocess_views_view_row_node__course_site_links(&$vars) {
+  $node = node_load($vars['row']->nid);
+  $vars['title'] = strip_tags($node->title);
+  $vars['description'] = strip_tags($node->teaser);
+
+  $urls = module_invoke_all('hub_get_resource_url', $node);
+  $vars['url'] = $urls[0];
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function hub_resources_theme($existing) {
+  return array(
+    'views_view_row_node__course_site_links' => array(
+      'arguments' => array('view' => NULL, 'field' => NULL, 'row' => NULL),
+      'template' => 'views-view-row-node--course-site-links',
+      'original hook' => 'views_view_row_node',
+      'path' => drupal_get_path('module', 'hub_resources'),
+    ),
+  );
+}
+
+
+/**
+ * Implementation of template_preprocess_page()
+ *
+ * Remove the Monster Menus and Drupal editing controls for non admins to simplify
+ * the editing interface.
+ */
+function hub_resources_preprocess_page(&$vars) {
+  // Replace the default "This page does not yet have any content. Add Content" message.
+  if (hub_resources_controls_visible()) {
+    $view = views_get_view('hub_resources');
+    $vars['content'] = $view->execute_display('default', array(course_hub_get_course_site_tid('resources'), course_hub_get_course_site_tid('resources/class')));
+  } else if (!user_access('administer all menus') && preg_match('#.+/resources/(class|institution|public)/?$#', course_hub_get_path())) {
+    drupal_goto(course_hub_get_path(course_hub_get_course_site_tid('resources')));
+  }
+}
+
+/**
+ * Answer the number of resource nodes under the resources page
+ *
+ * @return int
+ */
+function hub_resources_get_num_resources () {
+  return count(mm_content_get_nids_by_mmtid(course_hub_get_course_site_tid('resources/class')));
+}
+
+/**
+ * Implementation of hook_form_alter().
+ *
+ * Remove the Monster Menus and Drupal editing controls for non admins to simplify
+ * the editing interface.
+ */
+function hub_resources_form_alter(&$form, &$form_state, $form_id) {
+  // Remove the MM-added title helper text.
+  $form['title']['#title'] = 'Resource/Link Title';
+  $form['title']['#description'] = '';
+
+  // Remove MM editing controls and set our submit handler.
+  if (preg_match('/^[a-z_]+_resource_node_form$/', $form_id)) {
+    if (!user_access('administer all menus')) {
+      $form['mm_appearance']['#type'] = 'hidden';
+      $form['mm_categories']['#type'] = 'hidden';
+      $form['settings_perms']['#type'] = 'hidden';
+      $form['scheduling']['#type'] = 'hidden';
+    }
+    // Attach our submit handler.
+    $form['#submit'][] = 'hub_resources_node_form_submit';
+  }
+}
+
+/**
+ * Implementation of hook_form_submit()
+ *
+ * Add/Remove the resource from one of our 'visibility' pages to grant institution
+ * or public visibility
+ */
+function hub_resources_node_form_submit (&$form, &$form_state) {
+  course_hub_set_node_form_visibility('resources', $form_state);
+
+  $originalVisibility = $form['#node']->field_hub_perms[0]['value'];
+  $visibility = $form_state['values']['field_hub_perms'][0]['value'];
+  if ($originalVisibility != $visibility) {
+    module_invoke_all('hub_resource_visibility', $form['#node'], $visibility);
+  }
+}
+
+/**
+ * Implementation of hook_nodeapi()
+ */
+function hub_resources_nodeapi (&$node, $op, $a3, $a4) {
+  $contentTypes = module_invoke_all('hub_get_content_types');
+  if (!in_array($node->type, $contentTypes))
+    return;
+
+  if ($op == 'presave') {
+    // Ensure that the groups that have 'w' permission can edit the node, but not
+    // groups with 'u' permission as mm_content_get_default_node_perms() specifies.
+    // Since we are hiding the permissions form, just blow away any manually set permissions.
+    $grouplist = array();
+    $result =
+      db_query('SELECT DISTINCT t2.mmtid, t2.name FROM {mm_tree} t '.
+               'INNER JOIN {mm_tree_access} a ON a.mmtid = t.mmtid '.
+               'LEFT JOIN {mm_tree} t2 ON a.gid = t2.mmtid '.
+               "WHERE t2.mmtid >= 0 AND (a.mode = 'w') ".
+                 'AND a.mmtid = %d ORDER BY t2.name', $node->mm_catlist_restricted[0]);
+    $node->all_values_group = '';
+    while ($r = db_fetch_object($result)) {
+      $node->all_values_group .= 'w'.$r->mmtid;
+    }
+
+    // If the user tries to hide the title, strip the square brackets.
+    if (preg_match('/^\[+(.+)\]+$/', $node->title)) {
+      $node->title = preg_replace('/^\[+(.+)\]+$/', '\1', $node->title);
+    }
+  }
+}
+
+/**
+ * Implementation of hook hub_get_content_types().
+ *
+ * This returns an array of content types of resources and other course-hub content
+ *
+ * @return array
+ *      An array of content-type identifiers
+ */
+function hub_resources_hub_get_content_types () {
+  return module_invoke_all('hub_get_resource_types');
+}
+
+/*********************************************************
+ * Hook definitions
+ *********************************************************/
+
+/**
+ * Hook hook_hub_resource_visibility().
+ *
+ * A hook that fires when the visibility of a resources has been changed.
+ *
+ * @param object $resourceNode
+ *      The resource node that was updated.
+ * @param string $visibility
+ *      The new visibility value for the node.
+ * @return void
+ */
+function hook_hub_resource_visibility ($resourceNode, $visibility) {
+  // hook definition, no implementation.
+}
+
+/*********************************************************
+ * Supporting functions
+ *********************************************************/
+
+/**
+ * Execute an XML remote procedural call. This is private function; call xmlrpc()
+ * in common.inc instead of this function.
+ *
+ * @return
+ *   A $xmlrpc_message object if the call succeeded; FALSE if the call failed
+ */
+function hub_phpcas_xmlrpc() {
+  require_once './includes/xmlrpc.inc';
+  cas_phpcas_init();
+  if (!phpCAS::isAuthenticated()) {
+    drupal_set_message(t('You are not authenticated via CAS. Cannot fetch site information.', array()), 'error');
+    throw new Exception(t('You are not authenticated via CAS. Cannot fetch site information.', array()));
+  }
+
+  $args = func_get_args();
+  $url = array_shift($args);
+  xmlrpc_clear_error();
+  if (is_array($args[0])) {
+    $method = 'system.multicall';
+    $multicall_args = array();
+    foreach ($args[0] as $call) {
+      $multicall_args[] = array('methodName' => array_shift($call), 'params' => $call);
+    }
+    $args = array($multicall_args);
+  }
+  else {
+    $method = array_shift($args);
+  }
+  $xmlrpc_request = xmlrpc_request($method, $args);
+//   print "<pre>"; print htmlentities($xmlrpc_request->xml); print "</pre>";
+
+  try {
+    $service = phpCAS::getProxiedService(PHPCAS_PROXIED_SERVICE_HTTP_POST);
+    $service->setUrl($url);
+    $service->setContentType('text/xml');
+    $service->setBody($xmlrpc_request->xml);
+    $service->send();
+    // Success
+    if ($service->getResponseStatusCode() == 200) {
+			$message = xmlrpc_message($service->getResponseBody());
+      // Now parse what we've got back
+      if (!xmlrpc_message_parse($message)) {
+        // XML error
+        xmlrpc_error(-32700, t('Parse error. Not well formed'));
+        throw new Exception(t('Parse error. Not well formed'), -32700);
+      }
+      // Is the message a fault?
+      if ($message->messagetype == 'fault') {
+        xmlrpc_error($message->fault_code, $message->fault_string);
+        throw new Exception($message->fault_string, $message->fault_code);
+      }
+      // Message must be OK
+      return $message->params[0];
+		}
+		// The service responded with an error code 404, 500, etc.
+		else {
+			xmlrpc_error($service->getResponseStatusCode(), t('An XML-RPC error occurred: %error', array('%error' => $service->getResponseBody())));
+			throw new Exception($service->getResponseStatusCode(), t('An XML-RPC error occurred: %error', array('%error' => $service->getResponseBody())));
+		}
+  } catch (CAS_ProxyTicketException $e) {
+    if ($e->getCode() == PHPCAS_SERVICE_PT_FAILURE) {
+			xmlrpc_error($e->getCode(), t('Your authentication has expired, please log in again.'));
+			throw new Exception(t('Your authentication has expired, please log in again.'), $e->getCode());
+		}
+		// Other proxy ticket errors are from bad request format (shouldn't happen)
+    // or CAS server failure (unlikely) so lets just stop if we hit those.
+		else {
+			throw $e;
+		}
+  }
+}

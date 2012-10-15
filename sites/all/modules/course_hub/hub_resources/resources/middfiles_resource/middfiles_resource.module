@@ -1,0 +1,456 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function middfiles_resource_menu() {
+  $items = array();
+
+  $items['admin/course_hub/resources/middfiles'] = array(
+    'title' => t('Middfiles Resource'),
+    'description' => t('Configure the Middfiles Resource.'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('middfiles_resource_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM,
+    'weight' => 10,
+    'file' => 'middfiles_resource.admin.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implementation of hook_preprocess_node().
+ */
+function middfiles_resource_preprocess_node(&$vars) {
+  if (!empty($vars['node']) && $vars['node']->type == 'middfiles_resource') {
+    try {
+      $vars['middfiles_url'] = _middfiles_resource_get_url($vars['node']);
+      $vars['middfiles_unc_path'] = _middfiles_resource_get_unc_path($vars['node']);
+      $vars['middfiles_afp_path'] = _middfiles_resource_get_afp_path($vars['node']);
+    } catch (UnexpectedValueException $e) {
+    }
+  }
+  else if (!empty($vars['node']) && $vars['node']->type == 'middfiles_html_resource') {
+    try {
+      $vars['middfiles_url'] = _middfiles_resource_get_public_url($vars['node']);
+      $vars['middfiles_html_help'] = _middfiles_resource_html_help($vars['node']);
+    } catch (UnexpectedValueException $e) {
+    }
+  }
+}
+
+/**
+ * Implementation of hook_theme_registry_alter()
+ */
+function middfiles_resource_theme_registry_alter(&$theme_registry) {
+  $path = drupal_get_path('module', 'middfiles_resource');
+  if (!in_array($path, $theme_registry['node']['theme paths']))
+	array_unshift($theme_registry['node']['theme paths'], $path);
+}
+
+/**
+ * Answer the URL for an middfiles resource node.
+ *
+ * Throws an InvalidArgumentException if not passed an middfiles_resource node.
+ * Throws an UnexpectedValueException if the middfiles_resource node passed does not have a course id.
+ *
+ * @param object $node
+ * @return string
+ */
+function _middfiles_resource_get_url ($node) {
+	return variable_get('middfiles_resource_base_url', 'https://middfiles.middlebury.edu/Classes/')._middfiles_resource_get_relative_path($node);
+}
+
+/**
+ * Answer the URL for an middfiles resource node.
+ *
+ * Throws an InvalidArgumentException if not passed an middfiles_resource node.
+ * Throws an UnexpectedValueException if the middfiles_resource node passed does not have a course id.
+ *
+ * @param object $node
+ * @return string
+ */
+function _middfiles_resource_get_unc_path ($node) {
+	return variable_get('middfiles_resource_base_unc_path', '\\\\middlebury.edu\\middfiles\Classes\\').str_replace('/', '\\', _middfiles_resource_get_relative_path($node));
+}
+
+/**
+ * Answer the URL for an middfiles resource node.
+ *
+ * Throws an InvalidArgumentException if not passed an middfiles_resource node.
+ * Throws an UnexpectedValueException if the middfiles_resource node passed does not have a course id.
+ *
+ * @param object $node
+ * @return string
+ */
+function _middfiles_resource_get_afp_path ($node) {
+	return variable_get('middfiles_resource_base_afp_path', 'afp://classes.middlebury.edu/classes/');
+}
+
+/**
+ * Answer the URL for an middfiles resource node.
+ *
+ * Throws an InvalidArgumentException if not passed an middfiles_resource node.
+ * Throws an UnexpectedValueException if the middfiles_resource node passed does not have a course id.
+ *
+ * @param object $node
+ * @return string
+ */
+function _middfiles_resource_get_public_url ($node) {
+	if (empty($node->nid))
+    $course_site_tid = course_hub_get_course_site_tid();
+  else
+    $course_site_tid = course_hub_get_course_site_tid_for_nid($node->nid);
+  $metadata = course_hub_get_course_site_metadata($course_site_tid);
+
+  preg_match('/^([a-z])[a-z]+ 20([0-9]{2})$/i', $metadata->field_term_label[0]['value'], $m);
+  $term_code = strtolower($m[1].$m[2]);
+  $course_code = str_replace(' ', '', $metadata->field_short_name[0]['value']);
+	return 'http://'.$term_code.'.middlebury.edu/'.$course_code.'/';
+}
+
+/**
+ * Answer the file-system path for an middfiles resource node.
+ *
+ * Throws an InvalidArgumentException if not passed an middfiles_resource node.
+ * Throws an UnexpectedValueException if the middfiles_resource node passed does not have a course id.
+ *
+ * @param object $node
+ * @return string
+ */
+function _middfiles_resource_get_fs_path ($node) {
+	return variable_get('middfiles_resource_base_fs_path', '/mnt/classes/')._middfiles_resource_get_relative_path($node);
+}
+
+/**
+ * Answer the URL for an middfiles resource node.
+ *
+ * Throws an InvalidArgumentException if not passed an middfiles_resource node.
+ * Throws an UnexpectedValueException if the middfiles_resource node passed does not have a course id.
+ *
+ * @param object $node
+ * @return string
+ */
+function _middfiles_resource_get_relative_path ($node) {
+  if (empty($node->nid))
+    $course_site_tid = course_hub_get_course_site_tid();
+  else
+    $course_site_tid = course_hub_get_course_site_tid_for_nid($node->nid);
+  $metadata = course_hub_get_course_site_metadata($course_site_tid);
+
+  preg_match('/^([a-z]+) 20([0-9]{2})$/i', $metadata->field_term_label[0]['value'], $m);
+  $term_code = $m[1].$m[2];
+  $course_code = str_replace(' ', '', $metadata->field_short_name[0]['value']);
+	return $term_code.'/'.$course_code.'/';
+}
+
+/**
+ * Implementation of hook_hub_get_resource_types()
+ *
+ * @return array
+ *    An array of node-type strings.
+ */
+function middfiles_resource_hub_get_resource_types() {
+  return array('middfiles_resource', 'middfiles_html_resource');
+}
+
+/**
+ * Hook hook_hub_get_resource_url()
+ *
+ * @param object $resourceNode
+ * @return array
+ *    An array of url strings.
+ */
+function middfiles_resource_hub_get_resource_url($resourceNode) {
+  if ($resourceNode->type == 'middfiles_resource') {
+    try {
+      return array(_middfiles_resource_get_url($resourceNode));
+    } catch (UnexpectedValueException $e) {
+    }
+  }
+  if ($resourceNode->type == 'middfiles_html_resource') {
+    try {
+      return array(_middfiles_resource_get_public_url($resourceNode));
+    } catch (UnexpectedValueException $e) {
+    }
+  }
+}
+
+/**
+ * Hook hook_hub_get_resource_updates().
+ *
+ * Answer an array of updates fetched by the resource. Each update must be an array
+ * with the following items:
+ *
+ *  Required elements:
+ *    'guid'      A globally unique identifier string for the update. Will be used to prevent duplicates.
+ *    'title'     A title for the update.
+ *
+ *  Optional elements:
+ *    'timestamp' An ISO 8601 date/time that reflects when the update item occurred.
+ *                If not supplied, defaults to NOW().
+ *    'visibility'  One of 'class', 'institution', or 'public'. If not supplied,
+ *                  defaults to 'class'.
+ *    'url'       A URL for the item.
+ *    'body'      An HTML string representing the content of the update.
+ *
+ * @return array
+ *    An array of updates
+ */
+function middfiles_resource_hub_get_resource_updates($resourceNode) {
+  if ($resourceNode->type == 'middfiles_resource') {
+    $fs_base = _middfiles_resource_get_fs_path($resourceNode);
+    $url_base = _middfiles_resource_get_url($resourceNode);
+
+    $allowed_subdirs = array('HANDOUTS', 'SHARE', 'READINGS');
+    $updates = array();
+    foreach ($allowed_subdirs as $dir) {
+      $updates = array_merge($updates, _middfiles_resource_get_updates_for_dir($fs_base, $dir, $url_base.$dir));
+    }
+    return $updates;
+  }
+  else {
+    return array();
+  }
+}
+
+/**
+ * Implementation of hook_hub_pre_update()
+ *
+ * Run cleanup actions before fetching updates.
+ */
+function middfiles_resource_hub_pre_update ($resourceNode) {
+  if ($resourceNode->type == 'middfiles_html_resource') {
+    // Check to see if there are any files in this directory and delete the resource
+    // if not.
+    $fs_base = _middfiles_resource_get_fs_path($resourceNode);
+    $updates = _middfiles_resource_get_updates_for_dir($fs_base, 'PUBLIC_HTML', _middfiles_resource_get_public_url($resourceNode));
+    if (!count($updates)) {
+      $site_tid = course_hub_get_course_site_tid_for_nid($resourceNode->nid);
+      $site_path = course_hub_get_path($site_tid);
+      $url = _middfiles_resource_get_public_url($resourceNode);
+      node_delete($resourceNode->nid);
+      watchdog('middfiles_resource', 'No public files, deleting Middfiles HTML resource from @path', array('@path' => $site_path), WATCHDOG_NOTICE, l('Site', $site_path).' '.l('HTML Site', $url));
+    }
+  }
+}
+
+function _middfiles_resource_get_updates_for_dir($fs_base, $dir, $url_base) {
+  $updates = array();
+  foreach (scandir($fs_base.$dir) as $fname) {
+    $file_path = $fs_base.$dir.'/'.$fname;
+    $url = $url_base.'/'.rawurlencode($fname);
+
+    if (strpos($fname, '.') === 0) {
+      continue;
+    } else if (is_dir($file_path)) {
+      $updates = array_merge($updates, _middfiles_resource_get_updates_for_dir($fs_base, $dir.'/'.$fname, $url_base.'/'.rawurlencode($fname)));
+    } else {
+      $short_path = _middfiles_resource_get_short_path($dir);
+      if (strlen($fname) > 25)
+        $short_name = substr($fname, 0, 10).'...'.substr($fname, strlen($fname) - 10);
+      else
+        $short_name = $fname;
+      $updates[] = array(
+        'guid' => $url,
+        'title' => t('New File: @path', array('@path' => $short_path.'/'.$short_name)),
+        'timestamp' => date('c', filemtime($file_path)),
+        'body' => t("<a href='!url'>@path</a>\n@size", array('@path' => $dir.'/'.$fname, '@size' => _middfiles_resource_file_size($file_path), '!url' => $url)),
+        'url' => $url,
+      );
+    }
+  }
+  return $updates;
+}
+
+function _middfiles_resource_get_short_path($dir) {
+  if (strlen($dir) < 21)
+    return $dir;
+
+  $parts = explode('/', $dir);
+  if (count($parts) < 3)
+    $length = 6;
+  else
+    $length = 3;
+
+  foreach ($parts as $key => $part) {
+    if ($key === 0)
+      continue;
+    if (strlen($part) > $length + 2)
+      $parts[$key] = substr($part, 0, $length).'..';
+  }
+  return implode('/', $parts);
+}
+
+function _middfiles_resource_file_size($file, $setup = null)
+{
+  $FZ = ($file && @is_file($file)) ? filesize($file) : NULL;
+  $FS = array("B","kB","MB","GB","TB","PB","EB","ZB","YB");
+
+  return number_format($FZ/pow(1024, $i=floor(log($FZ, 1024))), ($i >= 1) ? 2 : 0) . ' ' . $FS[$i];
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function middfiles_resource_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'middfiles_html_resource_node_form') {
+    // Add our help-text
+    $form['about'] = array(
+      '#type' => 'markup',
+      '#value' => _middfiles_resource_html_help($form['#node']),
+      '#weight' => -10,
+    );
+  }
+}
+
+function _middfiles_resource_html_help($node) {
+  return t("
+<div class='middfiles_help'>
+  <h4>Important Note:</h4>
+  <p>This resource was automatically added because there are files in the <a href='@pub_webdav' target='webdav'>PUBLIC_HTML/</a> folder of the <a href='@webdav' target='webdav'>Middfiles course folder</a>.</p>
+  <p>Files in the <a href='@pub_webdav' target='webdav'>PUBLIC_HTML/</a> folder are available publicly to the world at: <a href='@pub' target='pub'>@pub</a>.</p>
+  <p>This resource will be automatically removed if the files in the <a href='@pub_webdav' target='webdav'>PUBLIC_HTML/</a> folder are moved or removed.</p>
+</div>
+    ", array(
+    '@webdav' => _middfiles_resource_get_url($node),
+    '@pub_webdav' => _middfiles_resource_get_url($node).'PUBLIC_HTML/',
+    '@pub' => _middfiles_resource_get_public_url($node),
+  ));
+}
+
+/*********************************************************
+ * Scan for files with missing resources
+ *********************************************************/
+function middfiles_resource_cron () {
+  $scan_interval = intval(variable_get('middfiles_resource_scan_interval', 3600));
+  $last_scan = intval(variable_get('middfiles_resource_last_scan', 0));
+
+  if ($last_scan + $scan_interval < time()) {
+    variable_set('middfiles_resource_last_scan', time());
+    middfiles_resource_scan();
+    middfiles_html_resource_scan();
+  }
+}
+
+function middfiles_resource_scan () {
+  $terms = variable_get('middfiles_resource_terms_enabled', array());
+  foreach ($terms as $id => $enabled) {
+    if ($enabled) {
+      $term = hub_builder_get_term($id);
+      watchdog('middfiles_resource', 'Beginning scan for @catalog: @name (@id)', array('@name' => $term->display_name, '@id' => $term->id, '@catalog' => $term->catalog_id));
+
+      $search_path = variable_get('middfiles_resource_base_fs_path', '/mnt/classes/') . preg_replace('/^([a-z]+) 20([0-9]{2})$/i', '\1\2', $term->display_name).'/';
+
+      $command = 'find '.escapeshellarg($search_path)." \( -path '*/HANDOUTS/*' -o -path '*/SHARE/*' -o -path '*/READINGS/*' \) -type f -not -name '.*' | perl -n -e '/".str_replace('/', '\\/', $search_path)."([^\/]+)\//; print \"$1\\n\";' | uniq";
+
+      $with_files = explode("\n", trim(shell_exec($command)));
+
+      $new = 0;
+      $existing = 0;
+      $sites = array();
+      foreach ($with_files as $code) {
+        preg_match('/^([A-Z]+)([0-9]+.*)$/i', $code, $matches);
+        $resource_page_path = $term->import_path.'/'.$matches[1].'/'.$matches[2].'/resources/class';
+        $resource_page_tid = course_hub_tid_from_path($resource_page_path);
+        if (!is_null($resource_page_tid)) {
+          $nids = mm_content_get_nids_by_mmtid($resource_page_tid);
+          $has_middfiles = false;
+          foreach ($nids as $nid) {
+            $node = node_load($nid);
+            if ($node->type == 'middfiles_resource') {
+              $has_middfiles = true;
+              break;
+            }
+          }
+          if (!$has_middfiles) {
+            $edit = array();
+            $edit['title'] = 'Middfiles Class Folder';
+            $edit['type'] = 'middfiles_resource';
+            $edit['uid'] = $GLOBALS['user']->uid;;
+            $edit['format'] = FILTER_FORMAT_DEFAULT;
+            $edit['status'] = 1;
+            $edit['promote'] = 0;
+            $edit['comment'] = 0;
+            $edit['field_hub_perms'] = array(array("value" => "class"));
+            $edit['mm_catlist_restricted'] = array($resource_page_tid);
+            $edit['mm_catlist'] = array();
+            $node = node_submit($edit);
+            node_save($node);
+
+            watchdog('middfiles_resource', "Created Middfiles resource for @code based on scan.", array("@code" => $code), WATCHDOG_NOTICE, l('Resource Page', $resource_page_path));
+            $new++;
+          } else {
+//             print t("<div>Middfiles resource already exists for @code</div>\n", array("@code" => $code));
+            $existing++;
+          }
+        }
+      }
+
+      watchdog('middfiles_resource', 'Scan complete for @catalog: @name (@id). @new new, @existing already exist.', array('@name' => $term->display_name, '@id' => $term->id, '@catalog' => $term->catalog_id, '@new' => $new, '@existing' => $existing));
+
+    }
+  }
+}
+
+function middfiles_html_resource_scan () {
+  $terms = variable_get('middfiles_resource_terms_enabled', array());
+  foreach ($terms as $id => $enabled) {
+    if ($enabled) {
+      $term = hub_builder_get_term($id);
+      watchdog('middfiles_resource', 'Beginning HTML scan for @catalog: @name (@id)', array('@name' => $term->display_name, '@id' => $term->id, '@catalog' => $term->catalog_id));
+
+      $search_path = variable_get('middfiles_resource_base_fs_path', '/mnt/classes/') . preg_replace('/^([a-z]+) 20([0-9]{2})$/i', '\1\2', $term->display_name).'/';
+
+      $command = 'find '.escapeshellarg($search_path)." -path '*/PUBLIC_HTML/*' -type f -not -name '.*' | perl -n -e '/".str_replace('/', '\\/', $search_path)."([^\/]+)\//; print \"$1\\n\";' | uniq";
+
+      $with_files = explode("\n", trim(shell_exec($command)));
+
+      $new = 0;
+      $existing = 0;
+      $sites = array();
+      foreach ($with_files as $code) {
+        preg_match('/^([A-Z]+)([0-9]+.*)$/i', $code, $matches);
+        $resource_page_path = $term->import_path.'/'.$matches[1].'/'.$matches[2].'/resources/class';
+        $resource_page_tid = course_hub_tid_from_path($resource_page_path);
+        if (!is_null($resource_page_tid)) {
+          $nids = mm_content_get_nids_by_mmtid($resource_page_tid);
+          $has_middfiles = false;
+          foreach ($nids as $nid) {
+            $node = node_load($nid);
+            if ($node->type == 'middfiles_html_resource') {
+              $has_middfiles = true;
+              break;
+            }
+          }
+          if (!$has_middfiles) {
+            $edit = array();
+            $edit['title'] = 'Middfiles Public Website';
+            $edit['type'] = 'middfiles_html_resource';
+            $edit['uid'] = $GLOBALS['user']->uid;;
+            $edit['format'] = FILTER_FORMAT_DEFAULT;
+            $edit['status'] = 1;
+            $edit['promote'] = 0;
+            $edit['comment'] = 0;
+            $edit['field_hub_perms'] = array(array("value" => "class"));
+            $edit['mm_catlist_restricted'] = array($resource_page_tid);
+            $edit['mm_catlist'] = array();
+            $node = node_submit($edit);
+            node_save($node);
+
+            watchdog('middfiles_resource', "Created Middfiles HTML resource for @code based on scan.", array("@code" => $code), WATCHDOG_NOTICE, l('Resource Page', $resource_page_path));
+            $new++;
+          } else {
+//             print t("<div>Middfiles resource already exists for @code</div>\n", array("@code" => $code));
+            $existing++;
+          }
+        }
+      }
+
+      watchdog('middfiles_resource', 'HTML Scan complete for @catalog: @name (@id). @new new, @existing already exist.', array('@name' => $term->display_name, '@id' => $term->id, '@catalog' => $term->catalog_id, '@new' => $new, '@existing' => $existing));
+
+    }
+  }
+}

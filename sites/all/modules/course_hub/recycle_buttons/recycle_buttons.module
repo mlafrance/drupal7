@@ -1,0 +1,59 @@
+<?php
+
+/**
+ * Implements hook_block().
+ */
+function recycle_buttons_block($op = 'list', $delta = 0, $edit = array()) {
+  if ($op == 'list') {
+    $blocks[0] = array(
+      'info' => t('Recycle Buttons'),
+      'weight' => 0,
+      'status' => 1,
+      'region' => 'content_top',
+      'cache' => BLOCK_NO_CACHE,
+      'visibility' => 2,
+      'pages' => '<?php return recycle_buttons_visible(); ?>',
+    );
+
+    return $blocks;
+  }
+  else if ($op == 'configure' && $delta == 0) {
+    // no options for now.
+  }
+  else if ($op == 'save' && $delta == 0) {
+    // no options for now.
+  }
+  else if ($op == 'view') {
+    switch ($delta) {
+      case 0:
+        // Your module will need to define this function to render the block.
+        $block = array(
+          'subject' => t('Recycle bin'),
+          'content' => recycle_buttons_get_controls(),
+        );
+        break;
+    }
+    return $block;
+  }
+}
+
+/**
+ * Answer true if we are on a recycle_buttons page and the block should be displayed.
+ */
+function recycle_buttons_visible () {
+  return preg_match('/.+\/-recycle$/', course_hub_get_path());
+}
+
+/**
+ * Answer the block contents for the recycle_buttons controls.
+ *
+ */
+function recycle_buttons_get_controls () {
+  ob_start();
+  mm_parse_args($term_ids, $oarg_list, $current_tid);
+  $path = course_hub_get_path();
+  if (mm_content_user_can($current_tid, 'u')) {
+    print '<button onclick="window.location=\''.base_path().$path.'/settings/empty\'">Empty Recycle bin</button>';
+  }
+  return ob_get_clean();
+}

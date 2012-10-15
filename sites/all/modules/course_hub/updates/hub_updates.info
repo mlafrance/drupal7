@@ -1,0 +1,11 @@
+; $Id$
+name = Hub Updates
+description = "Provides support for fetching and managing updates from hub resources"
+package = Course Hub Resources
+core = 6.x
+dependencies[] = "course_hub"
+dependencies[] = "content"
+dependencies[] = "htmlstring"
+dependencies[] = "monster_menus_views"
+dependencies[] = "midd_mm_views"
+dependencies[] = "hub_resources"

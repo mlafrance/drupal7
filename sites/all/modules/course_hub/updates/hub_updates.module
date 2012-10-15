@@ -1,0 +1,756 @@
+<?php
+
+require_once 'hub_updates.admin.inc';
+
+/**
+ * Implementation of hook_cron()
+ */
+function hub_updates_cron () {
+  if (variable_get('hub_updates_fetch_via_cron', 0)) {
+    hub_updates_fetch();
+  }
+}
+
+
+function hub_updates_fetch () {
+  $numSites = 0;
+  $numSitesWithResources = 0;
+  $numUpdates = 0;
+  $fetchStart = microtime(true);
+
+  $maxPerFetch = intval(variable_get('hub_updates_max_per_fetch', 0));
+
+  foreach (hub_updates_get_updates_nids() as $updatesNID) {
+    $updatesPageTIDs = mm_content_get_by_nid($updatesNID);
+    if (!count($updatesPageTIDs)) {
+      watchdog('hub_updates', 'No parent page found for update node: @nid', array('@nid' => $updatesNID), WATCHDOG_WARNING, l(t('view'), "node/$nid"));
+      drupal_set_message(t('No parent page found for update node: @nid', array('@nid' => $updatesNID)), 'error');
+      continue;
+    }
+    $updatesPageTID = $updatesPageTIDs[0];
+    $numSites++;
+
+    // For now we'll just assume its the parent page.
+    $numSiteUpdates = hub_updates_fetch_updates($updatesPageTID);
+    if ($numSiteUpdates)
+      $numSitesWithResources++;
+    $numUpdates += $numSiteUpdates;
+
+    // Record the fetch time.
+    db_query("UPDATE {content_type_hub_updates} SET field_updates_fetched_value=NOW() WHERE nid=%d", $updatesNID);
+
+    // Stop if we've hit our maximum number of sites with resources.
+    if ($maxPerFetch && $numSitesWithResources >= $maxPerFetch)
+      break;
+  }
+
+  // Log our stats
+  $fetchTime = round(microtime(true) - $fetchStart, 2);
+  $message = 'Fetched for @time on @numSites sites. @numSitesWithResources sites have resources and @numUpdates updates were fetched on these sites.';
+  $strings = array('@numSites' => $numSites, '@numUpdates' => $numUpdates, '@numSitesWithResources' => $numSitesWithResources, '@time' => $fetchTime.'s');
+  watchdog('hub_updates', $message, $strings, WATCHDOG_INFO);
+  drupal_set_message(t($message, $strings));
+}
+
+/**
+ * Fetch updates for a single site based on the updates page id.
+ *
+ * @param int $updatesPageTID
+ *      The page id of the updates page site.
+ * @return int
+ *      The number of updates added.
+ */
+function hub_updates_fetch_updates ($updatesPageTID) {
+  $courseSiteTID = mm_content_get_parent($updatesPageTID);
+
+  // Run any cleanup actions resources may have.
+  $resourceNodes = hub_updates_get_resource_nodes($courseSiteTID);
+  foreach ($resourceNodes as $resourceNode) {
+    $updates = module_invoke_all('hub_pre_update', $resourceNode);
+  }
+
+  $numUpdates = 0;
+  $updates = module_invoke_all('hub_get_updates', $courseSiteTID);
+  foreach ($updates as $update) {
+    try {
+      if (hub_updates_add_update($update, $updatesPageTID))
+       $numUpdates++;
+    } catch (InvalidArgumentException $e) {
+      watchdog('hub_updates', 'Error adding @type update %title. Message: %message', array('@type' => $update['source_type'], '%title' => $update['source_title'], '%message' => $e->getMessage()), WATCHDOG_WARNING, l(t('view'), "node/".$update['source_id']));
+    }
+  }
+  return $numUpdates;
+}
+
+/**
+ * Fetch updates for a single site based on the site id.
+ *
+ * @param int $courseSiteTID
+ *      The page id of the course site.
+ * @return int
+ *      The number of updates added.
+ */
+function hub_updates_fetch_updates_for_site ($courseSiteTID) {
+  $updatesPageTID = course_hub_tid_from_path(course_hub_get_path($courseSiteTID).'/updates');
+  return hub_updates_fetch_updates($updatesPageTID);
+}
+
+/**
+ * Implementation of hook_hub_get_updates().
+ *
+ * Answer an array of updates related to a course site. Each update must be an array
+ * with the following items:
+ *
+ *  Required elements:
+ *    'guid'      A globally unique identifier string for the update. Will be used to prevent duplicates.
+ *    'title'     A title for the update.
+ *    'source_type'   The type of the node/module generating the update.
+ *    'source_title'  The title of the source of the update.
+ *    'source_id' The identifier of the node that generated the update.
+ *
+ *  Optional elements:
+ *    'source_url'    The URL for the source of the update.
+ *    'timestamp' An ISO 8601 date/time that reflects when the update item occurred.
+ *                If not supplied, defaults to NOW().
+ *    'visibility'  One of 'class', 'institution', or 'public'. If not supplied,
+ *                  defaults to 'class'.
+ *    'url'       A URL for the item.
+ *    'body'      An HTML string representing the content of the update.
+ *
+ * @param int $courseSiteTID
+ *      The course page id.
+ * @return array
+ *      An array of updates.
+ */
+function hub_updates_hub_get_updates ($courseSiteTID) {
+  $allUpdates = array();
+
+  // Updates from each resource
+  $resourceNodes = hub_updates_get_resource_nodes($courseSiteTID);
+  foreach ($resourceNodes as $resourceNode) {
+    $type = $resourceNode->type;
+    $title = $resourceNode->title;
+    $urls = module_invoke_all('hub_get_resource_url', $resourceNode);
+    if (count($urls))
+      $url = $urls[0];
+    else
+      $url = '';
+
+    $resourceUpdates = module_invoke_all('hub_get_resource_updates', $resourceNode);
+    foreach ($resourceUpdates as $update) {
+      $update['source_type'] = $type;
+      $update['source_title'] = $title;
+      $update['source_url'] = $url;
+      $update['source_id'] = $resourceNode->nid;
+      $allUpdates[] = $update;
+    }
+  }
+  return $allUpdates;
+}
+
+/**
+ * Disable Update fetching on all sites under a page.
+ *
+ * @param int $mmtid
+ *      The page under which course sites update fetching should be disabled.
+ * @return void
+ */
+function hub_updates_disable_update_fetching ($mmtid) {
+  $nids = hub_updates_get_updates_nids_under_page($mmtid);
+  db_query(
+"UPDATE
+  {content_type_hub_updates}
+SET
+  field_updates_enabled_value = 0
+WHERE
+  nid IN (".implode(', ', $nids).")
+  AND field_updates_enabled_value != 0");
+  $rows = db_affected_rows();
+  drupal_set_message(t('@changed sites had updates disabled. @unchanged sites were already disabled and not changed.', array('@changed' => $rows, '@unchanged' => (count($nids) - $rows))));
+}
+
+/**
+ * Enable Update fetching on all sites under a page.
+ *
+ * @param int $mmtid
+ *      The page under which course sites update fetching should be disabled.
+ * @return void
+ */
+function hub_updates_enable_update_fetching ($mmtid) {
+  $nids = hub_updates_get_updates_nids_under_page($mmtid);
+  db_query(
+"UPDATE
+  {content_type_hub_updates}
+SET
+  field_updates_enabled_value = 1
+WHERE
+  nid IN (".implode(', ', $nids).")
+  AND field_updates_enabled_value != 1");
+  $rows = db_affected_rows();
+  drupal_set_message(t('@changed sites had updates enabled. @unchanged sites were already enabled and not changed.', array('@changed' => $rows, '@unchanged' => (count($nids) - $rows))));
+}
+
+function hub_updates_get_updates_nids_under_page($mmtid) {
+  $res = db_query(
+"SELECT
+  n.nid
+FROM
+  {node} n
+  INNER JOIN {mm_node2tree} n2t ON (n2t.nid = n.nid)
+  INNER JOIN {mm_tree} t ON (n2t.mmtid = t.mmtid)
+  INNER JOIN {mm_tree_parents} p ON t.mmtid = p.mmtid
+WHERE
+  n.type = 'hub_updates'
+  AND (
+    t.mmtid = %d
+    OR t.parent = %d
+    OR p.parent = %d
+  )",
+    $mmtid, $mmtid, $mmtid);
+  $nids = array();
+  while ($nid = db_result($res)) {
+    $nids[] = $nid;
+  }
+  return $nids;
+}
+
+function hub_updates_get_updates_nids() {
+  $res = db_query(
+"SELECT
+  nid
+FROM
+  {content_type_hub_updates}
+WHERE
+  field_updates_enabled_value = 1
+  AND (
+    field_updates_fetched_value IS NULL
+    OR field_updates_fetched_value < SUBTIME(NOW(), '0:%d:0.0'))
+ORDER BY field_updates_fetched_value ASC",
+    variable_get('hub_updates_frequency', '15'));
+  $nids = array();
+  while ($nid = db_result($res)) {
+    $nids[] = $nid;
+  }
+  return $nids;
+}
+
+function hub_updates_get_resource_nodes($sectionTID) {
+  $types = module_invoke_all('hub_get_resource_types');
+  foreach ($types as $i => $val)
+    $types[$i] = "'".$val."'";
+
+  $res = db_query(
+"SELECT
+  n.nid
+FROM
+  {mm_tree} t
+  INNER JOIN {mm_tree_parents} p ON t.mmtid = p.mmtid
+  INNER JOIN {mm_node2tree} n2t ON (n2t.mmtid = t.mmtid)
+  INNER JOIN {node} n ON (n.nid = n2t.nid)
+  LEFT JOIN {mm_recycle} r ON (r.type = 'node' AND r.id = n.nid)
+WHERE
+  n.type IN (".implode(', ', $types).")
+  AND (
+    t.mmtid = %d
+    OR t.parent = %d
+    OR p.parent = %d
+  )
+  AND r.recycle_date IS NULL
+  ", $sectionTID, $sectionTID, $sectionTID);
+
+  $nodes = array();
+  while ($nid = db_result($res)) {
+    $nodes[$nid] = node_load($nid);
+  }
+  return $nodes;
+}
+
+/**
+ * Answer true if the update exists within an update page.
+ *
+ * @param string $guid
+ *      The globally unique identifier for the update.
+ * @param integer $mmtid
+ *      The update page id under which to search.
+ * @return boolean
+ *      True if the update exists.
+ */
+function hub_updates_update_exists ($guid, $mmtid) {
+  if (!$guid)
+    throw new InvalidArgumentException(t('Missing $guid'));
+  if (!$mmtid)
+    throw new InvalidArgumentException(t('Missing $mmtid'));
+  if (!is_numeric($mmtid))
+    throw new InvalidArgumentException(t('$mmtid must be an int.'));
+
+  $num = db_result(db_query(
+"SELECT
+  COUNT(n.nid)
+FROM
+  {mm_tree} t
+  INNER JOIN {mm_tree_parents} p ON t.mmtid = p.mmtid
+  INNER JOIN {mm_node2tree} n2t ON (n2t.mmtid = t.mmtid)
+  INNER JOIN {node} n ON (n.nid = n2t.nid)
+  INNER JOIN {content_type_hub_update} u ON (u.nid = n.nid AND u.vid = n.vid)
+  LEFT JOIN {mm_recycle} r ON (r.type = 'node' AND r.id = n.nid)
+WHERE
+  n.type = 'hub_update'
+  AND u.field_guid_value = '%s'
+  AND (
+    t.mmtid = %d
+    OR t.parent = %d
+    OR p.parent = %d
+  )
+  AND r.recycle_date IS NULL
+  ", $guid, $mmtid, $mmtid, $mmtid));
+
+  return (bool)$num;
+}
+
+/**
+ * Add an update if it doesn't already exist.
+ *
+ * @param array $update
+ *      The array of update info.
+ * @param int $updatesPageTID
+ *      The page on which updates should be added.
+ * @return boolean
+ *      True if the update was added, false if it already exists.
+ */
+function hub_updates_add_update($update, $updatesPageTID) {
+  if (!isset($update['guid']) || !$update['guid'])
+    throw new InvalidArgumentException(t('Missing $update[\'guid\']'));
+  if (!isset($update['title']) || !$update['title'])
+    throw new InvalidArgumentException(t('Missing $update[\'title\']'));
+
+  if (!hub_updates_update_exists($update['guid'], $updatesPageTID)) {
+    // Create the node object with some defaults.
+    $edit = array();
+    $edit['type'] = 'hub_update';
+    $edit['uid'] = $GLOBALS['user']->uid;
+    $node_type_default = variable_get('node_options_hub_update', array('status', 'promote'));
+    $edit['promote'] = false;
+    $edit['comment'] = false;
+    $edit['format'] = FILTER_FORMAT_DEFAULT;
+    $edit['status'] = 1;
+    $edit['date'] = format_date(time(), 'custom', 'Y-m-d H:i:s O');
+    if (isset($update['timestamp']) && $time = strtotime($update['timestamp'])) {
+      $edit['date'] = format_date($time, 'custom', 'Y-m-d H:i:s O');
+    }
+
+    $node = node_submit($edit);
+
+    $fields = fieldtool_fields('node', array('types' => array('hub_update')));
+    // Set node values
+    fieldtool_set($fields['field_guid'], $node, $update['guid']);
+
+    fieldtool_set($fields['title'], $node, $update['title']);
+
+    if (isset($update['timestamp']) && $time = strtotime($update['timestamp'])) {
+      $date = format_date($time, 'custom', 'Y-m-d H:i:s O');
+//       fieldtool_set($fields['date'], $node, $date);
+//       fieldtool_set($fields['created'], $node, $time);
+//       fieldtool_set($fields['changed'], $node, $time);
+    }
+
+    if (isset($update['body']))
+      fieldtool_set($fields['body'], $node, $update['body']);
+
+    if (isset($update['url']))
+      fieldtool_set($fields['field_url-value'], $node, $update['url']);
+
+    fieldtool_set($fields['field_source_title'], $node, $update['source_title']);
+    fieldtool_set($fields['field_source_url'], $node, $update['source_url']);
+    fieldtool_set($fields['field_source_id'], $node, $update['source_id']);
+
+    // Attach the node to the proper page[s].
+    // Updates will always be on the class page and may optionally be on the institution and public pages.
+    $visibilityPages = array(course_hub_get_visibility_page($updatesPageTID, 'class') => 'Class');
+    if (isset($update['visibility']) && in_array($update['visibility'], array('institution', 'public')))
+      $visibilityPages[course_hub_get_visibility_page($updatesPageTID, $update['visibility'])] = $update['visibility'];
+    $node->mm_catlist = $visibilityPages;
+
+    node_save($node);
+    if ($node->nid) {
+      watchdog('hub_updates', '@type update added: %title', array('@type' => $update['source_type'], '%title' => $node->title), WATCHDOG_NOTICE, l(t('view'), "node/$node->nid"));
+      drupal_set_message(t('@type update added: %title', array('@type' => $update['source_type'], '%title' => $node->title)));
+    }
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Hook hook_hub_get_resource_updates().
+ *
+ * Answer an array of updates fetched by the resource. Each update must be an array
+ * with the following items:
+ *
+ *  Required elements:
+ *    'guid'      A globally unique identifier string for the update. Will be used to prevent duplicates.
+ *    'title'     A title for the update.
+ *
+ *  Optional elements:
+ *    'timestamp' An ISO 8601 date/time that reflects when the update item occurred.
+ *                If not supplied, defaults to NOW().
+ *    'visibility'  One of 'class', 'institution', or 'public'. If not supplied,
+ *                  defaults to 'class'.
+ *    'url'       A URL for the item.
+ *    'body'      An HTML string representing the content of the update.
+ *
+ * @return array
+ *    An array of updates
+ */
+function hub_updates_hub_get_resource_updates($resourceNode) {
+  // Include 'Resource Added' updates for all resources.
+  // Resources themselves will provide additional content updates.
+  $update =  array();
+  $update['guid'] = 'hub_resource_created-'.$resourceNode->nid;
+  $update['title'] = t('Resource added: !title', array('!title' => $resourceNode->title));
+
+  if (isset($resourceNode->field_hub_perms[0]['value']))
+    $update['visibility'] = $resourceNode->field_hub_perms[0]['value'];
+  else
+    $update['visibility'] = 'class';
+
+  if (intval($resourceNode->created))
+    $update['timestamp'] = date('c', intval($resourceNode->created));
+  else
+    $update['timestamp'] = date('c');
+
+  return array($update);
+}
+
+/**
+ * Implementation of hook_hub_resource_visibility().
+ *
+ * A hook that fires when the visibility of a resources has been changed.
+ *
+ * @param object $resourceNode
+ *      The resource node that was updated.
+ * @param string $visibility
+ *      The new visibility value for the node.
+ * @return void
+ */
+function hub_updates_hub_resource_visibility ($resourceNode, $visibility) {
+  // Update the visibility of the updates from this resource.
+  $updateNIDs = hub_updates_update_nids_for_resource($resourceNode->nid);
+
+  $updatesPageTID = course_hub_get_course_site_tid('updates');
+  $visibilityPages = array(course_hub_get_visibility_page($updatesPageTID, 'class') => 'Class');
+  if (in_array($visibility, array('institution', 'public')))
+    $visibilityPages[course_hub_get_visibility_page($updatesPageTID, $visibility)] = $visibility;
+
+  foreach ($updateNIDs as $updateNID) {
+    $node = node_load($updateNID);
+    $node->mm_catlist = $visibilityPages;
+    node_save($node);
+  }
+}
+
+/**
+ * Implementation of hook_nodeapi().
+ *
+ * Note that the weight of this module needs to be greater than Monster Menus
+ * to ensure that this hook implementation runs after Monster Menus has added
+ * the node to its page.
+ */
+function hub_updates_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+  // Set a flag to prevent infinite recursion due to a node_save() operation in
+  // an update.
+  static $fetching_updates = false;
+  if ($fetching_updates)
+    return;
+  $fetching_updates = true;
+
+  static $contentTypes = null;
+  if (is_null($contentTypes))
+    $contentTypes = module_invoke_all('hub_get_content_types');
+
+  // Trigger update fetching
+  if (($op == 'insert' || $op == 'update') && in_array($node->type, $contentTypes)) {
+    if (mm_content_node_is_recycled($node->nid) || !course_hub_is_course_site())
+      return;
+
+    // Delete our existing Resource Added/Resource Updated links so that they
+    // can be recreated with the current titles and changed-dates.
+    if ($op == 'update') {
+      $updateNIDs = hub_updates_update_nids_for_resource($node->nid);
+      foreach ($updateNIDs as $updateNID) {
+        $updateNode = node_load($updateNID);
+        if (preg_match('/^('.implode('|', $contentTypes).'|syllabus)_(added|created|updated)-.+/', $updateNode->field_guid[0]['value'])) {
+          node_delete($updateNID);
+        }
+      }
+    }
+
+    // fetch updates for the current site.
+    hub_updates_fetch_updates_for_site(course_hub_get_course_site_tid());
+  }
+
+  // Delete updates attached to the node.
+  if ($op == 'delete' && in_array($node->type, $contentTypes)) {
+    $updateNIDs = hub_updates_update_nids_for_resource($node->nid);
+    foreach ($updateNIDs as $updateNID) {
+      node_delete($updateNID);
+    }
+  }
+
+  // Unset our recursion-prevention flag.
+  $fetching_updates = false;
+}
+
+/**
+ * Answer an array of the node-ids for updates that map to a given resource node-id.
+ *
+ * @param integer $resourceNID
+ *      The node-id of the resource.
+ * @return array
+ *      The node-ids of the updates for that resource.
+ */
+function hub_updates_update_nids_for_resource ($resourceNID) {
+  $nids = array();
+  $fieldInfo = content_fields("field_source_id", "hub_update");
+  $dbInfo = content_database_info($fieldInfo);
+  $res = db_query('SELECT nid FROM %s WHERE %s = %d', $dbInfo['table'], $dbInfo['columns']['value']['column'], $resourceNID);
+  while ($row = db_fetch_array($res)) {
+    $nids[] = intval($row['nid']);
+  }
+  return $nids;
+}
+
+/**
+ * Implementation of hook_form_alter().
+ *
+ * Add the option to delete updates when a resource is deleted.
+ */
+function hub_updates_form_alter(&$form, &$form_state, $form_id) {
+  // Add the option to delete updates from this resource.
+  if ($form_id == 'mm_ui_node_delete_confirm') {
+    $numUpdates = count(hub_updates_update_nids_for_resource($form['nid']['#value']));
+    $node = node_load($form['nid']['#value']);
+    $contentTypes = module_invoke_all('hub_get_content_types');
+    if (in_array($node->type, $contentTypes) && $numUpdates) {
+      // Add our form text
+      $form['description']['#value'] .= ' '.t('@num updates from this resource will also be deleted.', array('@num' => $numUpdates));
+      $form['description']['#value'] .= '<br/><br/>';
+
+      // if submitted, delete updates
+      // (Attaching a submit handler via $form['#submit'][] didn't seem to work.)
+      if ($form_state['post']['confirm'] == '1') {
+        mm_content_move_to_bin(null, hub_updates_update_nids_for_resource($form['nid']['#value']));
+      }
+    }
+  }
+}
+
+/*********************************************************
+ * Views for the Updates listing.
+ *********************************************************/
+/**
+ * Implementation of hook_theme_registry_alter()
+ */
+function hub_updates_theme_registry_alter(&$theme_registry) {
+  $path = drupal_get_path('module', 'hub_updates');
+  if (!in_array($path, $theme_registry['node']['theme paths']))
+	array_unshift($theme_registry['node']['theme paths'], $path);
+  if (!in_array($path, $theme_registry['block']['theme paths']))
+	array_unshift($theme_registry['block']['theme paths'], $path);
+}
+
+/**
+ * Implementation of hook_theme()
+ */
+function hub_updates_theme($existing, $type, $theme, $path) {
+  return array(
+    'hub_updates_source_filter' => array(
+      'template'  => 'hub_updates_source_filter',
+      'arguments' => array('sources' => NULL, 'current_filter' => NULL),
+      'path'      => drupal_get_path('module', 'hub_updates'),
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_preprocess_node().
+ */
+function hub_updates_preprocess_node(&$vars) {
+  // Add the view for our updates node.
+  if (!empty($vars['node']) && $vars['node']->type == 'hub_updates') {
+    $pages = mm_content_get_by_nid($vars['node']->nid);
+    $view = views_get_view('hub_updates_view');
+    $vars['updates_list'] = $view->execute_display('default', array($pages[0]));
+  }
+
+  // values for theming update nodes
+  if (!empty($vars['node']) && $vars['node']->type == 'hub_update') {
+    // If the update has a URL, we'll use it for our link.
+    if ($vars['node']->field_url[0]['value'])
+      $vars['url'] = $vars['node']->field_url[0]['value'];
+    // If we have content, make a link to the update node.
+    else if (strlen(trim($vars['node']->body)))
+      $vars['url'] = url(course_hub_get_path().'/node/'.$vars['node']->nid);
+
+    $vars['source_title'] = $vars['node']->field_source_title[0]['safe'];
+    $vars['source_url'] = $vars['node']->field_source_url[0]['safe'];
+
+    $stripped = strip_tags($vars['node']->body, '<p><br><a><b><i><em><strong><span><ul><ol><li><dl><dt><dd>');
+    $vars['teaser'] = htmlstring_trim($stripped, 40, $trimmed);
+    $vars['trimmed'] = $trimmed;
+
+    $vars['date_created'] = format_date($vars['node']->created, 'large');
+  }
+}
+
+/**
+ * Implementation of template_preprocess_page()
+ */
+function hub_updates_preprocess_page(&$vars) {
+  // Replace the default "This page does not yet have any content. Add Content" message.
+  if (course_hub_is_course_site_root()) {
+    $vars['content'] = '';
+
+//     // Add the resource filter
+//     if (isset($_GET['source']))
+//       $current_filter = intval($_GET['source']);
+//     else
+//       $current_filter = null;
+//     $sources = hub_updates_update_sources(course_hub_get_course_site_tid());
+//     $base = course_hub_get_path();
+//     $allSource = new stdClass();
+//     $allSource->id = null;
+//     $allSource->title = 'Updates from all Resources';
+//     $allSource->num_updates = 0;
+//     $allSource->filter_url = url($base);
+//     foreach($sources as $source) {
+//       $source->filter_url = url($base, array('query' => http_build_query(array('source' => $source->id))));
+//       $allSource->num_updates += $source->num_updates;
+//     }
+//     array_unshift($sources, $allSource);
+//     $vars['content'] .= theme('hub_updates_source_filter', $sources, $current_filter);
+//
+//     // Add the resource listing.
+//     $view = views_get_view('hub_updates_view');
+//     $vars['content'] .= $view->execute_display('default', array(course_hub_get_course_site_tid('updates'), $current_filter));
+//
+//     global $user;
+//     if (!$allSource->num_updates && !$user->uid) {
+//       $vars['content'] .= "\n<div class='hub_updates_message'>".t("Please log in to view private content.")."</div>";
+//     }
+
+    // Display the course description if there are no updates.
+    if (!$allSource->num_updates) {
+      $listingNodeIds = mm_content_get_nids_by_mmtid(course_hub_get_course_site_tid('about'));
+      if (count($listingNodeIds)) {
+        $listingNode = node_load($listingNodeIds[0]);
+        $vars['content'] .= "\n<div class='updates-class_listing'>";
+        $vars['content'] .= $listingNode->body;
+        $vars['content'] .= "</div>";
+      }
+    }
+  }
+}
+
+/**
+ * Answer an array of statistics about Updates and which resources they are attached to a site.
+ *
+ * @param int $mmtid
+ *      The id of a course site page.
+ * @return array
+ *      An array of statistics objects that includes the id, title, url, and num_updates
+ */
+function hub_updates_update_sources ($mmtid) {
+  global $user;
+  if ($user->uid)
+    $userWhere = "\n  OR (
+    a.mode = 'r'
+    AND a.gid IN (SELECT gid FROM mm_group WHERE uid = ".$user->uid.")
+  )";
+  else
+    $userWhere = '';
+  $query = "SELECT
+  field_source_title_value AS title,
+  field_source_id_value AS id,
+  COUNT(DISTINCT(n.nid)) AS num_updates
+FROM
+  {node} n
+  INNER JOIN {mm_node2tree} n2t ON n.nid = n2t.nid
+  INNER JOIN {mm_tree} t ON n2t.mmtid = t.mmtid
+  INNER JOIN {mm_tree_parents} p ON t.mmtid = p.mmtid
+  INNER JOIN {content_type_hub_update} u ON (u.nid = n.nid AND u.vid = n.vid)
+  LEFT JOIN {mm_recycle} r ON (r.type = 'node' AND r.id = n.nid)
+  LEFT JOIN {mm_tree_access} a ON t.mmtid = a.mmtid
+WHERE
+  n.type = 'hub_update'
+  AND (
+    t.mmtid = %d
+    OR t.parent = %d
+    OR p.parent = %d
+  )
+  AND r.recycle_date IS NULL
+  AND (t.default_mode REGEXP('r') ".$userWhere.")
+GROUP BY
+  field_source_id_value
+ORDER BY
+  field_source_title_value ASC
+  ";
+  $out = array();
+  $result = db_query($query, $mmtid, $mmtid, $mmtid);
+  while ($r = db_fetch_object($result)) {
+    $out[] = $r;
+  }
+  return $out;
+}
+
+/**
+ * Implementation of template_preprocess_block()
+ */
+function hub_updates_preprocess_block(&$vars) {
+  // Replace the default "This page does not yet have any content. Add Content" message.
+  if ($vars['block']->module == 'hub_updates') {
+    $pages = mm_content_get_tree(course_hub_get_course_site_tid(), array(MM_GET_TREE_DEPTH => 0));
+    $page = $pages[0];
+
+    if (preg_match('/^([^:]+):(.+)$/ms', $page->name, $matches))
+      $vars['title'] = nl2br(trim($matches[2]));
+    else
+      $vars['title'] = $page->name;
+  }
+}
+
+/**
+ * Implements hook_block().
+ */
+function hub_updates_block($op = 'list', $delta = 0, $edit = array()) {
+  if ($op == 'list') {
+    $blocks[0] = array(
+      'info' => t('Updates Heading'),
+      'weight' => 0,
+      'status' => 1,
+      'region' => 'content_top',
+      'cache' => BLOCK_NO_CACHE,
+      'visibility' => 2,
+      'pages' => '<?php return course_hub_is_course_site_root(); ?>',
+    );
+
+    return $blocks;
+  }
+  else if ($op == 'configure' && $delta == 0) {
+    // no options for now.
+  }
+  else if ($op == 'save' && $delta == 0) {
+    // no options for now.
+  }
+  else if ($op == 'view') {
+    switch ($delta) {
+      case 0:
+        // Your module will need to define this function to render the block.
+        $block = array(
+          'subject' => t('Updates'),
+          'content' => ' ',
+        );
+        break;
+    }
+    return $block;
+  }
+}

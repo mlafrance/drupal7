@@ -1,0 +1,15 @@
+.term_test_header {
+  margin-bottom: 10px;
+}
+.term_test {
+  padding: 5px;
+  margin-bottom: 5px;
+}
+
+.term_test_success {
+  border: 1px solid green;
+}
+
+.term_test_failure {
+  border: 1px solid red;
+}

@@ -1,0 +1,120 @@
+<?php
+
+/**
+ * Implementation of hook_preprocess_node().
+ */
+function eres_resource_preprocess_node(&$vars) {
+  if (!empty($vars['node']) && $vars['node']->type == 'eres_resource') {
+    try {
+      $vars['eres_url'] = _eres_resource_get_url($vars['node']);
+    } catch (UnexpectedValueException $e) {
+    }
+  }
+}
+
+/**
+ * Implementation of hook_theme_registry_alter()
+ */
+function eres_resource_theme_registry_alter(&$theme_registry) {
+  $path = drupal_get_path('module', 'eres_resource');
+  if (!in_array($path, $theme_registry['node']['theme paths']))
+	array_unshift($theme_registry['node']['theme paths'], $path);
+}
+
+/**
+ * Answer the URL for an ERES resource node.
+ *
+ * Throws an InvalidArgumentException if not passed an eres_resource node.
+ * Throws an UnexpectedValueException if the eres_resource node passed does not have a course id.
+ *
+ * @param object $node
+ * @return string
+ */
+function _eres_resource_get_url ($node) {
+	if ($node->type != 'eres_resource')
+	  throw new InvalidArgumentException(t('@func expects and eres_resource node, got @type', array('@func' => __FUNCTION__, '@type' => $node->type)));
+	if (!isset($node->field_cid[0]['value']))
+	  throw new UnexpectedValueException(t('@func expects the node to have a cid value, none found.', array('@func' => __FUNCTION__)));
+	if (!$node->field_cid[0]['value'])
+	  throw new UnexpectedValueException(t('@func expects the node to have a cid value, none found.', array('@func' => __FUNCTION__)));
+
+	return 'http://eres.middlebury.edu/eres/coursepage.aspx?cid='.$node->field_cid[0]['value'];
+}
+
+/**
+ * Answer the URL for an ERES resource node.
+ *
+ * Throws an InvalidArgumentException if not passed an eres_resource node.
+ * Throws an UnexpectedValueException if the eres_resource node passed does not have a course id.
+ *
+ * @param object $node
+ * @return string
+ */
+function _eres_resource_get_feed_url ($node) {
+	if ($node->type != 'eres_resource')
+	  throw new InvalidArgumentException(t('@func expects and eres_resource node, got @type', array('@func' => __FUNCTION__, '@type' => $node->type)));
+	if (!isset($node->field_cid[0]['value']))
+	  throw new UnexpectedValueException(t('@func expects the node to have a cid value, none found.', array('@func' => __FUNCTION__)));
+	if (!$node->field_cid[0]['value'])
+	  throw new UnexpectedValueException(t('@func expects the node to have a cid value, none found.', array('@func' => __FUNCTION__)));
+
+	return 'http://eres.middlebury.edu/eres/rss.aspx?cid='.$node->field_cid[0]['value'];
+}
+
+/**
+ * Implementation of hook_hub_get_resource_types()
+ *
+ * @return array
+ *    An array of node-type strings.
+ */
+function eres_resource_hub_get_resource_types() {
+  return array('eres_resource');
+}
+
+/**
+ * Hook hook_hub_get_resource_url()
+ *
+ * @param object $resourceNode
+ * @return array
+ *    An array of url strings.
+ */
+function eres_resource_hub_get_resource_url($resourceNode) {
+  if ($resourceNode->type == 'eres_resource') {
+    try {
+      return array(_eres_resource_get_url($resourceNode));
+    } catch (UnexpectedValueException $e) {
+    }
+  }
+}
+
+/**
+ * Hook hook_hub_get_resource_updates().
+ *
+ * Answer an array of updates fetched by the resource. Each update must be an array
+ * with the following items:
+ *
+ *  Required elements:
+ *    'guid'      A globally unique identifier string for the update. Will be used to prevent duplicates.
+ *    'title'     A title for the update.
+ *
+ *  Optional elements:
+ *    'timestamp' An ISO 8601 date/time that reflects when the update item occurred.
+ *                If not supplied, defaults to NOW().
+ *    'visibility'  One of 'class', 'institution', or 'public'. If not supplied,
+ *                  defaults to 'class'.
+ *    'url'       A URL for the item.
+ *    'body'      An HTML string representing the content of the update.
+ *
+ * @return array
+ *    An array of updates
+ */
+function eres_resource_hub_get_resource_updates($resourceNode) {
+  if ($resourceNode->type != 'eres_resource')
+    return array();
+
+  try {
+    return rss_resource_fetch_updates(_eres_resource_get_feed_url($resourceNode), $resourceNode);
+  } catch (UnexpectedValueException $e) {
+    // Ignore if we don't have a cid.
+  }
+}

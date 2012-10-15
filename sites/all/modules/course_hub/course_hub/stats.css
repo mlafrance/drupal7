@@ -1,0 +1,39 @@
+.course_hub_stats_bar {
+  white-space: nowrap;
+  width: 100%;
+  clear: both;
+
+}
+.course_hub_stats_bar_label {
+  float: left;
+  padding-left: 3px;
+  width: 10em;
+}
+.course_hub_stats_bar_ammount {
+  float: left;
+  width: 10em;
+  padding-right: 3px;
+}
+.course_hub_stats_bar_percent {
+  float: right;
+  text-align: right;
+  width: 12em;
+  padding-right: 3px;
+}
+.course_hub_stats_bar_bar {
+  background-color: #FFB570;
+  height: 1.6em;
+}
+.course_hub_stats_bar_sites .course_hub_stats_bar_bar {
+  background-color: #CC99FF;
+}
+.course_hub_stats_bar_instructors .course_hub_stats_bar_bar {
+  background-color: #70B0FF;
+}
+.course_hub_stats_bar_students .course_hub_stats_bar_bar {
+  background-color: #63DD61;
+}
+
+.course_hub_stats_table_name {
+  width: 10em;
+}

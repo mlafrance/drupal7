@@ -1,0 +1,136 @@
+<?php
+
+/**
+ * Implementation of hook_install().
+ */
+function hub_builder_install() {
+  // Create my tables.
+  drupal_install_schema('hub_builder');
+  db_query('
+    ALTER TABLE {hub_builder_term}
+      ADD CONSTRAINT {hub_builder_term_ibfk_1}
+      FOREIGN KEY (catalog_id) REFERENCES {hub_builder_catalog} (id) ON UPDATE CASCADE;
+  ');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function hub_builder_uninstall() {
+  // Drop my tables.
+  db_query('
+    ALTER TABLE {hub_builder_term}
+      DROP CONSTRAINT IF EXISTS {hub_builder_term_ibfk_1}
+  ');
+  drupal_uninstall_schema('hub_builder');
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function hub_builder_schema() {
+  return array(
+    'hub_builder_catalog' => array(
+      'fields' => array(
+        'id' => array(
+          'type' => 'varchar',
+          'length' => '50',
+          'not null' => TRUE,
+        ),
+        'class_group_base_dn' => array(
+          'type' => 'varchar',
+          'length' => '255',
+          'not null' => TRUE,
+        ),
+        'main_data_url' => array(
+          'type' => 'text',
+          'size' => 'medium',
+          'not null' => TRUE,
+        ),
+        'instructor_course_list_url' => array(
+          'type' => 'text',
+          'size' => 'medium',
+          'not null' => TRUE,
+        ),
+        'types_to_import' => array(
+          'type' => 'text',
+          'size' => 'medium',
+          'not null' => TRUE,
+        ),
+      ),
+      'primary key' => array('id'),
+    ),
+    'hub_builder_term' => array(
+      'fields' => array(
+        'catalog_id' => array(
+          'type' => 'varchar',
+          'length' => '50',
+          'not null' => TRUE,
+        ),
+        'id' => array(
+          'type' => 'varchar',
+          'length' => '50',
+          'not null' => TRUE,
+        ),
+        'display_name' => array(
+          'type' => 'varchar',
+          'length' => '50',
+          'not null' => TRUE,
+        ),
+        'import_path' => array(
+          'type' => 'varchar',
+          'length' => '255',
+          'not null' => TRUE,
+        ),
+        'last_built' => array(
+          'type' => 'datetime',
+          'not null' => FALSE,
+        ),
+        'last_built_by' => array(
+          'type' => 'int',
+          'not null' => FALSE,
+        ),
+      ),
+      'primary key' => array('id'),
+      'unique keys' => array(
+        'unique_catalog_term' => array('catalog_id', 'id'),
+      ),
+      'foreign keys' => array(
+        'term_catalog_fk' => array(
+          'table' => 'hub_builder_catalog',
+          'columns' => array('catalog_id' => 'id'),
+        ),
+      ),
+    ),
+  );
+}
+
+function hub_builder_update_6100() {
+  $ret = array();
+  // Create my tables.
+  drupal_install_schema('hub_builder');
+  return $ret;
+}
+
+function hub_builder_update_6101() {
+  $ret = array();
+  $ret[] = update_sql('
+    ALTER TABLE {hub_builder_term}
+      ADD CONSTRAINT {hub_builder_term_ibfk_1}
+      FOREIGN KEY (catalog_id) REFERENCES {hub_builder_catalog} (id) ON UPDATE CASCADE;
+  ');
+  return $ret;
+}
+
+function hub_builder_update_6102() {
+  $ret = array();
+  db_drop_field($ret, 'hub_builder_catalog', 'single_course_url');
+  db_add_field($ret, 'hub_builder_catalog', 'types_to_import',
+    array(
+      'type' => 'text',
+      'size' => 'medium',
+      'not null' => TRUE,
+    )
+  );
+  return $ret;
+}

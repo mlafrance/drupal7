@@ -1,0 +1,224 @@
+<?php
+
+require_once dirname(__FILE__).'/wordpress_resource.admin.inc';
+
+/**
+ * Implementation of hook_preprocess_node().
+ */
+function wordpress_resource_preprocess_node(&$vars) {
+  if (!empty($vars['node']) && $vars['node']->type == 'wordpress_resource' && $vars['node']->field_wp_sitename[0]['value']) {
+    $vars['wp_site_url'] = wordpress_resource_get_url($vars['node']->field_wp_sitename[0]['value']);
+  }
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function wordpress_resource_form_wordpress_resource_node_form_alter(&$form, $form_state) {
+  $form['create'] = array(
+    '#title' => t('What WordPress site?'),
+    '#type' => 'radios',
+    '#options' => array(
+      'existing' => t('Connect to an existing site'),
+      'new' => t('Create a new site'),
+    ),
+    '#default_value' => 'existing',
+  );
+
+  // Add validation
+  $form['#validate'][] = 'wordpress_resource_sitename_validate';
+}
+
+/**
+ * Validate that the wordpress site entered exists.
+ *
+ * @param object $form
+ * @param array $form_state
+ * @return void
+ */
+function wordpress_resource_sitename_validate ($form, &$form_state) {
+  $sitename = $form_state['values']['field_wp_sitename'][0]['value'];
+
+  // Creating a new site
+  if ($form_state['values']['create'] == 'new') {
+    try {
+      $exists = wordpress_resource_xmlrpc('midd.blogExists', $sitename);
+      if ($exists) {
+        form_set_error('field_wp_sitename', t('A site with this name already exists. Connect to the existing site or choose a new name.'));
+        return;
+      }
+
+      $title = trim(trim($form_state['values']['title']), '[]');
+      if (!strlen($title)) {
+        form_set_error('field_title', t('You must enter a site title.'));
+        return;
+      }
+
+      $visibility = $form_state['values']['field_hub_perms'][0]['value'];
+      if ($visibility == 'class') {
+        $public = -2;
+      } else if ($visibility == 'institution') {
+        $public = -1;
+      } else {
+        $public = 1;
+      }
+
+      $successMessage = wordpress_resource_xmlrpc('midd.createBlog', $sitename, $title, $public);
+
+      if ($successMessage) {
+        drupal_set_message($successMessage);
+      } else {
+        form_set_error('', t('Creating the site failed.'));
+        return;
+      }
+
+    } catch (Exception $e) {
+      form_set_error('', $e->getMessage());
+      return;
+    }
+  }
+
+  // Connect an existing site.
+  else {
+    try {
+      $siteInfo = wordpress_resource_xmlrpc('midd.getBlog', $sitename);
+
+  //     var_dump($siteInfo);
+
+      if (!is_array($siteInfo)) {
+        form_set_error('field_wp_sitename', t('Unknown site. Do you want to create it?'));
+        return;
+      }
+
+      if (!$siteInfo['canRead']) {
+        form_set_error('field_wp_sitename', t('You are not authorized to view the site %sitename. Please request permission from the site owner or choose another site.', array('%sitename' => $sitename)));
+        return;
+      }
+    } catch (Exception $e) {
+      form_set_error('', $e->getMessage());
+      return;
+    }
+  }
+}
+
+/**
+ * Implementation of hook_theme_registry_alter()
+ */
+function wordpress_resource_theme_registry_alter(&$theme_registry) {
+  $path = drupal_get_path('module', 'wordpress_resource');
+  if (!in_array($path, $theme_registry['node']['theme paths']))
+    array_unshift($theme_registry['node']['theme paths'], $path);
+}
+
+/**
+ * Implementation of hook_hub_get_resource_types()
+ *
+ * @return array
+ *    An array of node-type strings.
+ */
+function wordpress_resource_hub_get_resource_types() {
+  return array('wordpress_resource');
+}
+
+/**
+ * Hook hook_hub_get_resource_url()
+ *
+ * @param object $resourceNode
+ * @return array
+ *    An array of url strings.
+ */
+function wordpress_resource_hub_get_resource_url($resourceNode, $path = '', $authenticated = false) {
+  if ($resourceNode->type == 'wordpress_resource')
+    return wordpress_resource_get_url($resourceNode->field_wp_sitename[0]['value'], $path, $authenticated);
+}
+
+/**
+ * Answer the url to a wordpress site
+ *
+ * @param optional string $sitename
+ *      The name of the wordpress site or empty for the base install path.
+ * @return string
+ *      The URL to the site
+ */
+function wordpress_resource_get_url ($sitename = '', $path = '', $authenticated = false) {
+  $scheme = variable_get('wordpress_resource_scheme', 'http');
+  $host = variable_get('wordpress_resource_host', 'blogs.middlebury.edu');
+  $basePath = variable_get('wordpress_resource_base_path', '/');
+  $isSubdomainInstall = variable_get('wordpress_resource_is_subdomain_install', 0);
+
+  $authUser = variable_get('wordpress_resource_auth_param', '');
+  $authPass = variable_get('wordpress_resource_http_pass', '');
+  $authParam = variable_get('wordpress_resource_auth_param', '');
+
+  $url = $scheme.'://';
+
+  if ($authenticated && $authUser && $authPass) {
+    $url .= $authUser.':'.$authPass.'@';
+  }
+
+  if ($isSubdomainInstall && $sitename)
+    $url .= $sitename.'.';
+  else
+    $url .= $host;
+  $url .= $basePath;
+  if (!$isSubdomainInstall && $sitename)
+    $url .= $sitename.'/';
+
+  if ($path)
+    $url .= $path;
+
+  if ($authenticated && $authParam) {
+    $url .= '?'.$authParam;
+  }
+
+  return $url;
+}
+
+/**
+ * A helper function for XML RPC calls.
+ *
+ * @param string $method
+ *      The XML-RPC method.
+ * @param mixed $args
+ * @return mixed
+ *      The result of the XML-RPC call
+ */
+function wordpress_resource_xmlrpc () {
+  $args = func_get_args();
+  $url = wordpress_resource_get_url().'xmlrpc.php';
+  array_unshift($args, $url);
+  return call_user_func_array('hub_phpcas_xmlrpc', $args);
+}
+
+/**
+ * Hook hook_hub_get_resource_updates().
+ *
+ * Answer an array of updates fetched by the resource. Each update must be an array
+ * with the following items:
+ *
+ *  Required elements:
+ *    'guid'      A globally unique identifier string for the update. Will be used to prevent duplicates.
+ *    'title'     A title for the update.
+ *
+ *  Optional elements:
+ *    'timestamp' An ISO 8601 date/time that reflects when the update item occurred.
+ *                If not supplied, defaults to NOW().
+ *    'visibility'  One of 'class', 'institution', or 'public'. If not supplied,
+ *                  defaults to 'class'.
+ *    'url'       A URL for the item.
+ *    'body'      An HTML string representing the content of the update.
+ *
+ * @return array
+ *    An array of updates
+ */
+function wordpress_resource_hub_get_resource_updates($resourceNode) {
+  if ($resourceNode->type != 'wordpress_resource')
+    return array();
+
+  if (!$resourceNode->field_wp_sitename[0]['value'])
+    return array();
+
+  $postUpdates = rss_resource_fetch_updates(wordpress_resource_hub_get_resource_url($resourceNode, 'feed/', true), $resourceNode);
+  $commentUpdates = rss_resource_fetch_updates(wordpress_resource_hub_get_resource_url($resourceNode, 'comments/feed/', true), $resourceNode);
+  return array_merge($postUpdates, $commentUpdates);
+}

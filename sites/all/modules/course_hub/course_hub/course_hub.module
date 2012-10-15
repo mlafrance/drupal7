@@ -1,0 +1,605 @@
+<?php
+
+require_once dirname(__FILE__).'/course_hub.admin.inc';
+
+/**
+ * Answer the id of the course site's root page.
+ *
+ * @param optional string $relativePath
+ *      A page path relative to the course site root. E.g. 'resources/class'
+ * @return int
+ */
+function course_hub_get_course_site_tid ($relativePath = '') {
+  mm_parse_args($term_ids, $oarg_list, $current_tid);
+  $rootTID = mm_content_get_blocks_at_mmtid($term_ids);
+  if (!$relativePath)
+    return $rootTID;
+
+  $basePath = course_hub_get_path($rootTID);
+  return course_hub_tid_from_path($basePath.'/'.$relativePath);
+}
+
+/**
+ * Given a node anywhere on a course site, return the mmtid of the root page of the site.
+ *
+ * @param int $nid
+ * @return int
+ *      The MMTID of the site page
+ */
+function course_hub_get_course_site_tid_for_nid ($nid) {
+  $nid = intval($nid);
+  if (!$nid)
+    throw new Exception('Invalid node id passed.');
+
+	$pages = mm_content_get_by_nid($nid);
+	$parents = mm_content_get_parents($pages[0]);
+	// Make an arry of pages to check.
+	array_unshift($parents, $pages[0]);
+
+	$rootTID = mm_content_get_blocks_at_mmtid($parents);
+	$page = mm_content_get($rootTID, array(MM_GET_FLAGS));
+	if (isset($page->flags['coursehub_site']))
+	  return $page->mmtid;
+	else
+	throw new Exception(t('Could not find a course site tid for node @nid.', array('@nid' => $nid)));
+}
+
+/**
+ * Answer metadata for the Course hub site.
+ *
+ * @param $mmtid
+ *      The page Id of the course hub site.
+ * @return object
+ *      The course_metadata node for a course site.
+ */
+function course_hub_get_course_site_metadata ($mmtid) {
+  $nodeIds = mm_content_get_nids_by_mmtid($mmtid);
+  foreach ($nodeIds as $nodeId) {
+    $node = node_load($nodeId);
+    if ($node->type == 'course_metadata') {
+      return $node;
+    }
+  }
+  throw new Exception('No metadata exists for the course site '.$mmtid);
+}
+
+/**
+ * Answer true if the current page is a child of the page at the relative path given.
+ * For example, if the current relative path is resources/class, then this function would return
+ * true for course_hub_is_child_of('resources');
+ *
+ * @param string $relativePath
+ *      The path (relative to the course site root) of the parent to check.
+ * @return boolean
+ */
+function course_hub_is_child_of ($relativePath) {
+  mm_parse_args($term_ids, $oarg_list, $current_tid);
+
+  // No parents, we are at the root
+  if (count($term_ids) < 2)
+    return false;
+
+  $parent = intval($term_ids[count($term_ids) - 2]);
+  return ($parent == course_hub_get_course_site_tid($relativePath));
+}
+
+/**
+ * Answer true if the current page is the root of the course hub.
+ *
+ * @return boolean
+ */
+function course_hub_is_course_site_root () {
+  global $theme_key;
+  if ($theme_key != 'coursehub_site')
+    return false;
+  mm_parse_args($term_ids, $oarg_list, $current_tid);
+  if (count($term_ids) <= 1)
+    return false;
+  if (count($oarg_list))
+    return false;
+  $rootTID = mm_content_get_blocks_at_mmtid($term_ids);
+  return ($rootTID == $current_tid);
+}
+
+/**
+ * Answer true if the current page is part of a course hub site.
+ *
+ * @return boolean
+ */
+function course_hub_is_course_site () {
+  global $theme_key;
+  if ($theme_key != 'coursehub_site')
+    return false;
+  mm_parse_args($term_ids, $oarg_list, $current_tid);
+  if (count($term_ids) <= 1)
+    return false;
+
+  return true;
+}
+
+/**
+ * Answer a path to a tid, defaulting to the current path.
+ *
+ * @param optional int $tid
+ * @return string
+ */
+function course_hub_get_path($tid = null) {
+  if (is_null($tid))
+    $path = $_GET["q"];
+  else
+    $path = 'mm/'.$tid;
+  $options = array();
+  custom_url_rewrite_outbound($path, $options, $path);
+  return $path;
+}
+
+/**
+ * Given a query path, answer the tid for the page
+ *
+ * @param string $path
+ *      The path to the page
+ * @return int
+ *      The page tid or null if not found.
+ */
+function course_hub_tid_from_path ($path) {
+  custom_url_rewrite_inbound($result, $path, null);
+  if (!preg_match('/^mm\/([0-9]+)$/', $result, $matches))
+    return null;
+  return intval($matches[1]);
+}
+
+/**
+ * Implementation of template_preprocess_page()
+ *
+ * Remove the Monster Menus and Drupal editing controls for non admins to simplify
+ * the editing interface.
+ */
+function course_hub_preprocess_page(&$vars) {
+  if (!user_access('administer all menus')) {
+    $vars['styles'] .= '<style>div#tabs-wrapper, ul.menu li.hidden-entry { display: none; }</style>';
+  }
+
+  /*********************************************************
+   * Set the content for the home-page
+   *********************************************************/
+  if (!$vars['is_front'])
+    return;
+
+  global $course_hub_browsing;
+
+  // If we are browsing, just show the page
+  // This is a flag used to communicate between course_hub_browse() and course_hub_preprocess_page().
+  if ($course_hub_browsing)
+    return;
+
+  // If we are authenticated, redirect to the dashboard.
+  if (course_hub_is_authenticated())
+    drupal_goto('dashboard');
+
+  // Otherwise, show the welcome message.
+  $view = views_get_view('course_hub_home');
+  if ($view)
+    $vars['content'] = $view->execute_display('default', array(course_hub_tid_from_path('welcome')));
+  else
+    $vars['content'] = t('Welcome to the Course Hub. Please log in to see your courses.');
+}
+
+/**
+ * Answer the mmtid of the page on which the node should be placed.
+ * This function assumes the following page structure:
+ *    parent-page
+ *        class
+ *        institution
+ *        public
+ *
+ * @param integer $parentPageTID
+ * @param string $visibility
+ * @return integer
+ *      The mmtid of the page on which the update should be placed.
+ */
+function course_hub_get_visibility_page ($parentPageTID, $visibility) {
+  $pages = mm_content_get_tree($parentPageTID, array(MM_GET_TREE_FILTER_HIDDEN => true, MM_GET_TREE_DEPTH => 1, 'pprune' => 0));
+  foreach ($pages as $page) {
+    if ($page->alias == $visibility)
+      return $page->mmtid;
+  }
+  throw new Exception(t('@visibility page not found under @tid', array('@visibility' => $visibility, '@tid' => $parentPageTID)));
+}
+
+/**
+ * Add a course hub node to the appropriate visibility page.
+ *
+ * @param string $parentPagePath
+ *      The path, of the parent page. E.g. 'resources' or 'syllabus'.
+ * @param ref array $form_state
+ *      The form state that will be modified to set the proper visibility page.
+ * @return void
+ */
+function course_hub_set_node_form_visibility ($parentPagePath, &$form_state) {
+  $visibility = $form_state['values']['field_hub_perms'][0]['value'];
+  $classPageTID = course_hub_get_course_site_tid($parentPagePath.'/class');
+  $visibilityPage = course_hub_get_visibility_page(course_hub_get_course_site_tid($parentPagePath), $visibility);
+
+  switch ($visibility) {
+    case 'public':
+    case 'institution':
+      // Add to the institution or public page, remove from others
+      $form_state['values']['mm_catlist_restricted'] = array($classPageTID);
+      $form_state['values']['mm_catlist'] = array($visibilityPage => $visibility);
+      break;
+    default:
+      // Remove from public and institution pages to revoke access.
+      $form_state['values']['mm_catlist_restricted'] = array($classPageTID);
+      $form_state['values']['mm_catlist'] = array();
+  }
+}
+
+/**
+ * Implements hook_block().
+ */
+function course_hub_block($op = 'list', $delta = 0, $edit = array()) {
+  // Handle our block
+  if ($op == 'list') {
+    $blocks[1] = array(
+      'info' => t('Course Hub Nav Spacer'),
+    );
+    $blocks[2] = array(
+      'info' => t('Roster Link'),
+      'cache' => BLOCK_NO_CACHE,
+      'visibility' => 2,
+      'pages' => '<?php return course_hub_roster_visible(); ?>',
+    );
+    return $blocks;
+  }
+  else if ($op == 'configure' && $delta == 0) {
+    // no options for now.
+  }
+  else if ($op == 'save' && $delta == 0) {
+    // no options for now.
+  }
+  else if ($op == 'view') {
+    switch ($delta) {
+      case 1:
+        return array(
+          'subject' => '<none>',
+          'content' => "<div class='hub_nav_spacer'> &nbsp; </div>",
+        );
+      case 2:
+        return array(
+          'subject' => '<none>',
+          'content' => course_hub_get_roster_link(),
+        );
+    }
+  }
+}
+
+/**
+ * Determine if the current user is an instructor (who should see the Roster link)
+ *
+ * @return boolean
+ */
+function course_hub_roster_visible ($course_site_mmtid = null) {
+  static $visible = null;
+
+  if (is_null($visible)) {
+    global $user;
+    if (!$user->uid) {
+      $visible = false;
+      return $visible;
+    }
+
+    try {
+      if (is_null($course_site_mmtid))
+        $course_site_mmtid = course_hub_get_course_site_tid();
+      $metadata = course_hub_get_course_site_metadata($course_site_mmtid);
+      $instructors_gid = casmmsync_get_group_by_dn($metadata->field_instructors_dn[0]['value']);
+      if (empty($instructors_gid))
+        return false;
+      $instructors = mm_content_get_users_in_group($instructors_gid);
+
+      $visible = (isset($instructors[$user->uid]));
+      return $visible;
+    } catch (Exception $e) {
+    }
+
+    $visible = false;
+  }
+  return $visible;
+}
+
+/**
+ * Answer a link to the roster.
+ *
+ * @return string
+ */
+function course_hub_get_roster_link () {
+  if (!course_hub_roster_visible())
+    return null;
+
+  ob_start();
+  print "<ul class='menu'>";
+  print "\n\t<li class='leaf'>";
+
+  print "<ul class='menu'>";
+  print "\n\t<li class='leaf'>".l('Roster *', course_hub_get_path(course_hub_get_course_site_tid())."/roster", array('attributes' => array('title' => "Visible to instructors only.")))."</li>";
+  print "\n\t</li>";
+  print "\n\t</li>";
+  print "\n</ul>";
+
+  print "\n\t</li>";
+  print "\n</ul>";
+
+  return ob_get_clean();
+}
+
+/**
+ * Implements hook_menu()
+ */
+function course_hub_menu() {
+  $items['browse'] = array(
+    'title' => 'Browse Course Sites',
+    'description' => 'Browse Course Sites',
+    'page callback' => 'course_hub_browse',
+    'type' => MENU_CALLBACK,
+    'access callback' => true,
+  );
+  $items['admin/course_hub'] = array(
+    'title' => t('Course Hub'),
+    'description' => t('Configure the Course Hub.'),
+    'page callback' => 'course_hub_admin_overview',
+    'access arguments' => array('view coursehub statistics'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['admin/course_hub/stats'] = array(
+    'title' => t('Statistics'),
+    'description' => t('Information and Statistics about Course Hub usage.'),
+    'page callback' => 'course_hub_stats_resource_stats',
+    'access arguments' => array('view coursehub statistics'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'course_hub_stats.inc',
+  );
+  $items['admin/course_hub/stats/usage'] = array(
+    'title' => t('Resource Usage'),
+    'description' => t('Graphs of resource usage.'),
+    'page callback' => 'course_hub_stats_resource_stats',
+    'access arguments' => array('view coursehub statistics'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 1,
+    'file' => 'course_hub_stats.inc',
+  );
+  $items['admin/course_hub/stats/usage/resources/%/%'] = array(
+    'title' => t('Resource Detail'),
+    'description' => t('Listing of resources of a certain type.'),
+    'page callback' => 'course_hub_stats_resource_list',
+    'page arguments' => array(5, 6),
+    'access arguments' => array('view coursehub statistics'),
+    'type' => MENU_CALLBACK,
+    'weight' => 3,
+    'file' => 'course_hub_stats.inc',
+  );
+  $items['admin/course_hub/stats/usage/public/%'] = array(
+	'title' => t('Public Resource List'),
+	'description' => t('A list of publicly accessible resources'),
+	'page callback' => 'course_hub_stats_resource_list_public',
+	'page arguments' => array(5),
+	'access callback' => TRUE,
+	'type' => MENU_CALLBACK,
+	'weight' => 3,
+	'file' => 'course_hub_stats.inc',
+  );
+  $items['admin/course_hub/stats/usage/sites/%/%'] = array(
+    'title' => t('Site-Resource Detail'),
+    'description' => t('Listing of sites using resources of a certain type.'),
+    'page callback' => 'course_hub_stats_resource_sites',
+    'page arguments' => array(5, 6),
+    'access arguments' => array('view coursehub statistics'),
+    'type' => MENU_CALLBACK,
+    'weight' => 3,
+    'file' => 'course_hub_stats.inc',
+  );
+  $items['admin/course_hub/stats/usage/instructors/%/%'] = array(
+    'title' => t('Instructor-Resource Detail'),
+    'description' => t('Listing of instructors using resources of a certain type.'),
+    'page callback' => 'course_hub_stats_resource_instructors',
+    'page arguments' => array(5, 6),
+    'access arguments' => array('view coursehub statistics'),
+    'type' => MENU_CALLBACK,
+    'weight' => 3,
+    'file' => 'course_hub_stats.inc',
+  );
+  $items['admin/course_hub/stats/sites_in_use'] = array(
+    'title' => t('Sites In Use'),
+    'description' => t('Sites that have resources or syllabus added to them.'),
+    'page callback' => 'course_hub_admin_sites_in_use',
+    'access arguments' => array('view coursehub statistics'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 2,
+  );
+  $items['mm/%mm_mmtid/roster'] = array(
+    'title' => 'Roster',
+    'description' => 'Class Roster',
+    'page callback' => 'course_hub_roster_view',
+    'type' => MENU_NORMAL_ITEM,
+    'access callback' => true,
+    'file' => 'course_hub_roster.inc',
+  );
+  $items['mm/%mm_mmtid/roster/photo/%'] = array(
+    'title' => 'Roster Photo',
+    'page callback' => 'course_hub_roster_photo',
+    'page arguments' => array(1, 4),
+    'type' => MENU_CALLBACK,
+    'access callback' => true,
+    'file' => 'course_hub_roster.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implementation of hook_theme()
+ */
+function course_hub_theme($existing, $type, $theme, $path) {
+  return array(
+    'course_hub_stats_bars' => array(
+      'template'  => 'course_hub_stats_bars',
+      'arguments' => array('stats' => NULL),
+      'path'      => drupal_get_path('module', 'course_hub'),
+    ),
+    'course_hub_roster' => array(
+      'template'  => 'course_hub_roster',
+      'arguments' => array('short_name' => NULL, 'students' => NULL, 'audits' => NULL),
+      'path'      => drupal_get_path('module', 'course_hub'),
+    ),
+    'course_hub_roster_person' => array(
+      'template'  => 'course_hub_roster_person',
+      'arguments' => array('person' => NULL),
+      'path'      => drupal_get_path('module', 'course_hub'),
+    ),
+  );
+}
+
+/**
+ * Answer true if the user is authenticated, false otherwise.
+ */
+function course_hub_is_authenticated () {
+  global $user;
+  return (bool)$user->uid;
+}
+
+/**
+ * Implements hook_perm()
+ */
+function course_hub_perm() {
+  return array('view coursehub statistics');
+}
+
+/**
+ * Answer the content for the browse page.
+ */
+function course_hub_browse () {
+  global $custom_theme, $course_hub_browsing;
+  $custom_theme = 'coursehub_browse';
+
+  $_GET["q"] = 'mm/7';
+  $course_hub_browsing = true; // A flag used to communicate between course_hub_browse() and course_hub_preprocess_page().
+  return mm_show_page();
+}
+
+/**
+ * Answer the course-code portion of a course site title or the full title if no code portion exists.
+ *
+ * @param string $title
+ * @return string
+ */
+function course_hub_code_from_page_title ($title) {
+  if(preg_match('/^([^:]+):(.+)$/m', $title, $matches))
+    return $matches[1];
+  else
+    return $title;
+}
+
+/**
+ * Answer the non-course-code portion of a course site title or the full title if no code portion exists.
+ *
+ * @param string $title
+ * @return string
+ */
+function course_hub_noncode_from_page_title ($title) {
+  if(preg_match('/^([^:]+):(.+)$/m', $title, $matches))
+    return $matches[2];
+  else
+    return $title;
+}
+
+/*********************************************************
+ * Hook definitions.
+ *********************************************************/
+/**
+ * Hook hub_get_content_types().
+ *
+ * This returns an array of content types of resources and other course-hub content.
+ *
+ * @return array
+ *      An array of node-type strings
+ */
+function hook_hub_get_content_types () {
+  return array();
+}
+
+/**
+ * Hook hook_hub_get_resource_types()
+ *
+ * @return array
+ *    An array of node-type strings.
+ */
+function hook_hub_get_resource_types() {
+  return array();
+}
+
+/**
+ * Hook hook_hub_get_resource_updates().
+ *
+ * Answer an array of updates fetched by the resource. Each update must be an array
+ * with the following items:
+ *
+ *  Required elements:
+ *    'guid'      A globally unique identifier string for the update. Will be used to prevent duplicates.
+ *    'title'     A title for the update.
+ *
+ *  Optional elements:
+ *    'timestamp' An ISO 8601 date/time that reflects when the update item occurred.
+ *                If not supplied, defaults to NOW().
+ *    'visibility'  One of 'class', 'institution', or 'public'. If not supplied,
+ *                  defaults to 'class'.
+ *    'url'       A URL for the item.
+ *    'body'      An HTML string representing the content of the update.
+ *
+ * @return array
+ *    An array of updates
+ */
+function hook_hub_get_resource_updates($resourceNode) {
+  return array();
+}
+
+/**
+ * Hook hook_hub_get_resource_url()
+ *
+ * @param object $resourceNode
+ * @return array
+ *    An array of url strings.
+ */
+function hook_hub_get_resource_url($resourceNode) {
+  return array();
+}
+
+/**
+ * Hook hook_hub_get_updates().
+ *
+ * Answer an array of updates related to a course site. Each update must be an array
+ * with the following items:
+ *
+ *  Required elements:
+ *    'guid'      A globally unique identifier string for the update. Will be used to prevent duplicates.
+ *    'title'     A title for the update.
+ *    'source_type'   The type of the node/module generating the update.
+ *    'source_title'  The title of the source of the update.
+ *    'source_id' The identifier of the node that generated the update.
+ *
+ *  Optional elements:
+ *    'source_url'    The URL for the source of the update.
+ *    'timestamp' An ISO 8601 date/time that reflects when the update item occurred.
+ *                If not supplied, defaults to NOW().
+ *    'visibility'  One of 'class', 'institution', or 'public'. If not supplied,
+ *                  defaults to 'class'.
+ *    'url'       A URL for the item.
+ *    'body'      An HTML string representing the content of the update.
+ *
+ * @param int $courseSiteTID
+ *      The course page id.
+ * @return array
+ *      An array of updates.
+ */
+function hook_hub_get_updates ($courseSiteTID) {
+  return array();
+}
+
+?>

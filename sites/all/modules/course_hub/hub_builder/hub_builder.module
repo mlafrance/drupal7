@@ -1,0 +1,846 @@
+<?php
+
+/**
+ * @file
+ * Configure and run updates from remote resources.
+ */
+
+require_once(dirname(__FILE__)."/hub_builder_catalog.inc");
+require_once(dirname(__FILE__)."/hub_builder_term.inc");
+
+/**
+ * Implements hook_menu().
+ */
+function hub_builder_menu() {
+  $items = array();
+
+  $items['admin/course_hub/builder'] = array(
+    'title' => t('Site Building'),
+    'description' => t('Build Course Hub sites from external data.'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('hub_builder_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'hub_builder.admin.inc',
+  );
+
+  $items['admin/course_hub/builder/settings'] = array(
+    'title' => t('Settings'),
+    'description' => t('Build Course Hub sites from external data.'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('hub_builder_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 1,
+    'file' => 'hub_builder.admin.inc',
+  );
+
+  $items['admin/course_hub/builder/catalogs'] = array(
+    'title' => t('Catalogs'),
+    'description' => t('Configure groupings of terms'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('hub_builder_catalogs_form'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 2,
+    'file' => 'hub_builder_catalogs.admin.inc',
+  );
+
+  $items['admin/course_hub/builder/terms'] = array(
+    'title' => t('Terms'),
+    'description' => t('Configure, Build, and Update course sites for terms'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('hub_builder_terms_form'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 3,
+    'file' => 'hub_builder_terms.admin.inc',
+  );
+
+  $items['admin/course_hub/builder/terms/list'] = array(
+    'title' => t('List'),
+    'description' => t('Configure, Build, and Update course sites for terms'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('hub_builder_terms_form'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 1,
+    'file' => 'hub_builder_terms.admin.inc',
+  );
+
+  $items['admin/course_hub/builder/terms/add'] = array(
+    'title' => t('Add'),
+    'description' => t('Add a new term'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('hub_builder_term_edit_form'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 2,
+    'file' => 'hub_builder_terms.admin.inc',
+  );
+
+  $items['admin/course_hub/builder/terms/%/edit'] = array(
+    'title' => t('Edit'),
+    'description' => t('Edit a new term'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('hub_builder_term_edit_form', 4),
+    'access callback'=> 'hub_builder_terms_show_tab',
+    'access arguments' => array('administer site configuration','edit', 5),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 3,
+    'file' => 'hub_builder_terms.admin.inc',
+  );
+
+  $items['admin/course_hub/builder/terms/%/test'] = array(
+    'title' => t('Test'),
+    'description' => t('Test term urls.'),
+    'page callback' => 'hub_builder_term_test',
+    'page arguments' => array(4),
+    'access callback'=> 'hub_builder_terms_show_tab',
+    'access arguments' => array('administer site configuration','test', 5),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 3,
+    'file' => 'hub_builder_terms.admin.inc',
+  );
+
+  $items['admin/course_hub/builder/terms/%/build'] = array(
+    'title' => t('Build'),
+    'description' => t('Build sites for a term.'),
+    'page callback' => 'hub_builder_build_term',
+    'page arguments' => array(4),
+    'access callback'=> 'hub_builder_terms_show_tab',
+    'access arguments' => array('administer site configuration','build', 5),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 3,
+    'file' => 'hub_builder_terms.admin.inc',
+  );
+
+  $items['admin/course_hub/builder/build_one'] = array(
+    'title' => t('Build Single Course'),
+    'description' => t('Build a single course site.'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('hub_builder_build_single_form'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 5,
+    'file' => 'hub_builder.admin.inc',
+  );
+
+  return $items;
+}
+
+function hub_builder_terms_show_tab ($perm, $desired_action, $current_action) {
+//   var_dump($desired_action);
+//   var_dump($current_action);
+  if (empty($current_action) || $current_action != $desired_action)
+    return false;
+  return user_access($perm);
+}
+
+/**
+ * Implemenation of hook_theme().
+ */
+function hub_builder_theme() {
+  return array(
+    'hub_builder_terms_form' => array(
+      'file' => 'hub_builder_terms.admin.inc',
+      'arguments' => array('form' => NULL),
+    ),
+    'hub_builder_term_tests' => array(
+      'file' => 'hub_builder_terms.admin.inc',
+      'arguments' => array('display_name' => NULL,'results' => NULL),
+    ),
+  );
+}
+
+/**
+ * Build all configured course sites.
+ *
+ * @return void
+ */
+function hub_builder_build_term ($term_id) {
+  $term_id = base64_decode($term_id);
+  try {
+    ini_set('max_execution_time', variable_get('hub_builder_max_execution_time', "1200"));
+
+    hub_builder_build_term_sites(hub_builder_get_term($term_id));
+  } catch (Exception $e) {
+    watchdog('hub_builder', 'Error building sites: !message', array('!message' => $e->getMessage()), WATCHDOG_ERROR);
+    _hub_builder_print_unbuffered(t('Error building sites: !message', array('!message' => $e->getMessage()))."<br/>");
+    drupal_set_message(t('Error building sites: !message', array('!message' => $e->getMessage())), 'error');
+  }
+  _hub_builder_print_unbuffered("<br/>Build Complete ".l(t('Continue >>'), 'admin/course_hub/builder/terms'));
+}
+
+/**
+ * Build course sites.
+ *
+ * @param HubBuilder_Term $term
+ * @return void
+ */
+function hub_builder_build_term_sites (HubBuilder_Term $term) {
+  if (!$term->getMainCourseDataUrl())
+      throw new InvalidArgumentException('Source URL is not defined.');
+  if (!$term->import_path)
+    throw new InvalidArgumentException('Destination path is not defined.');
+  $destinationTID = course_hub_tid_from_path($term->import_path);
+  if (!$destinationTID)
+    throw new InvalidArgumentException('Destination path is invalid.');
+
+  _hub_builder_print_unbuffered("Fetching data... ");
+  $xpath = hub_builder_get_xpath($term->getMainCourseDataUrl());
+  _hub_builder_print_unbuffered("done<br/>\n");
+
+  $num = 0;
+  foreach (hub_builder_get_subjects($xpath) as $subject) {
+    _hub_builder_print_unbuffered(t('Building course sites for @subject... ', array('@subject' => $subject['name'])));
+    $xml = hub_builder_build_subject_site_xml($term, $subject, $xpath, $destinationTID);
+    $pages = mmporter_importer_import_string($destinationTID, $xml);
+    _hub_builder_print_unbuffered("done<br/>\n");
+    $num++;
+  }
+
+  drupal_set_message(t('Course sites built for @num subjects in @term_name (@term_id)', array('@num' => $num, '@term_name' => $term->display_name, '@term_id' => $term->id)));
+  $term->markBuilt();
+}
+
+/**
+ * Print out a string, bypassing any output buffers.
+ *
+ * @param string $content
+ * @return void
+ */
+function _hub_builder_print_unbuffered ($content) {
+  // Store the buffers
+  $buffers = array();
+  while (ob_get_level())
+    array_push($buffers, ob_get_clean());
+
+  // Print and flush the content
+  print $content;
+  flush();
+
+  // Rebuild the buffers.
+  while (count($buffers)) {
+    ob_start();
+    print array_pop($buffers);
+  }
+}
+
+/**
+ * Answer a DOMXPath for a source URL or throw an exception.
+ *
+ * @param string $sourceUrl
+ * @return DOMXPath
+ */
+function hub_builder_get_xpath ($sourceUrl) {
+  $doc = new DOMDocument;
+  if (!@$doc->load($sourceUrl))
+    throw new Exception(t('Could not load source feed. !message', array('!message' => print_r(error_get_last(), true))));
+
+  $xpath = new DOMXPath($doc);
+  $xpath->registerNamespace('catalog', 'http://www.middlebury.edu/course_catalog');
+  return $xpath;
+}
+
+/**
+ * Answer an array of subjects in a source document
+ *
+ * @param DOMXPath $xpath
+ * @return array of subjects array(id => array('id' => ..., 'short_id' => ..., 'name' => ..., 'external_id' => ...),)
+ */
+function hub_builder_get_subjects ($xpath) {
+  $subjectElements = $xpath->query('//catalog:topic[@type="genera:topic/subject"]');
+  $termId = $xpath->query('//catalog:chosen_term')->item(0)->getAttribute('id');
+  $subjects = array();
+  foreach ($subjectElements as $subjectElement) {
+    $id = $subjectElement->getAttribute('id');
+    if (!isset($subjects[$id])) {
+      if (preg_match('/.+\/([A-Z0-9]+)$/', $id, $matches))
+        $shortId = $matches[1];
+      else
+        $shortId = str_replace('/', '_', $id);
+      $subjects[$id] = array(
+        'id'          => $id,
+        'short_id'    => $shortId,
+        'name'        => $subjectElement->nodeValue,
+        'external_id' => $termId.'/'.$shortId,
+      );
+    }
+  }
+  return $subjects;
+}
+
+/**
+ * Answer the XML site description for all courses of a given subject
+ *
+ * @param HubBuilder_Term $term
+ * @param array $subject
+ *      A subject array with id, short_id, and name elements.
+ * @param DOMXPath $xpath
+ *      The XPath object for the source document.
+ * @return string
+ *      An XML string.
+ */
+function hub_builder_build_subject_site_xml (HubBuilder_Term $term, array $subject, DOMXPath $xpath) {
+  $sectionElements = hub_builder_get_section_elements_in_subject($xpath, $subject['id']);
+  ob_start();
+  print hub_builder_get_subject_site_xml_start($subject);
+  foreach($sectionElements as $sectionElement) {
+    try {
+      print hub_builder_build_site_xml($term, $sectionElement, $xpath);
+    } catch (Exception $e) {
+      watchdog('hub_builder', 'Error building site XML: !message', array('!message' => $e->getMessage()), WATCHDOG_ERROR);
+      drupal_set_message(t('Error building site XML: !message', array('!message' => $e->getMessage())), 'error');
+    }
+  }
+  print hub_builder_get_subject_site_xml_end($subject);
+  return ob_get_clean();
+}
+
+/**
+ * Answer a starting XML string for the subject.
+ *
+ * @param array $subject
+ * @return string
+ */
+function hub_builder_get_subject_site_xml_start (array $subject) {
+  return '<'.'?xml  version="1.0" ?>
+<pages xmlns="http://www.middlebury.edu/nodeporter">
+  <page max_depth="-1" node_info="0" comment="0">
+    <name><![CDATA['.$subject['name'].']]></name>
+    <alias><![CDATA['.$subject['short_id'].']]></alias>
+    <permissions>
+      <write></write>
+      <add_pages></add_pages>
+      <add_content></add_content>
+      <read>
+        <everyone/>
+      </read>
+    </permissions>
+    <pages>';
+}
+
+/**
+ * Answer a starting XML string for the subject.
+ *
+ * @param array $subject
+ * @return string
+ */
+function hub_builder_get_subject_site_xml_end (array $subject) {
+  return "
+    </pages>
+    <nodes>
+      <node type='subpglist' external_id='".$subject['external_id']."' status='1'  node_info='0' comment='0'>
+        <title><![CDATA[Course Sites for ".$subject['name']."]]></title>
+        <subpglist_fields>
+          <columns>1</columns>
+        </subpglist_fields>
+      </node>
+    </nodes>
+  </page>
+</pages>";
+}
+
+/**
+ * Answer a DOMNodelist that contains all sections elements for a subject id.
+ *
+ * @param DOMXPath $xpath
+ * @param string $subject_id
+ * @return DOMNodelist
+ */
+function hub_builder_get_section_elements_in_subject (DOMXPath $xpath, $subject_id) {
+  return $xpath->query('//item[catalog:topic[@type="genera:topic/subject" and @id="'.$subject_id.'"]]');
+}
+
+/**
+ * Answer the XML site description for a course.
+ *
+ * @param HubBuilder_Term $term
+ * @param DOMElement $item
+ *      The source element for the course section.
+ * @param DOMXPath $xpath
+ *      The XPath object for the source document.
+ * @return string
+ *      An XML string defining the course page.
+ */
+function hub_builder_build_site_xml (HubBuilder_Term $term, DOMElement $item, DOMXPath $xpath) {
+  $data = hub_builder_get_section_data($term, $item, $xpath);
+  if (!in_array($data['genusTypeId'], $term->getCatalog()->types_to_import))
+    throw new Exception(t("Skipping @section, genus @genus isn't in @list.", array('@section' => $data['uniqueId'], '@genus' => $data['genusTypeId'], '@list' => implode(', ', $term->getCatalog()->types_to_import))));
+  return hub_builder_build_site_xml_from_data($data);
+}
+
+/**
+ * Extract the section data from the source XML element.
+ *
+ * @param HubBuilder_Term $term
+ * @param DOMElement $item
+ *      The source element for the course section.
+ * @param DOMXPath $xpath
+ *      The XPath object for the source document.
+ * @return array
+ */
+function hub_builder_get_section_data (HubBuilder_Term $term, DOMElement $item, DOMXPath $xpath) {
+  $data = array();
+
+  // @todo, really, we want separate data elements for subject code, course number, and section identifier
+  // so that we can make the URLs prettier. For now we'll just parse the code here,
+  // though there are situations where this may fail.
+  $code = $xpath->query('./title', $item)->item(0)->nodeValue;
+  if (!preg_match('/^([A-Z]+)([0-9]+)([A-Z]+)-([A-Z])([0-9]+)$/i', $code, $m))
+    throw new InvalidArgumentException(t("Course code %code could not be parsed.", array('%code' => $code)));
+  $data['subject'] = $m[1];
+  $data['number'] = $m[2];
+  $data['sectionIdentifier'] = $m[3];
+
+  $data['uniqueId'] = $code;
+
+  // This assumption of the course group DN should be actually looked up somewhere
+  // rather than parsing and concatenating the string.
+  $semesterTitle = $xpath->query('./catalog:term', $item)->item(0)->nodeValue;
+  if (!preg_match('/([A-Z]+) 20([0-9]{2})/i', $semesterTitle, $sm))
+    throw new InvalidArgumentException(t('Semester title, %title, could not be parsed.', array('%title' => $semesterTitle)));
+  $data['termLabel'] = $semesterTitle;
+  $baseDN = $term->getCatalog()->class_group_base_dn;
+  if (empty($baseDN))
+    throw new InvalidArgumentException("The catalogs's class_group_base_dn is empty.");
+  $data['classGroupDN'] = 'CN='.strtolower($code).',OU='.$sm[1].$sm[2].','.$baseDN;
+  $data['instructorGroupDN'] = 'CN='.strtolower($code).'-instructors,OU='.$sm[1].$sm[2].','.$baseDN;
+  $data['studentGroupDN'] = 'CN='.strtolower($code).'-students,OU='.$sm[1].$sm[2].','.$baseDN;
+  $data['auditGroupDN'] = 'CN='.strtolower($code).'-audits,OU='.$sm[1].$sm[2].','.$baseDN;
+
+  $data['institutionGroupDN'] = variable_get('hub_builder_institution_dn', false);
+  if (!$data['institutionGroupDN'])
+    throw new InvalidArgumentException('Institution Group DN is not defined.');
+
+  $title = $xpath->query('./catalog:title', $item)->item(0)->nodeValue;
+  $titleLines = explode("\n", $title);
+  if (count($titleLines) > 1) {
+    $first = trim($titleLines[0]);
+    $second = trim($titleLines[1]);
+    if (strpos($second, $first) === 0) {
+      $title = $second;
+    } else {
+      $title = $first."\n".$second;
+    }
+    if (count($titleLines) > 2) {
+      $title .= "\n".implode("\n", array_slice($titleLines, 2));
+    }
+  }
+  $data['title'] = $title;
+
+  $data['offeringId'] = $xpath->query('./catalog:id', $item)->item(0)->nodeValue;
+  $data['description'] = $xpath->query('./description', $item)->item(0)->nodeValue;
+  $data['location'] = $xpath->query('./catalog:location', $item)->item(0)->nodeValue;
+  $data['schedule'] = $xpath->query('./catalog:schedule', $item)->item(0)->nodeValue;
+  $termElement = $xpath->query('./catalog:term', $item)->item(0);
+  $data['termId'] = $termElement->getAttribute('id');
+  $data['termStart'] = $termElement->getAttribute('start_date');
+  $data['termEnd'] = $termElement->getAttribute('end_date');
+  $data['termWeeks'] = $termElement->getAttribute('weeks');
+  $data['catalogUrl'] = $xpath->query('./link', $item)->item(0)->nodeValue;
+  $data['catalogId'] = $term->getCatalog()->id;
+
+  $data['instructors'] = array();
+  foreach ($xpath->query('./catalog:instructor', $item) as $instructor) {
+    $data['instructors'][$instructor->nodeValue] = $instructor->getattribute('href');
+  }
+
+  // Store the offering type
+  $data['genusTypeId'] = $xpath->query('./catalog:genustype', $item)->item(0)->getAttribute('id');
+  $data['genusTypeName'] = $xpath->query('./catalog:genustype', $item)->item(0)->nodeValue;
+
+  return $data;
+}
+
+/**
+ * Answer an XML block for a site.
+ *
+ * @param array $data
+ *    An array of the following data elements:
+ *      subject       The Subject Code for the Section.
+ *      number        The Course Number for the Section.
+ *      sectionIdentifier   The section identifier code.
+ *      uniqueId      A unique identifier for this section that will be used to build the external_ids for nodes.
+ *      termId        The term identifier for the course.
+ *      termLabel     A label for the term for the course.
+ *      catalogId     A catalog Identifier for the course.
+ *      catalogUrl    A catalog URL for the course.
+ *      title         A title for the course.
+ *      description   A description for the course.
+ *      classGroupDN  The DN of the group for all class members for this course.
+ *      instructorGroupDN   The DN of the group for all instructors for the course.
+ *      institutionGroupDN  The DN of the group for the institution
+ *      instructors   An array of instructor names => urls.
+ *      location      A location string.
+ *      schedule      A schedule string.
+ *
+ * @return string
+ *      The XML block for the site.
+ */
+function hub_builder_build_site_xml_from_data (array $data) {
+  $elements = array(
+    'subject'       => 'The Subject Code for the Section.',
+    'number'        => 'The Course Number for the Section.',
+    'sectionIdentifier'   => 'The section identifier code.',
+    'uniqueId'      => 'A unique identifier for this section that will be used to build the external_ids for nodes.',
+    'offeringId'    => 'The identifier of the offering in the system of reference.',
+    'termId'        => 'The term identifier for the course.',
+    'termLabel'     => 'A label for the term for the course.',
+    'termStart'     => 'The start date for the term for the course.',
+    'termEnd'       => 'The end date for the term for the course.',
+    'termWeeks'     => 'The number of weeks in the term for the course.',
+    'catalogId'     => 'A catalog Identifier for the course.',
+    'catalogUrl'    => 'A catalog URL for the course.',
+    'title'         => 'A title for the course.',
+    'description'   => 'A description for the course.',
+    'classGroupDN'  => 'The DN of the group for all class members for this course.',
+    'instructorGroupDN'   => 'The DN of the group for all instructors for the course.',
+    'studentGroupDN'      => 'The DN of the group for all students for the course.',
+    'auditGroupDN' => 'The DN of the group for all audits for the course.',
+    'institutionGroupDN'  => 'The DN of the group for the institution',
+    'instructors'   => 'An array of instructor names => urls.',
+    'location'      => 'A location string.',
+    'schedule'      => 'A schedule string.',
+  );
+  foreach ($elements as $key => $info) {
+    if (!isset($data[$key]))
+      throw new InvalidArgumentException(t("\$data is missing %key, @info. \n<pre>@data</pre>", array('%key' => $key, '@info' => $info, '@data' => print_r($data, true))));
+  }
+
+  extract($data);
+
+  if (!is_array($instructors))
+    throw new InvalidArgumentException('$data["instructors"] must be an array name => url.');
+  $instructorLinks = array();
+  foreach ($instructors as $instructorName => $instructorLink) {
+    $instructorLinks[] = "<a href='".$instructorLink."'>".$instructorName."</a>";
+  }
+  $instructors = implode(", ", $instructorLinks);
+
+  // Groups with read-write access to the hub site (instructors and support).
+  $readWriteGroups = "<group cas_id=\"".$instructorGroupDN."\"/>";
+  // Groups for read-write support.
+  $groupString = trim(variable_get('hub_builder_read_write_support_groups', ''));
+  if (!empty($groupString)) {
+    $groupDNs = explode("\n", $groupString);
+    foreach ($groupDNs as $groupDN) {
+      $readWriteGroups .= "\n                    <group cas_id=\"".trim($groupDN)."\"/>";
+    }
+  }
+  // Groups with add content access to the hub site (instructors and support).
+  $addContentGroups = "";
+  // Groups for read-write support.
+  $groupString = trim(variable_get('hub_builder_add_content_support_groups', ''));
+  if (!empty($groupString)) {
+    $groupDNs = explode("\n", $groupString);
+    foreach ($groupDNs as $groupDN) {
+      $addContentGroups .= "\n                    <group cas_id=\"".trim($groupDN)."\"/>";
+    }
+  }
+  // Groups with read-only access to the hub site (students and support).
+  $readOnlyGroups = "<group cas_id=\"".$classGroupDN."\"/>";
+  // Groups for read-only support.
+  $groupString = trim(variable_get('hub_builder_read_only_support_groups', ''));
+  if (!empty($groupString)) {
+    $groupDNs = explode("\n", $groupString);
+    foreach ($groupDNs as $groupDN) {
+      $readOnlyGroups .= "\n                    <group cas_id=\"".trim($groupDN)."\"/>";
+    }
+  }
+
+  return "
+      <page theme='coursehub_site' menu_start='1' node_info='0' comment='0' flags='coursehub_site'>
+        <name><![CDATA[".$subject." ".$number.$sectionIdentifier.": ".$title."]]></name>
+        <alias><![CDATA[".$number.$sectionIdentifier."]]></alias>
+        <permissions>
+          <read>
+            <everyone/>
+          </read>
+        </permissions>
+        <nodes>
+          <node type='course_metadata' status='1' external_id='".$uniqueId."_meta'>
+            <title><![CDATA[".$title."]]></title>
+            <body><![CDATA[".$description."]]></body>
+            <teaser><![CDATA[]]></teaser>
+            <field_catalog_url cck_field_type='text'>
+              <value>".$catalogUrl."</value>
+            </field_catalog_url>
+            <field_offering_id cck_field_type='text'>
+              <value>".$offeringId."</value>
+            </field_offering_id>
+            <field_short_name cck_field_type='text'>
+              <value>".$subject." ".$number.$sectionIdentifier."</value>
+            </field_short_name>
+            <field_term_id cck_field_type='text'>
+              <value>".$termId."</value>
+            </field_term_id>
+            <field_term_label cck_field_type='text'>
+              <value>".$termLabel."</value>
+            </field_term_label>
+            <field_term_start_date cck_field_type='text'>
+              <value>".$termStart."</value>
+            </field_term_start_date>
+            <field_term_end_date cck_field_type='text'>
+              <value>".$termEnd."</value>
+            </field_term_end_date>
+            <field_term_weeks cck_field_type='text'>
+              <value>".$termWeeks."</value>
+            </field_term_weeks>
+            <field_catalog_id cck_field_type='text'>
+              <value>".$catalogId."</value>
+            </field_catalog_id>
+            <field_group_dn cck_field_type='text'>
+              <value>".$classGroupDN."</value>
+            </field_group_dn>
+            <field_instructors_dn cck_field_type='text'>
+              <value>".$instructorGroupDN."</value>
+            </field_instructors_dn>
+            <field_students_dn cck_field_type='text'>
+              <value>".$studentGroupDN."</value>
+            </field_students_dn>
+            <field_audits_dn cck_field_type='text'>
+              <value>".$auditGroupDN."</value>
+            </field_audits_dn>
+          </node>
+        </nodes>
+        <pages>
+
+          <page weight='1' rss='1' hidden='1' node_info='0' comment='0'>
+            <name><![CDATA[Updates]]></name>
+            <alias><![CDATA[updates]]></alias>
+            <permissions>
+              <read>
+                <everyone/>
+              </read>
+            </permissions>
+            <pages>
+              <page weight='1' rss='0' hidden='1' node_info='0'>
+                <name><![CDATA[Class]]></name>
+                <alias><![CDATA[class]]></alias>
+                <permissions>
+                  <write>
+                    ".$readWriteGroups."
+                  </write>
+                  <add_content>
+                    ".$addContentGroups."
+                  </add_content>
+                  <read>
+                    ".$readOnlyGroups."
+                  </read>
+                </permissions>
+              </page>
+              <page weight='2' rss='0' hidden='1' node_info='0'>
+                <name><![CDATA[Institution]]></name>
+                <alias><![CDATA[institution]]></alias>
+                <permissions>
+                  <read>
+                    <group cas_id=\"".$institutionGroupDN."\"/>
+                  </read>
+                </permissions>
+              </page>
+              <page weight='3' rss='0' hidden='1' node_info='0'>
+                <name><![CDATA[Public]]></name>
+                <alias><![CDATA[public]]></alias>
+                <permissions>
+                  <read>
+                    <everyone/>
+                  </read>
+                </permissions>
+              </page>
+            </pages>
+            <nodes>
+              <node type='hub_updates' status='1' external_id='".$uniqueId."_updates'>
+                <title><![CDATA[Updates]]></title>
+                <body><![CDATA[]]></body>
+                <teaser><![CDATA[]]></teaser>
+                <field_updates_enabled cck_field_type='number_integer'>
+                  <value>1</value>
+                </field_updates_enabled>
+              </node>
+            </nodes>
+          </page>
+
+          <page weight='2' rss='0' node_info='0'>
+            <name><![CDATA[Course Listing]]></name>
+            <alias><![CDATA[about]]></alias>
+            <permissions>
+              <read>
+                <everyone/>
+              </read>
+            </permissions>
+            <nodes>
+              <node type='page' status='1' external_id='".$uniqueId."_about'>
+                <title><![CDATA[".$subject." ".$number.$sectionIdentifier.': '.$title."]]></title>
+                <body><![CDATA[
+<p>".$description."</p>
+<dl>
+  <dt>Instructors:</dt>
+  <dd>".$instructors."</dd>
+  <dt>Location:</dt>
+  <dd>".$location."</dd>
+  <dt>Schedule:</dt>
+  <dd>".$schedule."</dd>
+</dl>
+                ]]></body>
+                <teaser><![CDATA[".$description."]]></teaser>
+              </node>
+            </nodes>
+          </page>
+
+          <page weight='3' rss='0' node_info='0' comment='0'>
+            <name><![CDATA[Syllabus]]></name>
+            <alias><![CDATA[syllabus]]></alias>
+            <permissions>
+              <read>
+                <everyone/>
+              </read>
+            </permissions>
+            <allowed_node_types>
+              <node_type>syllabus_text</node_type>
+              <node_type>syllabus_link</node_type>
+              <node_type>media</node_type>
+            </allowed_node_types>
+            <pages>
+              <page weight='1' rss='0' hidden='1' node_info='0' comment='0'>
+                <name><![CDATA[Class]]></name>
+                <alias><![CDATA[class]]></alias>
+                <permissions>
+                  <write>
+                    ".$readWriteGroups."
+                  </write>
+                  <add_content>
+                    ".$addContentGroups."
+                  </add_content>
+                  <read>
+                    ".$readOnlyGroups."
+                  </read>
+                </permissions>
+              </page>
+              <page weight='2' rss='0' hidden='1' node_info='0' comment='0'>
+                <name><![CDATA[Institution]]></name>
+                <alias><![CDATA[institution]]></alias>
+                <permissions>
+                  <read>
+                    <group cas_id=\"".$institutionGroupDN."\"/>
+                  </read>
+                </permissions>
+              </page>
+              <page weight='3' rss='0' hidden='1' node_info='0' comment='0'>
+                <name><![CDATA[Public]]></name>
+                <alias><![CDATA[public]]></alias>
+                <permissions>
+                  <read>
+                    <everyone/>
+                  </read>
+                </permissions>
+              </page>
+            </pages>
+          </page>
+
+          <page weight='4' rss='0' node_info='0' comment='0'>
+            <name><![CDATA[Resources]]></name>
+            <alias><![CDATA[resources]]></alias>
+            <permissions>
+              <read>
+                <everyone/>
+              </read>
+            </permissions>
+            <pages>
+              <page weight='1' rss='0' hidden='1' node_info='0' comment='0'>
+                <name><![CDATA[Class]]></name>
+                <alias><![CDATA[class]]></alias>
+                <permissions>
+                  <write>
+                    ".$readWriteGroups."
+                  </write>
+                  <add_content>
+                    ".$addContentGroups."
+                  </add_content>
+                  <read>
+                    ".$readOnlyGroups."
+                  </read>
+                </permissions>
+              </page>
+              <page weight='2' rss='0' hidden='1' node_info='0' comment='0'>
+                <name><![CDATA[Institution]]></name>
+                <alias><![CDATA[institution]]></alias>
+                <permissions>
+                  <read>
+                    <group cas_id=\"".$institutionGroupDN."\"/>
+                  </read>
+                </permissions>
+              </page>
+              <page weight='3' rss='0' hidden='1' node_info='0' comment='0'>
+                <name><![CDATA[Public]]></name>
+                <alias><![CDATA[public]]></alias>
+                <permissions>
+                  <read>
+                    <everyone/>
+                  </read>
+                </permissions>
+              </page>
+            </pages>
+          </page>
+
+        </pages>
+      </page>";
+}
+
+/**
+ * Answer an array of course data for courses in which a user is the instructor
+ *
+ * @param string $user_external_id
+ * @param string $term_id
+ * @return array
+ */
+function hub_builder_get_instructors_course_data ($user_external_id, $term_id) {
+  $cache_key = 'hb_courses:'.$user_external_id.':'.$term_id;
+  $data = hub_builder_cache_get_data($cache_key, 'cache');
+  if ($data === 0) {
+    $data = hub_builder_fetch_instructors_course_data ($user_external_id, $term_id);
+    cache_set($cache_key, $data, 'cache', time() + 3600);
+  }
+  return $data;
+}
+
+/**
+ * Answer an array of course data for courses in which a user is the instructor
+ *
+ * @param string $user_external_id
+ * @param string $term_id
+ * @return array
+ */
+function hub_builder_fetch_instructors_course_data ($user_external_id, $term_id) {
+  $data = array();
+  try {
+    $term = hub_builder_get_term($term_id);
+    if (empty($term))
+      return array();
+    $url = $term->getInstructorCourseListUrl($user_external_id);
+    $xpath = hub_builder_get_xpath($url);
+    foreach (hub_builder_get_subjects($xpath) as $subject) {
+      $sectionElements = hub_builder_get_section_elements_in_subject($xpath, $subject['id']);
+      foreach ($sectionElements as $sectionElement) {
+        $sectionData = hub_builder_get_section_data($term, $sectionElement, $xpath);
+        $sectionData['path'] = $term->import_path.'/'.$subject['short_id'].'/'.$sectionData['number'].$sectionData['sectionIdentifier'];
+        $sectionData['subject_info'] = $subject;
+        $data[] = $sectionData;
+      }
+    }
+  } catch (Exception $e) {
+    // Ignore errors
+  }
+  return $data;
+}
+
+function hub_builder_cache_get_data($key, $table) {
+  $cache_obj = cache_get($key, $table);
+  if(is_object($cache_obj) && isset($cache_obj->data) && time() < $cache_obj->expire) {
+    return $cache_obj->data;
+  }
+  else {
+    return 0;
+  }
+}

@@ -1,0 +1,268 @@
+<?php
+
+/**
+ * Implements hook_block().
+ */
+function syllabus_block($op = 'list', $delta = 0, $edit = array()) {
+  if ($op == 'list') {
+    $blocks[0] = array(
+      'info' => t('Syllabus Controls'),
+      'weight' => 0,
+      'status' => 1,
+      'region' => 'content_top',
+      'cache' => BLOCK_NO_CACHE,
+      'visibility' => 2,
+      'pages' => '<?php return syllabus_controls_visible(); ?>',
+    );
+
+    return $blocks;
+  }
+  else if ($op == 'configure' && $delta == 0) {
+    // no options for now.
+  }
+  else if ($op == 'save' && $delta == 0) {
+    // no options for now.
+  }
+  else if ($op == 'view') {
+    switch ($delta) {
+      case 0:
+        // Your module will need to define this function to render the block.
+        $block = array(
+          'subject' => t('Syllabus'),
+          'content' => syllabus_get_controls(),
+        );
+        break;
+    }
+    return $block;
+  }
+}
+
+/**
+ * Answer true if we are on a syllabus page and the block should be displayed.
+ */
+function syllabus_controls_visible () {
+  return (preg_match('/.+\/syllabus([?#].+)?$/', course_hub_get_path()) && !syllabus_get_num_nodes() && mm_content_user_can(course_hub_get_course_site_tid('syllabus/class'), 'u'));
+}
+
+/**
+ * Answer the block contents for the syllabus controls.
+ *
+ */
+function syllabus_get_controls () {
+  ob_start();
+  $path = course_hub_get_path();
+  print '<button onclick="window.location=\''.base_path().$path.'/class/contents/add/syllabus_text\'">+ Write/Paste Syllabus Text</button>';
+  print '<button onclick="window.location=\''.base_path().$path.'/class/contents/add/media\'">+ Upload Syllabus File</button>';
+  print '<button onclick="window.location=\''.base_path().$path.'/class/contents/add/syllabus_link\'">+ Link to Syllabus</button>';
+  return ob_get_clean();
+}
+
+/**
+ * Answer the number of nodes under the syllabus page
+ *
+ * @return int
+ */
+function syllabus_get_num_nodes () {
+  return count(mm_content_get_nids_by_mmtid(course_hub_get_course_site_tid('syllabus/class')));
+}
+
+/**
+ * Implementation of template_preprocess_page()
+ *
+ * Remove the Monster Menus and Drupal editing controls for non admins to simplify
+ * the editing interface.
+ */
+function syllabus_preprocess_page(&$vars) {
+  if (preg_match('/.+\/syllabus([?#].+)?$/', course_hub_get_path())) {
+    $view = views_get_view('course_hub_syllabus');
+    $vars['content'] = $view->execute_display('default', array(course_hub_get_course_site_tid('syllabus'), course_hub_get_course_site_tid('syllabus/class')));
+  } else if (!user_access('administer all menus') && preg_match('#.+/syllabus/(class|institution|public)/?$#', course_hub_get_path())) {
+    drupal_goto(course_hub_get_path(course_hub_get_course_site_tid('syllabus')));
+  }
+}
+
+/**
+ * Implementation of hook_form_alter().
+ *
+ * Remove the Monster Menus and Drupal editing controls for non admins to simplify
+ * the editing interface.
+ */
+function syllabus_form_alter(&$form, &$form_state, $form_id) {
+  $syllabus_form_ids = array('syllabus_text_node_form', 'media_node_form', 'syllabus_link_node_form');
+  if (in_array($form_id, $syllabus_form_ids) && preg_match('/.+\/syllabus(\/class)?\/(contents\/add\/.+|node\/[0-9]+\/edit)$/', course_hub_get_path())) {
+    // Revoke access to fields for non-admins
+    if (!user_access('administer all menus')) {
+      $form['mm_appearance']['#type'] = 'hidden';
+      $form['mm_categories']['#type'] = 'hidden';
+      $form['settings_perms']['#type'] = 'hidden';
+      $form['scheduling']['#type'] = 'hidden';
+    }
+    $form['title']['#type'] = 'value';
+    $form['title']['#value'] = 'Syllabus';
+    $form['#submit'][] = 'syllabus_node_form_submit';
+
+    // Rework the edit-form.
+    if (isset($form['media'])) {
+      $form['media']['#size'] = 35;
+      $form['body_filter']['#weight'] = -3;
+    }
+    // Rework the fieldset
+    if (isset($form['media_fieldset'])) {
+      $form['media_fieldset']['#title'] = t('File to upload');
+    }
+    // Rework the add form.
+    if (isset($form['uploaded_files'])) {
+      $form['uploaded_files']['#title'] = t('Syllabus File');
+      $form['uploaded_files']['#weight'] = -4;
+
+      $i = 0;
+      foreach ($_SESSION['uploaded_files'] as $hash => $item) {
+        $path_parts = pathinfo($item['name']);
+        $form['uploaded_files']['uploaded_file_name-' . $hash] = array(
+          '#type' => 'textfield',
+          '#default_value' => $item['name'],
+          '#disabled' => true,
+          '#weight' => $i,
+        );
+        if (isset($form['uploaded_files']['caption-' . $hash])) {
+          $i++;
+          $form['uploaded_files']['caption-' . $hash]['#weight'] = $i;
+        }
+        $i++;
+      }
+      $form['uploaded_files']['clear']['#weight'] = $i;
+
+      foreach ($form['uploaded_files'] as $key => $val) {
+        if (strpos($key, 'title-') === 0) {
+          $form['uploaded_files'][$key]['#type'] = 'hidden';
+          $form['uploaded_files'][$key]['#value'] = 'Syllabus';
+        }
+        if (strpos($key, 'tags-') === 0) {
+          $form['uploaded_files'][$key]['#type'] = 'hidden';
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook hub_get_content_types().
+ *
+ * This returns an array of content types of resources and other course-hub content
+ *
+ * @return array
+ *      An array of content-type identifiers
+ */
+function syllabus_hub_get_content_types () {
+  return array('syllabus_text', 'media', 'syllabus_link');
+}
+
+/**
+ *
+ */
+function syllabus_node_form_submit($form, &$form_state) {
+  $form_state['values']['title'] = 'Syllabus';
+
+  // Set the page view permissions based on the form setting.
+  course_hub_set_node_form_visibility('syllabus', $form_state);
+
+}
+
+/**
+ * Hook hook_hub_get_updates().
+ *
+ * Answer an array of updates related to a course site. Each update must be an array
+ * with the following items:
+ *
+ *  Required elements:
+ *    'guid'      A globally unique identifier string for the update. Will be used to prevent duplicates.
+ *    'title'     A title for the update.
+ *    'source_type'   The type of the node/module generating the update.
+ *    'source_title'  The title of the source of the update.
+ *    'source_id' The identifier of the node that generated the update.
+ *
+ *  Optional elements:
+ *    'source_url'    The URL for the source of the update.
+ *    'timestamp' An ISO 8601 date/time that reflects when the update item occurred.
+ *                If not supplied, defaults to NOW().
+ *    'visibility'  One of 'class', 'institution', or 'public'. If not supplied,
+ *                  defaults to 'class'.
+ *    'url'       A URL for the item.
+ *    'body'      An HTML string representing the content of the update.
+ *
+ * @param int $courseTID
+ *      The course page id.
+ * @return array
+ *      An array of updates.
+ */
+function syllabus_hub_get_updates ($courseSiteTID) {
+  $updates = array();
+  foreach (syllabus_get_syllabus_nodes($courseSiteTID) as $node) {
+    $update =  array();
+    $update['source_id'] = $node->nid;
+    $update['source_title'] = t('Syllabus');
+    $update['source_type'] = 'syllabus';
+    $update['source_url'] = 'http://'.$_SERVER['HTTP_HOST'].url(course_hub_get_path($courseSiteTID).'/syllabus');
+    $update['url'] = $update['source_url'];
+
+    $update['guid'] = 'syllabus_added-'.$node->nid;
+    $update['title'] = t('Syllabus Added');
+
+    if (isset($node->field_hub_perms[0]['value']))
+      $update['visibility'] = $node->field_hub_perms[0]['value'];
+    else
+      $update['visibility'] = 'class';
+
+    if (intval($node->created))
+      $update['timestamp'] = date('c', intval($node->created));
+    else
+      $update['timestamp'] = date('c');
+
+    $update['body'] = $node->body;
+
+    $updates[] = $update;
+
+    // Add a Changed update
+    if ($node->changed != $node->created) {
+      $update['guid'] = 'syllabus_updated-'.$node->nid;
+      $update['title'] = t('Syllabus Updated');
+      $update['timestamp'] = date('c', intval($node->changed));
+      $updates[] = $update;
+    }
+  }
+  return $updates;
+}
+
+/**
+ * Answer a list of syllabus nodes for the site.
+ *
+ * @param $courseSiteTID
+ * @return array
+ *      An array of node objects
+ */
+function syllabus_get_syllabus_nodes ($courseSiteTID) {
+  $res = db_query(
+"SELECT
+  n.nid
+FROM
+  {mm_tree} t
+  INNER JOIN {mm_tree_parents} p ON t.mmtid = p.mmtid
+  INNER JOIN {mm_node2tree} n2t ON (n2t.mmtid = t.mmtid)
+  INNER JOIN {node} n ON (n.nid = n2t.nid)
+  LEFT JOIN {mm_recycle} r ON (r.type = 'node' AND r.id = n.nid)
+WHERE
+  n.type IN ('syllabus_text', 'media', 'syllabus_link')
+  AND (
+    t.mmtid = %d
+    OR t.parent = %d
+    OR p.parent = %d
+  )
+  AND r.recycle_date IS NULL
+  ", $courseSiteTID, $courseSiteTID, $courseSiteTID);
+
+  $nodes = array();
+  while ($nid = db_result($res)) {
+    $nodes[$nid] = node_load($nid);
+  }
+  return $nodes;
+}

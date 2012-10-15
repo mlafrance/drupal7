@@ -1,0 +1,8 @@
+; $Id$
+name = Syllabus
+description = "Adds controls for syllabus managment."
+package = Course Hub Resources
+core = 6.x
+dependencies[] = "course_hub"
+dependencies[] = "media"
+dependencies[] = "midd_mm_views"
