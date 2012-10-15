@@ -1,4 +1,10 @@
 <?php
+/**
+ * @file
+ * Course Hub Roster view
+ *
+ * Provides a means for viewing the class roster. Available only to instructors.
+ */
 
 /**
  * View the roster

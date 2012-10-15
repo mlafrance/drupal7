@@ -1,4 +1,10 @@
 <?php
+/**
+ * @file
+ * Course Hub site-builder installer
+ *
+ * Allows creating Hub sites from underlying data.
+ */
 
 /**
  * Implementation of hook_install().

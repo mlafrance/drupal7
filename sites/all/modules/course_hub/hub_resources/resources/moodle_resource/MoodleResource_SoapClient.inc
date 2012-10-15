@@ -1,4 +1,10 @@
 <?php
+/**
+ * @file
+ * A custom SoapClient that manages authentication to Moodle.
+ *
+ * A custom SoapClient that manages authentication to Moodle.
+ */
 
 /**
  * A custom SoapClient that manages authentication to Moodle.

@@ -1,8 +1,9 @@
 <?php
-
 /**
  * @file
- * Access to terms
+ * Course Hub site-builder admin screens
+ *
+ * Admin screens for creating Hub sites from underlying data.
  */
 
 /**

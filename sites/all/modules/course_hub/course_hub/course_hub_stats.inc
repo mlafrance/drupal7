@@ -1,4 +1,10 @@
 <?php
+/**
+ * @file
+ * Course Hub Stats screens
+ *
+ * Provides statistics on Course Hub resource usage and updates.
+ */
 
 /**
  * Show graphs of resource utilization.

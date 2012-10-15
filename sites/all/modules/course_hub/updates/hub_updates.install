@@ -1,4 +1,9 @@
 <?php
+/**
+ * @file
+ * Course Hub updates module installer
+ */
+
 
 /**
  * Implementation of hook_install().

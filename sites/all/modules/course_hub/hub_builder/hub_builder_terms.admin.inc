@@ -1,4 +1,10 @@
 <?php
+/**
+ * @file
+ * Course Hub site-builder admin screens
+ *
+ * Admin screens for creating Hub sites from underlying data.
+ */
 
 /**
  * Form builder. Configure Course Hub terms

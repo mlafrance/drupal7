@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * Definition for customizations to the 'media' content type to work as a syllabus upload node-type.
+ */
 
 $content['type']  = array(
   'name' => 'File upload',
