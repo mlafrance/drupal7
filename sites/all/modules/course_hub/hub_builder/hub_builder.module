@@ -85,7 +85,7 @@ function hub_builder_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('hub_builder_term_edit_form', 4),
     'access callback'=> 'hub_builder_terms_show_tab',
-    'access arguments' => array('administer site configuration','edit', 5),
+    'access arguments' => array('administer site configuration', 'edit', 5),
     'type' => MENU_LOCAL_TASK,
     'weight' => 3,
     'file' => 'hub_builder_terms.admin.inc',
@@ -97,7 +97,7 @@ function hub_builder_menu() {
     'page callback' => 'hub_builder_term_test',
     'page arguments' => array(4),
     'access callback'=> 'hub_builder_terms_show_tab',
-    'access arguments' => array('administer site configuration','test', 5),
+    'access arguments' => array('administer site configuration', 'test', 5),
     'type' => MENU_LOCAL_TASK,
     'weight' => 3,
     'file' => 'hub_builder_terms.admin.inc',
@@ -109,7 +109,7 @@ function hub_builder_menu() {
     'page callback' => 'hub_builder_build_term',
     'page arguments' => array(4),
     'access callback'=> 'hub_builder_terms_show_tab',
-    'access arguments' => array('administer site configuration','build', 5),
+    'access arguments' => array('administer site configuration', 'build', 5),
     'type' => MENU_LOCAL_TASK,
     'weight' => 3,
     'file' => 'hub_builder_terms.admin.inc',
@@ -148,7 +148,7 @@ function hub_builder_theme() {
     ),
     'hub_builder_term_tests' => array(
       'file' => 'hub_builder_terms.admin.inc',
-      'arguments' => array('display_name' => NULL,'results' => NULL),
+      'arguments' => array('display_name' => NULL, 'results' => NULL),
     ),
   );
 }

@@ -288,7 +288,7 @@ function _middfiles_resource_get_short_path($dir) {
 
 function _middfiles_resource_file_size($file, $setup = NULL) {
   $FZ = ($file && @is_file($file)) ? filesize($file) : NULL;
-  $FS = array("B","kB","MB","GB","TB","PB","EB","ZB","YB");
+  $FS = array("B", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB");
 
   return number_format($FZ/pow(1024, $i=floor(log($FZ, 1024))), ($i >= 1) ? 2 : 0) . ' ' . $FS[$i];
 }
