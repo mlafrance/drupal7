@@ -286,7 +286,7 @@ function hub_builder_build_subject_site_xml(HubBuilder_Term $term, array $subjec
   $sectionElements = hub_builder_get_section_elements_in_subject($xpath, $subject['id']);
   ob_start();
   print hub_builder_get_subject_site_xml_start($subject);
-  foreach($sectionElements as $sectionElement) {
+  foreach ($sectionElements as $sectionElement) {
     try {
       print hub_builder_build_site_xml($term, $sectionElement, $xpath);
     } catch (Exception $e) {
@@ -838,7 +838,7 @@ function hub_builder_fetch_instructors_course_data($user_external_id, $term_id) 
 
 function hub_builder_cache_get_data($key, $table) {
   $cache_obj = cache_get($key, $table);
-  if(is_object($cache_obj) && isset($cache_obj->data) && time() < $cache_obj->expire) {
+  if (is_object($cache_obj) && isset($cache_obj->data) && time() < $cache_obj->expire) {
     return $cache_obj->data;
   }
   else {

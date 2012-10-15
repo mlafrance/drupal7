@@ -170,7 +170,7 @@ function moodle_resource_form_alter(&$form, &$form_state, $form_id) {
             if (count($sharing_info)) {
               ob_start();
               print "\n<ul>";
-              foreach($sharing_info as $info) {
+              foreach ($sharing_info as $info) {
                 print "\n\t<li>";
                 print l(
                   t('%node_title on %site_title', array('%node_title' => $info['node_title'], '%site_title' => $info['site_title'])),

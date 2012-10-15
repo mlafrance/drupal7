@@ -491,7 +491,7 @@ function course_hub_browse() {
  * @return string
  */
 function course_hub_code_from_page_title($title) {
-  if(preg_match('/^([^:]+):(.+)$/m', $title, $matches))
+  if (preg_match('/^([^:]+):(.+)$/m', $title, $matches))
     return $matches[1];
   else
     return $title;
@@ -504,7 +504,7 @@ function course_hub_code_from_page_title($title) {
  * @return string
  */
 function course_hub_noncode_from_page_title($title) {
-  if(preg_match('/^([^:]+):(.+)$/m', $title, $matches))
+  if (preg_match('/^([^:]+):(.+)$/m', $title, $matches))
     return $matches[2];
   else
     return $title;

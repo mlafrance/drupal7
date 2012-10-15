@@ -137,7 +137,7 @@ function course_hub_stats_resource_list_public($mmtid) {
   else {
     $resources = array();
     $resource_types = module_invoke_all('hub_get_resource_types');
-    foreach($resource_types as $resource_type) {
+    foreach ($resource_types as $resource_type) {
       switch ($resource_type) {
         case 'wordpress_resource':
           $q = "
@@ -151,7 +151,7 @@ function course_hub_stats_resource_list_public($mmtid) {
             WHERE ((mm_recycle.id IS NULL) AND (node.type = '%s'))
               AND ((mm_tree.mmtid = %d) OR (mm_tree.parent = %d) OR (mm_tree_parents.parent = %d))";
           $r = db_query($q, $resource_type, $mmtid, $mmtid, $mmtid);
-          while($row = db_fetch_object($r)) {
+          while ($row = db_fetch_object($r)) {
             $resources[$row->nid] = 'http://blogs.middlebury.edu/' . $row->site . '/';
           }
           break;
@@ -161,7 +161,7 @@ function course_hub_stats_resource_list_public($mmtid) {
     }
 
     $sites = array();
-    foreach($resources as $nid => $site) {
+    foreach ($resources as $nid => $site) {
       try {
         $response = drupal_http_request($site, array(), 'HEAD');
         if ($response->code == '200') {
@@ -338,7 +338,7 @@ function course_hub_stats_get_resource_stats($resource_type, $mmtid) {
       AND ((mm_tree.mmtid = %d) OR (mm_tree.parent = %d) OR (mm_tree_parents.parent = %d))";
   $r = db_query($q, $resource_type, $mmtid, $mmtid, $mmtid);
   $nids = array();
-  while($nid = db_result($r)) {
+  while ($nid = db_result($r)) {
     $nids[] = $nid;
   }
 
@@ -355,7 +355,7 @@ function course_hub_stats_get_resource_stats($resource_type, $mmtid) {
         AND f.flag = 'coursehub_site'";
     $r = db_query($q, $nids);
     $mmtids = array();
-    while($site_mmtid = db_result($r)) {
+    while ($site_mmtid = db_result($r)) {
       $mmtids[] = $site_mmtid;
     }
   }
@@ -377,7 +377,7 @@ function course_hub_stats_get_resource_stats($resource_type, $mmtid) {
       WHERE
         n2t.mmtid IN (" . db_placeholders($mmtids) . ")";
     $r = db_query($q, $mmtids);
-    while($row = db_fetch_array($r)) {
+    while ($row = db_fetch_array($r)) {
       $instructor_uids[] = $row['uid'];
     }
   }
@@ -403,7 +403,7 @@ function course_hub_stats_get_resource_stats($resource_type, $mmtid) {
       WHERE
         n2t.mmtid IN (" . db_placeholders($mmtids) . ")";
     $r = db_query($q, $mmtids);
-    while($row = db_fetch_array($r)) {
+    while ($row = db_fetch_array($r)) {
       $student_uids[] = $row['uid'];
     }
   }
@@ -612,7 +612,7 @@ function course_hub_stats_get_resource_stats_for_all($mmtid) {
       WHERE
         n2t.mmtid IN (" . db_placeholders($all_stats['site_mmtids']) . ")";
     $r = db_query($q, $all_stats['site_mmtids']);
-    while($row = db_fetch_array($r)) {
+    while ($row = db_fetch_array($r)) {
       $instructor_uids[] = $row['uid'];
     }
   }
@@ -638,7 +638,7 @@ function course_hub_stats_get_resource_stats_for_all($mmtid) {
       WHERE
         n2t.mmtid IN (" . db_placeholders($all_stats['site_mmtids']) . ")";
     $r = db_query($q, $all_stats['site_mmtids']);
-    while($row = db_fetch_array($r)) {
+    while ($row = db_fetch_array($r)) {
       $student_uids[] = $row['uid'];
     }
   }

@@ -622,7 +622,7 @@ function hub_updates_preprocess_page(&$vars) {
 //     $allSource->title = 'Updates from all Resources';
 //     $allSource->num_updates = 0;
 //     $allSource->filter_url = url($base);
-//     foreach($sources as $source) {
+//     foreach ($sources as $source) {
 //       $source->filter_url = url($base, array('query' => http_build_query(array('source' => $source->id))));
 //       $allSource->num_updates += $source->num_updates;
 //     }
