@@ -33,9 +33,9 @@ foreach ($sections as $s) {
 	print "\n        <td>";
 	if ($s['can_add'])
 	  print l(t("Add Course Hub Site"), 'dashboard/'.base64_encode($s['termId']).'/instructor/add/'.base64_encode($s['offeringId']));
-	else if ($s['can_delete'])
+	elseif ($s['can_delete'])
 	  print l(t("Delete Course Hub Site"), 'dashboard/'.base64_encode($s['termId']).'/instructor/delete/'.base64_encode($s['offeringId']));
-	else if ($s['can_manage'] && $s['has_resources'])
+	elseif ($s['can_manage'] && $s['has_resources'])
 	  print "Site has syllabus or resources, can't delete.";
 	print '</td>';
 	print "</tr>";

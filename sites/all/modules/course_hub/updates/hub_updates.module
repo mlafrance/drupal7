@@ -588,7 +588,7 @@ function hub_updates_preprocess_node(&$vars) {
     if ($vars['node']->field_url[0]['value'])
       $vars['url'] = $vars['node']->field_url[0]['value'];
     // If we have content, make a link to the update node.
-    else if (strlen(trim($vars['node']->body)))
+    elseif (strlen(trim($vars['node']->body)))
       $vars['url'] = url(course_hub_get_path() . '/node/' . $vars['node']->nid);
 
     $vars['source_title'] = $vars['node']->field_source_title[0]['safe'];
@@ -735,13 +735,13 @@ function hub_updates_block($op = 'list', $delta = 0, $edit = array()) {
 
     return $blocks;
   }
-  else if ($op == 'configure' && $delta == 0) {
+  elseif ($op == 'configure' && $delta == 0) {
     // no options for now.
   }
-  else if ($op == 'save' && $delta == 0) {
+  elseif ($op == 'save' && $delta == 0) {
     // no options for now.
   }
-  else if ($op == 'view') {
+  elseif ($op == 'view') {
     switch ($delta) {
       case 0:
         // Your module will need to define this function to render the block.

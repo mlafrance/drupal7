@@ -17,13 +17,13 @@ function syllabus_block($op = 'list', $delta = 0, $edit = array()) {
 
     return $blocks;
   }
-  else if ($op == 'configure' && $delta == 0) {
+  elseif ($op == 'configure' && $delta == 0) {
     // no options for now.
   }
-  else if ($op == 'save' && $delta == 0) {
+  elseif ($op == 'save' && $delta == 0) {
     // no options for now.
   }
-  else if ($op == 'view') {
+  elseif ($op == 'view') {
     switch ($delta) {
       case 0:
         // Your module will need to define this function to render the block.
@@ -76,7 +76,7 @@ function syllabus_preprocess_page(&$vars) {
   if (preg_match('/.+\/syllabus([?#].+)?$/', course_hub_get_path())) {
     $view = views_get_view('course_hub_syllabus');
     $vars['content'] = $view->execute_display('default', array(course_hub_get_course_site_tid('syllabus'), course_hub_get_course_site_tid('syllabus/class')));
-  } else if (!user_access('administer all menus') && preg_match('#.+/syllabus/(class|institution|public)/?$#', course_hub_get_path())) {
+  } elseif (!user_access('administer all menus') && preg_match('#.+/syllabus/(class|institution|public)/?$#', course_hub_get_path())) {
     drupal_goto(course_hub_get_path(course_hub_get_course_site_tid('syllabus')));
   }
 }

@@ -57,7 +57,7 @@ function wordpress_resource_sitename_validate($form, &$form_state) {
       $visibility = $form_state['values']['field_hub_perms'][0]['value'];
       if ($visibility == 'class') {
         $public = -2;
-      } else if ($visibility == 'institution') {
+      } elseif ($visibility == 'institution') {
         $public = -1;
       } else {
         $public = 1;

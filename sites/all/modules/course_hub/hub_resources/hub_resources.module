@@ -25,13 +25,13 @@ function hub_resources_block($op = 'list', $delta = 0, $edit = array()) {
 
     return $blocks;
   }
-  else if ($op == 'configure' && $delta == 0) {
+  elseif ($op == 'configure' && $delta == 0) {
     // no options for now.
   }
-  else if ($op == 'save' && $delta == 0) {
+  elseif ($op == 'save' && $delta == 0) {
     // no options for now.
   }
-  else if ($op == 'view') {
+  elseif ($op == 'view') {
     switch ($delta) {
       case 0:
         // Your module will need to define this function to render the block.
@@ -125,7 +125,7 @@ function hub_resources_preprocess_page(&$vars) {
   if (hub_resources_controls_visible()) {
     $view = views_get_view('hub_resources');
     $vars['content'] = $view->execute_display('default', array(course_hub_get_course_site_tid('resources'), course_hub_get_course_site_tid('resources/class')));
-  } else if (!user_access('administer all menus') && preg_match('#.+/resources/(class|institution|public)/?$#', course_hub_get_path())) {
+  } elseif (!user_access('administer all menus') && preg_match('#.+/resources/(class|institution|public)/?$#', course_hub_get_path())) {
     drupal_goto(course_hub_get_path(course_hub_get_course_site_tid('resources')));
   }
 }

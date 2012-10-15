@@ -32,7 +32,7 @@ function middfiles_resource_preprocess_node(&$vars) {
     } catch (UnexpectedValueException $e) {
     }
   }
-  else if (!empty($vars['node']) && $vars['node']->type == 'middfiles_html_resource') {
+  elseif (!empty($vars['node']) && $vars['node']->type == 'middfiles_html_resource') {
     try {
       $vars['middfiles_url'] = _middfiles_resource_get_public_url($vars['node']);
       $vars['middfiles_html_help'] = _middfiles_resource_html_help($vars['node']);
@@ -245,7 +245,7 @@ function _middfiles_resource_get_updates_for_dir($fs_base, $dir, $url_base) {
 
     if (strpos($fname, '.') === 0) {
       continue;
-    } else if (is_dir($file_path)) {
+    } elseif (is_dir($file_path)) {
       $updates = array_merge($updates, _middfiles_resource_get_updates_for_dir($fs_base, $dir . '/' . $fname, $url_base . '/' . rawurlencode($fname)));
     } else {
       $short_path = _middfiles_resource_get_short_path($dir);
