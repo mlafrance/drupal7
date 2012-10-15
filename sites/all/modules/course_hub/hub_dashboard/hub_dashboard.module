@@ -134,10 +134,10 @@ function hub_dashboard_list_instructor_sections($term_id) {
  *
  */
 function hub_dashboard_manage_instructor_section($op, $term_id, $offering_id) {
-	$term_id = base64_decode($term_id);
-	$offering_id = base64_decode($offering_id);
+  $term_id = base64_decode($term_id);
+  $offering_id = base64_decode($offering_id);
   $term = hub_builder_get_term($term_id);
-	global $user;
+  global $user;
   $sections = hub_builder_get_instructors_course_data($user->init, $term->id);
   foreach ($sections as $s) {
     if ($s['offeringId'] == $offering_id) {

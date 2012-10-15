@@ -31,17 +31,17 @@ function course_hub_get_course_site_tid_for_nid($nid) {
   if (!$nid)
     throw new Exception('Invalid node id passed.');
 
-	$pages = mm_content_get_by_nid($nid);
-	$parents = mm_content_get_parents($pages[0]);
-	// Make an arry of pages to check.
-	array_unshift($parents, $pages[0]);
+  $pages = mm_content_get_by_nid($nid);
+  $parents = mm_content_get_parents($pages[0]);
+  // Make an arry of pages to check.
+  array_unshift($parents, $pages[0]);
 
-	$rootTID = mm_content_get_blocks_at_mmtid($parents);
-	$page = mm_content_get($rootTID, array(MM_GET_FLAGS));
-	if (isset($page->flags['coursehub_site']))
-	  return $page->mmtid;
-	else
-	throw new Exception(t('Could not find a course site tid for node @nid.', array('@nid' => $nid)));
+  $rootTID = mm_content_get_blocks_at_mmtid($parents);
+  $page = mm_content_get($rootTID, array(MM_GET_FLAGS));
+  if (isset($page->flags['coursehub_site']))
+    return $page->mmtid;
+  else
+    throw new Exception(t('Could not find a course site tid for node @nid.', array('@nid' => $nid)));
 }
 
 /**
@@ -378,14 +378,14 @@ function course_hub_menu() {
     'file' => 'course_hub_stats.inc',
   );
   $items['admin/course_hub/stats/usage/public/%'] = array(
-	'title' => t('Public Resource List'),
-	'description' => t('A list of publicly accessible resources'),
-	'page callback' => 'course_hub_stats_resource_list_public',
-	'page arguments' => array(5),
-	'access callback' => TRUE,
-	'type' => MENU_CALLBACK,
-	'weight' => 3,
-	'file' => 'course_hub_stats.inc',
+    'title' => t('Public Resource List'),
+    'description' => t('A list of publicly accessible resources'),
+    'page callback' => 'course_hub_stats_resource_list_public',
+    'page arguments' => array(5),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'weight' => 3,
+    'file' => 'course_hub_stats.inc',
   );
   $items['admin/course_hub/stats/usage/sites/%/%'] = array(
     'title' => t('Site-Resource Detail'),

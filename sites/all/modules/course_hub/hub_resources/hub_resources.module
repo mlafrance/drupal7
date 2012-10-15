@@ -285,7 +285,7 @@ function hub_phpcas_xmlrpc() {
     $service->send();
     // Success
     if ($service->getResponseStatusCode() == 200) {
-			$message = xmlrpc_message($service->getResponseBody());
+      $message = xmlrpc_message($service->getResponseBody());
       // Now parse what we've got back
       if (!xmlrpc_message_parse($message)) {
         // XML error
@@ -299,21 +299,21 @@ function hub_phpcas_xmlrpc() {
       }
       // Message must be OK
       return $message->params[0];
-		}
-		// The service responded with an error code 404, 500, etc.
-		else {
-			xmlrpc_error($service->getResponseStatusCode(), t('An XML-RPC error occurred: %error', array('%error' => $service->getResponseBody())));
-			throw new Exception($service->getResponseStatusCode(), t('An XML-RPC error occurred: %error', array('%error' => $service->getResponseBody())));
-		}
+    }
+    // The service responded with an error code 404, 500, etc.
+    else {
+      xmlrpc_error($service->getResponseStatusCode(), t('An XML-RPC error occurred: %error', array('%error' => $service->getResponseBody())));
+      throw new Exception($service->getResponseStatusCode(), t('An XML-RPC error occurred: %error', array('%error' => $service->getResponseBody())));
+    }
   } catch (CAS_ProxyTicketException $e) {
     if ($e->getCode() == PHPCAS_SERVICE_PT_FAILURE) {
-			xmlrpc_error($e->getCode(), t('Your authentication has expired, please log in again.'));
-			throw new Exception(t('Your authentication has expired, please log in again.'), $e->getCode());
-		}
-		// Other proxy ticket errors are from bad request format (shouldn't happen)
+      xmlrpc_error($e->getCode(), t('Your authentication has expired, please log in again.'));
+      throw new Exception(t('Your authentication has expired, please log in again.'), $e->getCode());
+    }
+    // Other proxy ticket errors are from bad request format (shouldn't happen)
     // or CAS server failure (unlikely) so lets just stop if we hit those.
-		else {
-			throw $e;
-		}
+    else {
+      throw $e;
+    }
   }
 }

@@ -30,7 +30,7 @@ function moodle_resource_preprocess_node(&$vars) {
 function moodle_resource_theme_registry_alter(&$theme_registry) {
   $path = drupal_get_path('module', 'moodle_resource');
   if (!in_array($path, $theme_registry['node']['theme paths']))
-	array_unshift($theme_registry['node']['theme paths'], $path);
+    array_unshift($theme_registry['node']['theme paths'], $path);
 }
 
 /**
@@ -43,14 +43,14 @@ function moodle_resource_theme_registry_alter(&$theme_registry) {
  * @return string
  */
 function _moodle_resource_get_url($node) {
-	if ($node->type != 'moodle_resource')
-	  throw new InvalidArgumentException(t('@func expects and moodle_resource node, got @type', array('@func' => __FUNCTION__, '@type' => $node->type)));
-	if (!isset($node->field_moodle_course_id[0]['value']))
-	  throw new UnexpectedValueException(t('@func expects the node to have a cid value, none found.', array('@func' => __FUNCTION__)));
-	if (!$node->field_moodle_course_id[0]['value'])
-	  throw new UnexpectedValueException(t('@func expects the node to have a cid value, none found.', array('@func' => __FUNCTION__)));
+  if ($node->type != 'moodle_resource')
+    throw new InvalidArgumentException(t('@func expects and moodle_resource node, got @type', array('@func' => __FUNCTION__, '@type' => $node->type)));
+  if (!isset($node->field_moodle_course_id[0]['value']))
+    throw new UnexpectedValueException(t('@func expects the node to have a cid value, none found.', array('@func' => __FUNCTION__)));
+  if (!$node->field_moodle_course_id[0]['value'])
+    throw new UnexpectedValueException(t('@func expects the node to have a cid value, none found.', array('@func' => __FUNCTION__)));
 
-	return variable_get('moodle_resource_base_url', 'http://moodle.middlebury.edu/') . 'course/view.php?id=' . $node->field_moodle_course_id[0]['value'];
+  return variable_get('moodle_resource_base_url', 'http://moodle.middlebury.edu/') . 'course/view.php?id=' . $node->field_moodle_course_id[0]['value'];
 }
 
 /**

@@ -23,7 +23,7 @@ class MoodleResource_SoapClient {
     if (empty($password))
       throw new Exception(t('SOAP password not defined. Please define it in the <a href="@url">Moodle Resource Configuration</a>.', array('@url' => url('admin/course_hub/resources/moodle'))));
 
-	try {
+    try {
       $this->_soapclient = new SoapClient($wsdl, array('trace' => 1));
     } catch (SoapFault $e) {
       throw new Exception(t('Could not communicate with Moodle. SoapFault: @message', array('@message' => $e->getMessage())));
@@ -66,7 +66,7 @@ class MoodleResource_SoapClient {
    * @return void
    */
   public function getError() {
-	$doc = new DomDocument();
+    $doc = new DomDocument();
     $doc->loadXML($this->__getLastResponse());
     $errors = $doc->getElementsByTagName('error');
     if ($errors->length) {

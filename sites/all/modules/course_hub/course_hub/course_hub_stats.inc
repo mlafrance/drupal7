@@ -128,54 +128,54 @@ function course_hub_stats_resource_list($mmtid, $resource_type) {
  * Answer a JSON object containing a list of publicly accessible resources of the specified type.
  */
 function course_hub_stats_resource_list_public($mmtid) {
-	$cache = cache_get('course_hub_list_public');
+  $cache = cache_get('course_hub_list_public');
   if (!empty($cache->data)) {
     drupal_json(unserialize($cache->data));
   } else {
-		$resources = array();
+    $resources = array();
     $resource_types = module_invoke_all('hub_get_resource_types');
     foreach($resource_types as $resource_type) {
-			switch ($resource_type) {
-				case 'wordpress_resource':
-					$q = "
-						SELECT DISTINCT(field_wp_sitename_value) AS site, node.nid AS nid
-						FROM content_type_wordpress_resource wp
-						LEFT JOIN node node ON wp.nid = node.nid
-						LEFT JOIN mm_recycle mm_recycle ON node.nid = mm_recycle.id AND mm_recycle.type = 'node'
-						LEFT JOIN mm_node2tree mm_node2tree ON node.nid = mm_node2tree.nid
-						LEFT JOIN mm_tree mm_tree ON mm_node2tree.mmtid = mm_tree.mmtid
-						LEFT JOIN mm_tree_parents mm_tree_parents ON mm_tree.mmtid = mm_tree_parents.mmtid
-						WHERE ((mm_recycle.id IS NULL) AND (node.type = '%s'))
-							AND ((mm_tree.mmtid = %d) OR (mm_tree.parent = %d) OR (mm_tree_parents.parent = %d))";
-					$r = db_query($q, $resource_type, $mmtid, $mmtid, $mmtid);
-					while($row = db_fetch_object($r)) {
-						$resources[$row->nid] = 'http://blogs.middlebury.edu/' . $row->site . '/';
-					}
-					break;
-				default:
-					break;
-			}
-		}
+      switch ($resource_type) {
+        case 'wordpress_resource':
+          $q = "
+            SELECT DISTINCT(field_wp_sitename_value) AS site, node.nid AS nid
+            FROM content_type_wordpress_resource wp
+            LEFT JOIN node node ON wp.nid = node.nid
+            LEFT JOIN mm_recycle mm_recycle ON node.nid = mm_recycle.id AND mm_recycle.type = 'node'
+            LEFT JOIN mm_node2tree mm_node2tree ON node.nid = mm_node2tree.nid
+            LEFT JOIN mm_tree mm_tree ON mm_node2tree.mmtid = mm_tree.mmtid
+            LEFT JOIN mm_tree_parents mm_tree_parents ON mm_tree.mmtid = mm_tree_parents.mmtid
+            WHERE ((mm_recycle.id IS NULL) AND (node.type = '%s'))
+              AND ((mm_tree.mmtid = %d) OR (mm_tree.parent = %d) OR (mm_tree_parents.parent = %d))";
+          $r = db_query($q, $resource_type, $mmtid, $mmtid, $mmtid);
+          while($row = db_fetch_object($r)) {
+            $resources[$row->nid] = 'http://blogs.middlebury.edu/' . $row->site . '/';
+          }
+          break;
+        default:
+          break;
+      }
+    }
 
-		$sites = array();
-		foreach($resources as $nid => $site) {
-			try {
-				$response = drupal_http_request($site, array(), 'HEAD');
-				if ($response->code == '200') {
-					$course = course_hub_get_course_site_metadata(course_hub_get_course_site_tid_for_nid($nid));
-					if (!empty($course)
-						&& !empty($course->field_catalog_id[0]['value'])
-						&& !empty($course->field_term_id[0]['value'])
-						&& !empty($course->field_short_name[0]['value'])) {
-						$sites[$course->field_catalog_id[0]['value']][$course->field_term_id[0]['value']][$course->field_short_name[0]['value']][$course->title] = $site;
-					}
-				}
-			} catch (Exception $e) {
-			}
-		}
-		cache_set('course_hub_list_public', serialize($sites), 'cache', CACHE_PERMANENT);
-		drupal_json($sites);
-	}
+    $sites = array();
+    foreach($resources as $nid => $site) {
+      try {
+        $response = drupal_http_request($site, array(), 'HEAD');
+        if ($response->code == '200') {
+          $course = course_hub_get_course_site_metadata(course_hub_get_course_site_tid_for_nid($nid));
+          if (!empty($course)
+            && !empty($course->field_catalog_id[0]['value'])
+            && !empty($course->field_term_id[0]['value'])
+            && !empty($course->field_short_name[0]['value'])) {
+            $sites[$course->field_catalog_id[0]['value']][$course->field_term_id[0]['value']][$course->field_short_name[0]['value']][$course->title] = $site;
+          }
+        }
+      } catch (Exception $e) {
+      }
+    }
+    cache_set('course_hub_list_public', serialize($sites), 'cache', CACHE_PERMANENT);
+    drupal_json($sites);
+  }
 }
 
 /**
