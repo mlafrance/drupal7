@@ -59,7 +59,7 @@ function middfiles_resource_theme_registry_alter(&$theme_registry) {
  * @param object $node
  * @return string
  */
-function _middfiles_resource_get_url ($node) {
+function _middfiles_resource_get_url($node) {
 	return variable_get('middfiles_resource_base_url', 'https://middfiles.middlebury.edu/Classes/')._middfiles_resource_get_relative_path($node);
 }
 
@@ -72,7 +72,7 @@ function _middfiles_resource_get_url ($node) {
  * @param object $node
  * @return string
  */
-function _middfiles_resource_get_unc_path ($node) {
+function _middfiles_resource_get_unc_path($node) {
 	return variable_get('middfiles_resource_base_unc_path', '\\\\middlebury.edu\\middfiles\Classes\\').str_replace('/', '\\', _middfiles_resource_get_relative_path($node));
 }
 
@@ -85,7 +85,7 @@ function _middfiles_resource_get_unc_path ($node) {
  * @param object $node
  * @return string
  */
-function _middfiles_resource_get_afp_path ($node) {
+function _middfiles_resource_get_afp_path($node) {
 	return variable_get('middfiles_resource_base_afp_path', 'afp://classes.middlebury.edu/classes/');
 }
 
@@ -98,7 +98,7 @@ function _middfiles_resource_get_afp_path ($node) {
  * @param object $node
  * @return string
  */
-function _middfiles_resource_get_public_url ($node) {
+function _middfiles_resource_get_public_url($node) {
 	if (empty($node->nid))
     $course_site_tid = course_hub_get_course_site_tid();
   else
@@ -120,7 +120,7 @@ function _middfiles_resource_get_public_url ($node) {
  * @param object $node
  * @return string
  */
-function _middfiles_resource_get_fs_path ($node) {
+function _middfiles_resource_get_fs_path($node) {
 	return variable_get('middfiles_resource_base_fs_path', '/mnt/classes/')._middfiles_resource_get_relative_path($node);
 }
 
@@ -133,7 +133,7 @@ function _middfiles_resource_get_fs_path ($node) {
  * @param object $node
  * @return string
  */
-function _middfiles_resource_get_relative_path ($node) {
+function _middfiles_resource_get_relative_path($node) {
   if (empty($node->nid))
     $course_site_tid = course_hub_get_course_site_tid();
   else
@@ -221,7 +221,7 @@ function middfiles_resource_hub_get_resource_updates($resourceNode) {
  *
  * Run cleanup actions before fetching updates.
  */
-function middfiles_resource_hub_pre_update ($resourceNode) {
+function middfiles_resource_hub_pre_update($resourceNode) {
   if ($resourceNode->type == 'middfiles_html_resource') {
     // Check to see if there are any files in this directory and delete the resource
     // if not.
@@ -324,7 +324,7 @@ function _middfiles_resource_html_help($node) {
 /*********************************************************
  * Scan for files with missing resources
  *********************************************************/
-function middfiles_resource_cron () {
+function middfiles_resource_cron() {
   $scan_interval = intval(variable_get('middfiles_resource_scan_interval', 3600));
   $last_scan = intval(variable_get('middfiles_resource_last_scan', 0));
 
@@ -335,7 +335,7 @@ function middfiles_resource_cron () {
   }
 }
 
-function middfiles_resource_scan () {
+function middfiles_resource_scan() {
   $terms = variable_get('middfiles_resource_terms_enabled', array());
   foreach ($terms as $id => $enabled) {
     if ($enabled) {
@@ -395,7 +395,7 @@ function middfiles_resource_scan () {
   }
 }
 
-function middfiles_html_resource_scan () {
+function middfiles_html_resource_scan() {
   $terms = variable_get('middfiles_resource_terms_enabled', array());
   foreach ($terms as $id => $enabled) {
     if ($enabled) {

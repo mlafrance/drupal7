@@ -160,7 +160,7 @@ function rss_resource_fetch_updates($feedUrl, $resourceNode) {
  * @return object SimplePie
  *      The contents of the feed.
  */
-function rss_resource_fetch_feed ($url) {
+function rss_resource_fetch_feed($url) {
   module_load_include('inc', 'rss_page', 'simplepie');
   $feed = new SimplePie();
   $feed->set_feed_url($url);
@@ -181,7 +181,7 @@ function rss_resource_fetch_feed ($url) {
  * @return array
  *      An array of updates
  */
-function rss_resource_updates_from_feed ($feed, $visibility = 'class') {
+function rss_resource_updates_from_feed($feed, $visibility = 'class') {
   if (!in_array($visibility, array('class', 'institution', 'public')))
     throw new InvalidArgumentException(t('Unknown visibility @visibility.', array('@visibility' => $visibility)));
 

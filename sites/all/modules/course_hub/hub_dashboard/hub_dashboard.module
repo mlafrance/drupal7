@@ -133,7 +133,7 @@ function hub_dashboard_list_instructor_sections($term_id) {
  * Add an instructor section
  *
  */
-function hub_dashboard_manage_instructor_section ($op, $term_id, $offering_id) {
+function hub_dashboard_manage_instructor_section($op, $term_id, $offering_id) {
 	$term_id = base64_decode($term_id);
 	$offering_id = base64_decode($offering_id);
   $term = hub_builder_get_term($term_id);
@@ -490,7 +490,7 @@ function hub_dashboard_current_term() {
  *
  * @return boolean
  */
-function hub_dashboard_is_dashboard () {
+function hub_dashboard_is_dashboard() {
   $path = drupal_get_path_alias($_GET["q"]);
   $path = explode("/", $path);
   return ($path[0] == 'dashboard');
@@ -501,7 +501,7 @@ function hub_dashboard_is_dashboard () {
  *
  * @return boolean
  */
-function hub_dashboard_is_my_courses () {
+function hub_dashboard_is_my_courses() {
   $path = drupal_get_path_alias($_GET["q"]);
   $path = explode("/", $path);
   return ($path[0] == 'my_courses');
@@ -571,7 +571,7 @@ function hub_dashboard_preprocess_hub_dashboard_site(&$vars) {
  * @return array
  *      An array of course objects
  */
-function hub_dashboard_get_course_sites_for_user ($termId) {
+function hub_dashboard_get_course_sites_for_user($termId) {
   $out = array();
   global $user;
   $query =
@@ -605,7 +605,7 @@ t.name ASC";
  * @return array
  *      An array of semester info
  */
-function hub_dashboard_get_terms_for_user () {
+function hub_dashboard_get_terms_for_user() {
   $terms = array();
   global $user;
   $query =

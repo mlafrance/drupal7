@@ -290,7 +290,7 @@ function course_hub_stats_resource_instructors($mmtid, $resource_type) {
  * @param int $mmtid The selected page_id.
  * @return array
  */
-function course_hub_stats_get_pages ($selected_tid = NULL) {
+function course_hub_stats_get_pages($selected_tid = NULL) {
   $hub_root_tid = course_hub_tid_from_path('hub');
   $tree = mm_content_get_tree($hub_root_tid, array(
     MM_GET_TREE_DEPTH => 4,
@@ -321,7 +321,7 @@ function course_hub_stats_get_pages ($selected_tid = NULL) {
  * @param int $mmtid
  * @return array
  */
-function course_hub_stats_get_resource_stats ($resource_type, $mmtid) {
+function course_hub_stats_get_resource_stats($resource_type, $mmtid) {
   // Any/All resources
   if ($resource_type == 'all')
     return course_hub_stats_get_resource_stats_for_all($mmtid);
@@ -443,7 +443,7 @@ function course_hub_stats_get_resource_stats ($resource_type, $mmtid) {
  * @param int $mmtid
  * @return int
  */
-function course_hub_stats_total_sites_in_cat ($mmtid) {
+function course_hub_stats_total_sites_in_cat($mmtid) {
   static $counts = array();
 
   if (!isset($counts[$mmtid])) {
@@ -471,7 +471,7 @@ function course_hub_stats_total_sites_in_cat ($mmtid) {
  * @param int $mmtid
  * @return int
  */
-function course_hub_stats_total_instructors_in_cat ($mmtid) {
+function course_hub_stats_total_instructors_in_cat($mmtid) {
   static $counts = array();
 
   if (!isset($counts[$mmtid])) {
@@ -503,7 +503,7 @@ function course_hub_stats_total_instructors_in_cat ($mmtid) {
  * @param int $mmtid
  * @return int
  */
-function course_hub_stats_instructors_in_cat ($mmtid) {
+function course_hub_stats_instructors_in_cat($mmtid) {
   static $uids = array();
 
   if (!isset($uids[$mmtid])) {
@@ -536,7 +536,7 @@ function course_hub_stats_instructors_in_cat ($mmtid) {
  * @param int $mmtid
  * @return int
  */
-function course_hub_stats_total_students_in_cat ($mmtid) {
+function course_hub_stats_total_students_in_cat($mmtid) {
   static $counts = array();
 
   if (!isset($counts[$mmtid])) {
@@ -568,7 +568,7 @@ function course_hub_stats_total_students_in_cat ($mmtid) {
  * @param int $mmtid
  * @return array
  */
-function course_hub_stats_get_resource_stats_for_all ($mmtid) {
+function course_hub_stats_get_resource_stats_for_all($mmtid) {
   $all_stats = array(
     'resource_nids' => array(),
     'site_mmtids' => array(),
@@ -659,7 +659,7 @@ function course_hub_stats_get_resource_stats_for_all ($mmtid) {
  * @param ref array $stats
  * @return void
  */
-function course_hub_stats_normalize_stats (array &$stats) {
+function course_hub_stats_normalize_stats(array &$stats) {
   // Find the max
   $max = 1;
   foreach ($stats as $set) {

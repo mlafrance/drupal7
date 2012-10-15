@@ -10,7 +10,7 @@
  *
  * @return array of HubBuilder_Term objects
  */
-function hub_builder_get_terms () {
+function hub_builder_get_terms() {
   $sql = "
     SELECT t.*, u.name AS last_built_by_name
     FROM {hub_builder_term} t
@@ -28,7 +28,7 @@ function hub_builder_get_terms () {
  *
  * @return HubBuilder_Term
  */
-function hub_builder_get_term ($id) {
+function hub_builder_get_term($id) {
   $sql = "
     SELECT t.*, u.name AS last_built_by_name
     FROM {hub_builder_term} t
@@ -80,7 +80,7 @@ class HubBuilder_Term {
     return $url;
   }
 
-  public function markBuilt () {
+  public function markBuilt() {
     if (!$this->exists)
       throw new Exception('The term must be saved before it can be marked as built');
 

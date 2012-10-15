@@ -267,7 +267,7 @@ Proin odio dolor, dapibus ut pharetra sed, euismod sit amet augue. Etiam purus i
  *
  * Build a single course hub site.
  */
-function hub_builder_single_form_submit (&$form, &$form_state) {
+function hub_builder_single_form_submit(&$form, &$form_state) {
   if ($form_state['clicked_button']['#title'] == 'build') {
     try {
       $destinationTermPagePath = $form_state['values']['destination_path'];

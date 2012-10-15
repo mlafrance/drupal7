@@ -16,7 +16,7 @@ function hub_builder_terms_form(&$form_state) {
 }
 
 
-function _hub_builder_term_elements ($term = null) {
+function _hub_builder_term_elements($term = null) {
   $fieldset = array(
     '#attributes' => array(),
   );
@@ -184,7 +184,7 @@ function hub_builder_term_edit_form_submit($form, &$form_state) {
  * @param string $term_id
  * @return string
  */
-function hub_builder_term_test ($term_id) {
+function hub_builder_term_test($term_id) {
   $term_id = base64_decode($term_id);
   $term = hub_builder_get_term($term_id);
   $results = array();

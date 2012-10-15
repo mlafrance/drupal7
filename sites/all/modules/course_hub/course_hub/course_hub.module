@@ -9,7 +9,7 @@ require_once dirname(__FILE__).'/course_hub.admin.inc';
  *      A page path relative to the course site root. E.g. 'resources/class'
  * @return int
  */
-function course_hub_get_course_site_tid ($relativePath = '') {
+function course_hub_get_course_site_tid($relativePath = '') {
   mm_parse_args($term_ids, $oarg_list, $current_tid);
   $rootTID = mm_content_get_blocks_at_mmtid($term_ids);
   if (!$relativePath)
@@ -26,7 +26,7 @@ function course_hub_get_course_site_tid ($relativePath = '') {
  * @return int
  *      The MMTID of the site page
  */
-function course_hub_get_course_site_tid_for_nid ($nid) {
+function course_hub_get_course_site_tid_for_nid($nid) {
   $nid = intval($nid);
   if (!$nid)
     throw new Exception('Invalid node id passed.');
@@ -52,7 +52,7 @@ function course_hub_get_course_site_tid_for_nid ($nid) {
  * @return object
  *      The course_metadata node for a course site.
  */
-function course_hub_get_course_site_metadata ($mmtid) {
+function course_hub_get_course_site_metadata($mmtid) {
   $nodeIds = mm_content_get_nids_by_mmtid($mmtid);
   foreach ($nodeIds as $nodeId) {
     $node = node_load($nodeId);
@@ -72,7 +72,7 @@ function course_hub_get_course_site_metadata ($mmtid) {
  *      The path (relative to the course site root) of the parent to check.
  * @return boolean
  */
-function course_hub_is_child_of ($relativePath) {
+function course_hub_is_child_of($relativePath) {
   mm_parse_args($term_ids, $oarg_list, $current_tid);
 
   // No parents, we are at the root
@@ -88,7 +88,7 @@ function course_hub_is_child_of ($relativePath) {
  *
  * @return boolean
  */
-function course_hub_is_course_site_root () {
+function course_hub_is_course_site_root() {
   global $theme_key;
   if ($theme_key != 'coursehub_site')
     return false;
@@ -106,7 +106,7 @@ function course_hub_is_course_site_root () {
  *
  * @return boolean
  */
-function course_hub_is_course_site () {
+function course_hub_is_course_site() {
   global $theme_key;
   if ($theme_key != 'coursehub_site')
     return false;
@@ -141,7 +141,7 @@ function course_hub_get_path($tid = null) {
  * @return int
  *      The page tid or null if not found.
  */
-function course_hub_tid_from_path ($path) {
+function course_hub_tid_from_path($path) {
   custom_url_rewrite_inbound($result, $path, null);
   if (!preg_match('/^mm\/([0-9]+)$/', $result, $matches))
     return null;
@@ -197,7 +197,7 @@ function course_hub_preprocess_page(&$vars) {
  * @return integer
  *      The mmtid of the page on which the update should be placed.
  */
-function course_hub_get_visibility_page ($parentPageTID, $visibility) {
+function course_hub_get_visibility_page($parentPageTID, $visibility) {
   $pages = mm_content_get_tree($parentPageTID, array(MM_GET_TREE_FILTER_HIDDEN => true, MM_GET_TREE_DEPTH => 1, 'pprune' => 0));
   foreach ($pages as $page) {
     if ($page->alias == $visibility)
@@ -215,7 +215,7 @@ function course_hub_get_visibility_page ($parentPageTID, $visibility) {
  *      The form state that will be modified to set the proper visibility page.
  * @return void
  */
-function course_hub_set_node_form_visibility ($parentPagePath, &$form_state) {
+function course_hub_set_node_form_visibility($parentPagePath, &$form_state) {
   $visibility = $form_state['values']['field_hub_perms'][0]['value'];
   $classPageTID = course_hub_get_course_site_tid($parentPagePath.'/class');
   $visibilityPage = course_hub_get_visibility_page(course_hub_get_course_site_tid($parentPagePath), $visibility);
@@ -278,7 +278,7 @@ function course_hub_block($op = 'list', $delta = 0, $edit = array()) {
  *
  * @return boolean
  */
-function course_hub_roster_visible ($course_site_mmtid = null) {
+function course_hub_roster_visible($course_site_mmtid = null) {
   static $visible = null;
 
   if (is_null($visible)) {
@@ -312,7 +312,7 @@ function course_hub_roster_visible ($course_site_mmtid = null) {
  *
  * @return string
  */
-function course_hub_get_roster_link () {
+function course_hub_get_roster_link() {
   if (!course_hub_roster_visible())
     return null;
 
@@ -460,7 +460,7 @@ function course_hub_theme($existing, $type, $theme, $path) {
 /**
  * Answer true if the user is authenticated, false otherwise.
  */
-function course_hub_is_authenticated () {
+function course_hub_is_authenticated() {
   global $user;
   return (bool)$user->uid;
 }
@@ -475,7 +475,7 @@ function course_hub_perm() {
 /**
  * Answer the content for the browse page.
  */
-function course_hub_browse () {
+function course_hub_browse() {
   global $custom_theme, $course_hub_browsing;
   $custom_theme = 'coursehub_browse';
 
@@ -490,7 +490,7 @@ function course_hub_browse () {
  * @param string $title
  * @return string
  */
-function course_hub_code_from_page_title ($title) {
+function course_hub_code_from_page_title($title) {
   if(preg_match('/^([^:]+):(.+)$/m', $title, $matches))
     return $matches[1];
   else
@@ -503,7 +503,7 @@ function course_hub_code_from_page_title ($title) {
  * @param string $title
  * @return string
  */
-function course_hub_noncode_from_page_title ($title) {
+function course_hub_noncode_from_page_title($title) {
   if(preg_match('/^([^:]+):(.+)$/m', $title, $matches))
     return $matches[2];
   else
@@ -521,7 +521,7 @@ function course_hub_noncode_from_page_title ($title) {
  * @return array
  *      An array of node-type strings
  */
-function hook_hub_get_content_types () {
+function hook_hub_get_content_types() {
   return array();
 }
 
@@ -598,7 +598,7 @@ function hook_hub_get_resource_url($resourceNode) {
  * @return array
  *      An array of updates.
  */
-function hook_hub_get_updates ($courseSiteTID) {
+function hook_hub_get_updates($courseSiteTID) {
   return array();
 }
 

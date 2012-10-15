@@ -153,7 +153,7 @@ function hub_updates_disable_form() {
 /**
  * Handle submissions of the Enable/Disable form.
  */
-function hub_updates_disable_submit (&$form, &$form_state) {
+function hub_updates_disable_submit(&$form, &$form_state) {
   $mmtid = course_hub_tid_from_path($form_state['values']['path']);
   if (!$mmtid) {
     drupal_set_message(t('Path not found: @path', array('@path' => $form_state['values']['path'])), 'error');

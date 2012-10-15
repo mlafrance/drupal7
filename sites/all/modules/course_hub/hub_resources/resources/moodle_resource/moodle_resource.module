@@ -42,7 +42,7 @@ function moodle_resource_theme_registry_alter(&$theme_registry) {
  * @param object $node
  * @return string
  */
-function _moodle_resource_get_url ($node) {
+function _moodle_resource_get_url($node) {
 	if ($node->type != 'moodle_resource')
 	  throw new InvalidArgumentException(t('@func expects and moodle_resource node, got @type', array('@func' => __FUNCTION__, '@type' => $node->type)));
 	if (!isset($node->field_moodle_course_id[0]['value']))
@@ -232,7 +232,7 @@ function moodle_resource_form_alter(&$form, &$form_state, $form_id) {
  * @param optional int $nid
  * @return array
  */
-function _moodle_resource_get_resources_sharing_moodle_course ($moodle_course_id, $nid = 0) {
+function _moodle_resource_get_resources_sharing_moodle_course($moodle_course_id, $nid = 0) {
   $res = db_query(
 "SELECT
   n.nid
@@ -277,7 +277,7 @@ function moodle_resource_fieldgroup_form(&$form, $form_state, $form_id, $group) 
  * @param array $form_state
  * @return void
  */
-function moodle_resource_site_validate ($form, &$form_state) {
+function moodle_resource_site_validate($form, &$form_state) {
   $course_id = $form_state['values']['field_moodle_course_id'][0]['value'];
 
   // If integration is disabled, just validate that an id was entered.
@@ -379,7 +379,7 @@ function moodle_resource_site_validate ($form, &$form_state) {
   }
 }
 
-function moodle_resource_nodeapi (&$node, $op, $a3 = NULL, $a4 = NULL) {
+function moodle_resource_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
   if ($node->type != 'moodle_resource')
     return;
 
@@ -495,7 +495,7 @@ function moodle_resource_nodeapi (&$node, $op, $a3 = NULL, $a4 = NULL) {
  * @param object $node
  * @return int The course id.
  */
-function _moodle_resource_add_course (MoodleResource_SoapClient $client, $node) {
+function _moodle_resource_add_course(MoodleResource_SoapClient $client, $node) {
   $datum = _moodle_resource_get_default_course_values($client, $node);
   $datum['action'] = 'add';
   $courses_created = $client->add_course($datum);
@@ -527,7 +527,7 @@ function _moodle_resource_add_course (MoodleResource_SoapClient $client, $node) 
  * @param object $node
  * @return array
  */
-function _moodle_resource_get_default_course_values (MoodleResource_SoapClient $client, $node) {
+function _moodle_resource_get_default_course_values(MoodleResource_SoapClient $client, $node) {
   if (empty($node->nid))
     $course_site_tid = course_hub_get_course_site_tid();
   else
@@ -587,7 +587,7 @@ function _moodle_resource_get_default_course_values (MoodleResource_SoapClient $
  * @param object $node
  * @return integer
  */
-function _moodle_resource_get_category (MoodleResource_SoapClient $client, $node) {
+function _moodle_resource_get_category(MoodleResource_SoapClient $client, $node) {
   if (empty($node->nid))
     $course_site_tid = course_hub_get_course_site_tid();
   else
@@ -609,7 +609,7 @@ function _moodle_resource_get_category (MoodleResource_SoapClient $client, $node
  * @param array $path
  * @return int
  */
-function _moodle_resource_map_category_path (MoodleResource_SoapClient $client, $parent_id, $path, $depth = 1) {
+function _moodle_resource_map_category_path(MoodleResource_SoapClient $client, $parent_id, $path, $depth = 1) {
   // Escape clause, we are at the bottom of the category tree.
   if (!count($path))
     return $parent_id;
@@ -659,7 +659,7 @@ function _moodle_resource_map_category_path (MoodleResource_SoapClient $client, 
  * @param object $node
  * @return void
  */
-function _moodle_resource_sync_enrollment (MoodleResource_SoapClient $client, $node) {
+function _moodle_resource_sync_enrollment(MoodleResource_SoapClient $client, $node) {
   $node->field_sync_state[0]['value'] = '';
   try {
     if (empty($node->nid))
@@ -758,7 +758,7 @@ function _moodle_resource_sync_enrollment (MoodleResource_SoapClient $client, $n
  * @param object $node
  * @return void
  */
-function _moodle_resource_unenroll_all_students (MoodleResource_SoapClient $client, $moodle_course_id, $node) {
+function _moodle_resource_unenroll_all_students(MoodleResource_SoapClient $client, $moodle_course_id, $node) {
   // Remove any students that we previously synced
   foreach ($node->field_students_synced as $key => $value) {
     _moodle_resource_remove_student($client, $moodle_course_id, $value['value']);
@@ -773,7 +773,7 @@ function _moodle_resource_unenroll_all_students (MoodleResource_SoapClient $clie
  * @param int $uid
  * @return void
  */
-function _moodle_resource_remove_teacher (MoodleResource_SoapClient $client, $moodle_course_id, $uid) {
+function _moodle_resource_remove_teacher(MoodleResource_SoapClient $client, $moodle_course_id, $uid) {
   $user = user_load($uid);
 
   $result = $client->remove_teacher($moodle_course_id, 'id', $user->init, 'username');
@@ -792,7 +792,7 @@ function _moodle_resource_remove_teacher (MoodleResource_SoapClient $client, $mo
  * @param int $uid
  * @return void
  */
-function _moodle_resource_remove_student (MoodleResource_SoapClient $client, $moodle_course_id, $uid) {
+function _moodle_resource_remove_student(MoodleResource_SoapClient $client, $moodle_course_id, $uid) {
   $user = user_load($uid);
 
   $result = $client->remove_student($moodle_course_id, 'id', $user->init, 'username');
@@ -812,7 +812,7 @@ function _moodle_resource_remove_student (MoodleResource_SoapClient $client, $mo
  *      An array of course members returned from Moodle.
  * @return void
  */
-function _moodle_resource_ensure_teacher (MoodleResource_SoapClient $client, $moodle_course_id, $uid, array $existing_teachers) {
+function _moodle_resource_ensure_teacher(MoodleResource_SoapClient $client, $moodle_course_id, $uid, array $existing_teachers) {
   $user = user_load($uid);
   // Just skip if already a teacher
   foreach ($existing_teachers as $teacher) {
@@ -840,7 +840,7 @@ function _moodle_resource_ensure_teacher (MoodleResource_SoapClient $client, $mo
  *      An array of course members returned from Moodle.
  * @return void
  */
-function _moodle_resource_ensure_student (MoodleResource_SoapClient $client, $moodle_course_id, $uid, array $existing_students) {
+function _moodle_resource_ensure_student(MoodleResource_SoapClient $client, $moodle_course_id, $uid, array $existing_students) {
   $user = user_load($uid);
   // Just skip if already a student
   foreach ($existing_students as $student) {
@@ -866,7 +866,7 @@ function _moodle_resource_ensure_student (MoodleResource_SoapClient $client, $mo
  * @return int
  *      The Moodle user-id for the user.
  */
-function _moodle_resource_ensure_user (MoodleResource_SoapClient $client, $user) {
+function _moodle_resource_ensure_user(MoodleResource_SoapClient $client, $user) {
   // Check to see if the user exists.
   $result = $client->get_user_byusername($user->init);
   if (!empty($result[0]->id))
@@ -1000,7 +1000,7 @@ function moodle_resource_hub_get_resource_updates($resourceNode) {
 /**
  * Implementation of hook_cron()
  */
-function _moodle_resource_cronsync ($node) {
+function _moodle_resource_cronsync($node) {
   // If integration is disabled, don't sync users.
   if (!intval(variable_get('moodle_resource_enable', 1))) {
     return;

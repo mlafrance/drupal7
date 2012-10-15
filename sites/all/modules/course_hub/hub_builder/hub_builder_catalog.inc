@@ -10,7 +10,7 @@
  *
  * @return array of HubBuilder_Catalog objects
  */
-function hub_builder_get_catalogs () {
+function hub_builder_get_catalogs() {
   $sql = "
     SELECT c.*
     FROM {hub_builder_catalog} c
@@ -27,7 +27,7 @@ function hub_builder_get_catalogs () {
  *
  * @return HubBuilder_Catalog
  */
-function hub_builder_get_catalog ($id) {
+function hub_builder_get_catalog($id) {
   $sql = "
     SELECT c.*
     FROM {hub_builder_catalog} c

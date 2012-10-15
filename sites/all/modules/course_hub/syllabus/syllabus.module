@@ -40,7 +40,7 @@ function syllabus_block($op = 'list', $delta = 0, $edit = array()) {
 /**
  * Answer true if we are on a syllabus page and the block should be displayed.
  */
-function syllabus_controls_visible () {
+function syllabus_controls_visible() {
   return (preg_match('/.+\/syllabus([?#].+)?$/', course_hub_get_path()) && !syllabus_get_num_nodes() && mm_content_user_can(course_hub_get_course_site_tid('syllabus/class'), 'u'));
 }
 
@@ -48,7 +48,7 @@ function syllabus_controls_visible () {
  * Answer the block contents for the syllabus controls.
  *
  */
-function syllabus_get_controls () {
+function syllabus_get_controls() {
   ob_start();
   $path = course_hub_get_path();
   print '<button onclick="window.location=\''.base_path().$path.'/class/contents/add/syllabus_text\'">+ Write/Paste Syllabus Text</button>';
@@ -62,7 +62,7 @@ function syllabus_get_controls () {
  *
  * @return int
  */
-function syllabus_get_num_nodes () {
+function syllabus_get_num_nodes() {
   return count(mm_content_get_nids_by_mmtid(course_hub_get_course_site_tid('syllabus/class')));
 }
 
@@ -153,7 +153,7 @@ function syllabus_form_alter(&$form, &$form_state, $form_id) {
  * @return array
  *      An array of content-type identifiers
  */
-function syllabus_hub_get_content_types () {
+function syllabus_hub_get_content_types() {
   return array('syllabus_text', 'media', 'syllabus_link');
 }
 
@@ -195,7 +195,7 @@ function syllabus_node_form_submit($form, &$form_state) {
  * @return array
  *      An array of updates.
  */
-function syllabus_hub_get_updates ($courseSiteTID) {
+function syllabus_hub_get_updates($courseSiteTID) {
   $updates = array();
   foreach (syllabus_get_syllabus_nodes($courseSiteTID) as $node) {
     $update =  array();
@@ -240,7 +240,7 @@ function syllabus_hub_get_updates ($courseSiteTID) {
  * @return array
  *      An array of node objects
  */
-function syllabus_get_syllabus_nodes ($courseSiteTID) {
+function syllabus_get_syllabus_nodes($courseSiteTID) {
   $res = db_query(
 "SELECT
   n.nid

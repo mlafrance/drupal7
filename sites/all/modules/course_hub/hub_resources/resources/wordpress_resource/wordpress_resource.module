@@ -36,7 +36,7 @@ function wordpress_resource_form_wordpress_resource_node_form_alter(&$form, $for
  * @param array $form_state
  * @return void
  */
-function wordpress_resource_sitename_validate ($form, &$form_state) {
+function wordpress_resource_sitename_validate($form, &$form_state) {
   $sitename = $form_state['values']['field_wp_sitename'][0]['value'];
 
   // Creating a new site
@@ -140,7 +140,7 @@ function wordpress_resource_hub_get_resource_url($resourceNode, $path = '', $aut
  * @return string
  *      The URL to the site
  */
-function wordpress_resource_get_url ($sitename = '', $path = '', $authenticated = false) {
+function wordpress_resource_get_url($sitename = '', $path = '', $authenticated = false) {
   $scheme = variable_get('wordpress_resource_scheme', 'http');
   $host = variable_get('wordpress_resource_host', 'blogs.middlebury.edu');
   $basePath = variable_get('wordpress_resource_base_path', '/');
@@ -183,7 +183,7 @@ function wordpress_resource_get_url ($sitename = '', $path = '', $authenticated 
  * @return mixed
  *      The result of the XML-RPC call
  */
-function wordpress_resource_xmlrpc () {
+function wordpress_resource_xmlrpc() {
   $args = func_get_args();
   $url = wordpress_resource_get_url().'xmlrpc.php';
   array_unshift($args, $url);

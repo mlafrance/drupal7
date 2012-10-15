@@ -5,14 +5,14 @@ require_once 'hub_updates.admin.inc';
 /**
  * Implementation of hook_cron()
  */
-function hub_updates_cron () {
+function hub_updates_cron() {
   if (variable_get('hub_updates_fetch_via_cron', 0)) {
     hub_updates_fetch();
   }
 }
 
 
-function hub_updates_fetch () {
+function hub_updates_fetch() {
   $numSites = 0;
   $numSitesWithResources = 0;
   $numUpdates = 0;
@@ -60,7 +60,7 @@ function hub_updates_fetch () {
  * @return int
  *      The number of updates added.
  */
-function hub_updates_fetch_updates ($updatesPageTID) {
+function hub_updates_fetch_updates($updatesPageTID) {
   $courseSiteTID = mm_content_get_parent($updatesPageTID);
 
   // Run any cleanup actions resources may have.
@@ -90,7 +90,7 @@ function hub_updates_fetch_updates ($updatesPageTID) {
  * @return int
  *      The number of updates added.
  */
-function hub_updates_fetch_updates_for_site ($courseSiteTID) {
+function hub_updates_fetch_updates_for_site($courseSiteTID) {
   $updatesPageTID = course_hub_tid_from_path(course_hub_get_path($courseSiteTID).'/updates');
   return hub_updates_fetch_updates($updatesPageTID);
 }
@@ -122,7 +122,7 @@ function hub_updates_fetch_updates_for_site ($courseSiteTID) {
  * @return array
  *      An array of updates.
  */
-function hub_updates_hub_get_updates ($courseSiteTID) {
+function hub_updates_hub_get_updates($courseSiteTID) {
   $allUpdates = array();
 
   // Updates from each resource
@@ -155,7 +155,7 @@ function hub_updates_hub_get_updates ($courseSiteTID) {
  *      The page under which course sites update fetching should be disabled.
  * @return void
  */
-function hub_updates_disable_update_fetching ($mmtid) {
+function hub_updates_disable_update_fetching($mmtid) {
   $nids = hub_updates_get_updates_nids_under_page($mmtid);
   db_query(
 "UPDATE
@@ -176,7 +176,7 @@ WHERE
  *      The page under which course sites update fetching should be disabled.
  * @return void
  */
-function hub_updates_enable_update_fetching ($mmtid) {
+function hub_updates_enable_update_fetching($mmtid) {
   $nids = hub_updates_get_updates_nids_under_page($mmtid);
   db_query(
 "UPDATE
@@ -275,7 +275,7 @@ WHERE
  * @return boolean
  *      True if the update exists.
  */
-function hub_updates_update_exists ($guid, $mmtid) {
+function hub_updates_update_exists($guid, $mmtid) {
   if (!$guid)
     throw new InvalidArgumentException(t('Missing $guid'));
   if (!$mmtid)
@@ -432,7 +432,7 @@ function hub_updates_hub_get_resource_updates($resourceNode) {
  *      The new visibility value for the node.
  * @return void
  */
-function hub_updates_hub_resource_visibility ($resourceNode, $visibility) {
+function hub_updates_hub_resource_visibility($resourceNode, $visibility) {
   // Update the visibility of the updates from this resource.
   $updateNIDs = hub_updates_update_nids_for_resource($resourceNode->nid);
 
@@ -508,7 +508,7 @@ function hub_updates_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
  * @return array
  *      The node-ids of the updates for that resource.
  */
-function hub_updates_update_nids_for_resource ($resourceNID) {
+function hub_updates_update_nids_for_resource($resourceNID) {
   $nids = array();
   $fieldInfo = content_fields("field_source_id", "hub_update");
   $dbInfo = content_database_info($fieldInfo);
@@ -659,7 +659,7 @@ function hub_updates_preprocess_page(&$vars) {
  * @return array
  *      An array of statistics objects that includes the id, title, url, and num_updates
  */
-function hub_updates_update_sources ($mmtid) {
+function hub_updates_update_sources($mmtid) {
   global $user;
   if ($user->uid)
     $userWhere = "\n  OR (

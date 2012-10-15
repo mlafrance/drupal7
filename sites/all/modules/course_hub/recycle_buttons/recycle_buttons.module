@@ -40,7 +40,7 @@ function recycle_buttons_block($op = 'list', $delta = 0, $edit = array()) {
 /**
  * Answer true if we are on a recycle_buttons page and the block should be displayed.
  */
-function recycle_buttons_visible () {
+function recycle_buttons_visible() {
   return preg_match('/.+\/-recycle$/', course_hub_get_path());
 }
 
@@ -48,7 +48,7 @@ function recycle_buttons_visible () {
  * Answer the block contents for the recycle_buttons controls.
  *
  */
-function recycle_buttons_get_controls () {
+function recycle_buttons_get_controls() {
   ob_start();
   mm_parse_args($term_ids, $oarg_list, $current_tid);
   $path = course_hub_get_path();

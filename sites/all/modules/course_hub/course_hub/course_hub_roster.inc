@@ -5,7 +5,7 @@
  *
  * @return string
  */
-function course_hub_roster_view ($course_site_tid = null) {
+function course_hub_roster_view($course_site_tid = null) {
   if (is_null($course_site_tid))
     $course_site_tid = course_hub_get_course_site_tid();
 
@@ -36,7 +36,7 @@ function course_hub_roster_view ($course_site_tid = null) {
  * @param string $photo_base_path;
  * @return array
  */
-function course_hub_roster_get_people ($group_tid, $photo_base_path) {
+function course_hub_roster_get_people($group_tid, $photo_base_path) {
   $uids = mm_content_get_uids_in_group($group_tid);
   $users = array();
   $names = array();
@@ -57,7 +57,7 @@ function course_hub_roster_get_people ($group_tid, $photo_base_path) {
  * @param int $uid
  * @return void
  */
-function course_hub_roster_photo ($mmtid, $uid) {
+function course_hub_roster_photo($mmtid, $uid) {
   if (!course_hub_roster_visible()) {
     cas_login_check();
     course_hub_roster_photo_error(403, 'Forbidden', 'Only instructors are authorized to view roster photos.');
@@ -144,7 +144,7 @@ function course_hub_roster_photo ($mmtid, $uid) {
  * @param string $message
  * @return void
  */
-function course_hub_roster_photo_error ($status, $title, $message) {
+function course_hub_roster_photo_error($status, $title, $message) {
   watchdog('course_hub_roster', $message, array(), WATCHDOG_WARNING);
   header('HTTP/1.1 '.$status.' '.$title);
     print '<html>

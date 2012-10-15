@@ -36,7 +36,7 @@ function link_resource_url_validate($form, &$form_state) {
  * @return boolean
  *      true if valid, false if not.
  */
-function link_resource_validate_url ($url) {
+function link_resource_validate_url($url) {
   $regex = '@
 ^                                                   # Begining of the line
 (http|ftp)s?://                                     # Scheme

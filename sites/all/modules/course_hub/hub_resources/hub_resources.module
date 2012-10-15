@@ -55,7 +55,7 @@ function hub_resources_block($op = 'list', $delta = 0, $edit = array()) {
 /**
  * Answer true if we are on a resources page and the block should be displayed.
  */
-function hub_resources_controls_visible () {
+function hub_resources_controls_visible() {
   return preg_match('/.+\/resources([?#].+)?$/', course_hub_get_path());
 }
 
@@ -63,7 +63,7 @@ function hub_resources_controls_visible () {
  * Answer the block contents for the Resources controls.
  *
  */
-function hub_resources_get_controls () {
+function hub_resources_get_controls() {
   ob_start();
   $classPageTID = course_hub_get_course_site_tid('resources/class');
   $path = course_hub_get_path($classPageTID);
@@ -83,7 +83,7 @@ function hub_resources_get_controls () {
  * Answer the block contents for the Resources controls.
  *
  */
-function hub_resources_get_link_sidebar () {
+function hub_resources_get_link_sidebar() {
   $view = views_get_view('course_site_links');
   if (!empty($view))
     return $view->execute_display('default', array(course_hub_get_course_site_tid('resources'), course_hub_get_course_site_tid('resources/class')));
@@ -135,7 +135,7 @@ function hub_resources_preprocess_page(&$vars) {
  *
  * @return int
  */
-function hub_resources_get_num_resources () {
+function hub_resources_get_num_resources() {
   return count(mm_content_get_nids_by_mmtid(course_hub_get_course_site_tid('resources/class')));
 }
 
@@ -169,7 +169,7 @@ function hub_resources_form_alter(&$form, &$form_state, $form_id) {
  * Add/Remove the resource from one of our 'visibility' pages to grant institution
  * or public visibility
  */
-function hub_resources_node_form_submit (&$form, &$form_state) {
+function hub_resources_node_form_submit(&$form, &$form_state) {
   course_hub_set_node_form_visibility('resources', $form_state);
 
   $originalVisibility = $form['#node']->field_hub_perms[0]['value'];
@@ -182,7 +182,7 @@ function hub_resources_node_form_submit (&$form, &$form_state) {
 /**
  * Implementation of hook_nodeapi()
  */
-function hub_resources_nodeapi (&$node, $op, $a3, $a4) {
+function hub_resources_nodeapi(&$node, $op, $a3, $a4) {
   $contentTypes = module_invoke_all('hub_get_content_types');
   if (!in_array($node->type, $contentTypes))
     return;
@@ -218,7 +218,7 @@ function hub_resources_nodeapi (&$node, $op, $a3, $a4) {
  * @return array
  *      An array of content-type identifiers
  */
-function hub_resources_hub_get_content_types () {
+function hub_resources_hub_get_content_types() {
   return module_invoke_all('hub_get_resource_types');
 }
 
@@ -237,7 +237,7 @@ function hub_resources_hub_get_content_types () {
  *      The new visibility value for the node.
  * @return void
  */
-function hook_hub_resource_visibility ($resourceNode, $visibility) {
+function hook_hub_resource_visibility($resourceNode, $visibility) {
   // hook definition, no implementation.
 }
 

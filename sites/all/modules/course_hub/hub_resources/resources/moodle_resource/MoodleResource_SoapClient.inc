@@ -10,7 +10,7 @@ class MoodleResource_SoapClient {
    *
    * @return void
    */
-  public function __construct () {
+  public function __construct() {
     $wsdl = variable_get('moodle_resource_wsdl', '');
     if (empty($wsdl))
       throw new Exception(t('WSDL url not defined. Please define it in the <a href="@url">Moodle Resource Configuration</a>.', array('@url' => url('admin/course_hub/resources/moodle'))));
@@ -65,7 +65,7 @@ class MoodleResource_SoapClient {
    *
    * @return void
    */
-  public function getError () {
+  public function getError() {
 	$doc = new DomDocument();
     $doc->loadXML($this->__getLastResponse());
     $errors = $doc->getElementsByTagName('error');

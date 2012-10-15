@@ -129,7 +129,7 @@ function hub_builder_menu() {
   return $items;
 }
 
-function hub_builder_terms_show_tab ($perm, $desired_action, $current_action) {
+function hub_builder_terms_show_tab($perm, $desired_action, $current_action) {
 //   var_dump($desired_action);
 //   var_dump($current_action);
   if (empty($current_action) || $current_action != $desired_action)
@@ -158,7 +158,7 @@ function hub_builder_theme() {
  *
  * @return void
  */
-function hub_builder_build_term ($term_id) {
+function hub_builder_build_term($term_id) {
   $term_id = base64_decode($term_id);
   try {
     ini_set('max_execution_time', variable_get('hub_builder_max_execution_time', "1200"));
@@ -178,7 +178,7 @@ function hub_builder_build_term ($term_id) {
  * @param HubBuilder_Term $term
  * @return void
  */
-function hub_builder_build_term_sites (HubBuilder_Term $term) {
+function hub_builder_build_term_sites(HubBuilder_Term $term) {
   if (!$term->getMainCourseDataUrl())
       throw new InvalidArgumentException('Source URL is not defined.');
   if (!$term->import_path)
@@ -210,7 +210,7 @@ function hub_builder_build_term_sites (HubBuilder_Term $term) {
  * @param string $content
  * @return void
  */
-function _hub_builder_print_unbuffered ($content) {
+function _hub_builder_print_unbuffered($content) {
   // Store the buffers
   $buffers = array();
   while (ob_get_level())
@@ -233,7 +233,7 @@ function _hub_builder_print_unbuffered ($content) {
  * @param string $sourceUrl
  * @return DOMXPath
  */
-function hub_builder_get_xpath ($sourceUrl) {
+function hub_builder_get_xpath($sourceUrl) {
   $doc = new DOMDocument;
   if (!@$doc->load($sourceUrl))
     throw new Exception(t('Could not load source feed. !message', array('!message' => print_r(error_get_last(), true))));
@@ -249,7 +249,7 @@ function hub_builder_get_xpath ($sourceUrl) {
  * @param DOMXPath $xpath
  * @return array of subjects array(id => array('id' => ..., 'short_id' => ..., 'name' => ..., 'external_id' => ...),)
  */
-function hub_builder_get_subjects ($xpath) {
+function hub_builder_get_subjects($xpath) {
   $subjectElements = $xpath->query('//catalog:topic[@type="genera:topic/subject"]');
   $termId = $xpath->query('//catalog:chosen_term')->item(0)->getAttribute('id');
   $subjects = array();
@@ -282,7 +282,7 @@ function hub_builder_get_subjects ($xpath) {
  * @return string
  *      An XML string.
  */
-function hub_builder_build_subject_site_xml (HubBuilder_Term $term, array $subject, DOMXPath $xpath) {
+function hub_builder_build_subject_site_xml(HubBuilder_Term $term, array $subject, DOMXPath $xpath) {
   $sectionElements = hub_builder_get_section_elements_in_subject($xpath, $subject['id']);
   ob_start();
   print hub_builder_get_subject_site_xml_start($subject);
@@ -304,7 +304,7 @@ function hub_builder_build_subject_site_xml (HubBuilder_Term $term, array $subje
  * @param array $subject
  * @return string
  */
-function hub_builder_get_subject_site_xml_start (array $subject) {
+function hub_builder_get_subject_site_xml_start(array $subject) {
   return '<'.'?xml  version="1.0" ?>
 <pages xmlns="http://www.middlebury.edu/nodeporter">
   <page max_depth="-1" node_info="0" comment="0">
@@ -327,7 +327,7 @@ function hub_builder_get_subject_site_xml_start (array $subject) {
  * @param array $subject
  * @return string
  */
-function hub_builder_get_subject_site_xml_end (array $subject) {
+function hub_builder_get_subject_site_xml_end(array $subject) {
   return "
     </pages>
     <nodes>
@@ -349,7 +349,7 @@ function hub_builder_get_subject_site_xml_end (array $subject) {
  * @param string $subject_id
  * @return DOMNodelist
  */
-function hub_builder_get_section_elements_in_subject (DOMXPath $xpath, $subject_id) {
+function hub_builder_get_section_elements_in_subject(DOMXPath $xpath, $subject_id) {
   return $xpath->query('//item[catalog:topic[@type="genera:topic/subject" and @id="'.$subject_id.'"]]');
 }
 
@@ -364,7 +364,7 @@ function hub_builder_get_section_elements_in_subject (DOMXPath $xpath, $subject_
  * @return string
  *      An XML string defining the course page.
  */
-function hub_builder_build_site_xml (HubBuilder_Term $term, DOMElement $item, DOMXPath $xpath) {
+function hub_builder_build_site_xml(HubBuilder_Term $term, DOMElement $item, DOMXPath $xpath) {
   $data = hub_builder_get_section_data($term, $item, $xpath);
   if (!in_array($data['genusTypeId'], $term->getCatalog()->types_to_import))
     throw new Exception(t("Skipping @section, genus @genus isn't in @list.", array('@section' => $data['uniqueId'], '@genus' => $data['genusTypeId'], '@list' => implode(', ', $term->getCatalog()->types_to_import))));
@@ -381,7 +381,7 @@ function hub_builder_build_site_xml (HubBuilder_Term $term, DOMElement $item, DO
  *      The XPath object for the source document.
  * @return array
  */
-function hub_builder_get_section_data (HubBuilder_Term $term, DOMElement $item, DOMXPath $xpath) {
+function hub_builder_get_section_data(HubBuilder_Term $term, DOMElement $item, DOMXPath $xpath) {
   $data = array();
 
   // @todo, really, we want separate data elements for subject code, course number, and section identifier
@@ -479,7 +479,7 @@ function hub_builder_get_section_data (HubBuilder_Term $term, DOMElement $item, 
  * @return string
  *      The XML block for the site.
  */
-function hub_builder_build_site_xml_from_data (array $data) {
+function hub_builder_build_site_xml_from_data(array $data) {
   $elements = array(
     'subject'       => 'The Subject Code for the Section.',
     'number'        => 'The Course Number for the Section.',
@@ -795,7 +795,7 @@ function hub_builder_build_site_xml_from_data (array $data) {
  * @param string $term_id
  * @return array
  */
-function hub_builder_get_instructors_course_data ($user_external_id, $term_id) {
+function hub_builder_get_instructors_course_data($user_external_id, $term_id) {
   $cache_key = 'hb_courses:'.$user_external_id.':'.$term_id;
   $data = hub_builder_cache_get_data($cache_key, 'cache');
   if ($data === 0) {
@@ -812,7 +812,7 @@ function hub_builder_get_instructors_course_data ($user_external_id, $term_id) {
  * @param string $term_id
  * @return array
  */
-function hub_builder_fetch_instructors_course_data ($user_external_id, $term_id) {
+function hub_builder_fetch_instructors_course_data($user_external_id, $term_id) {
   $data = array();
   try {
     $term = hub_builder_get_term($term_id);

@@ -100,7 +100,7 @@ function hub_builder_catalogs_form_submit($form, &$form_state) {
   }
 }
 
-function _hub_builder_catalog_fieldset ($catalog = null) {
+function _hub_builder_catalog_fieldset($catalog = null) {
   $fieldset = array(
     '#type' => 'fieldset',
     '#title' => t('@id', array('@id' => $catalog->id)),

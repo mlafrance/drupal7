@@ -30,7 +30,7 @@ function eres_resource_theme_registry_alter(&$theme_registry) {
  * @param object $node
  * @return string
  */
-function _eres_resource_get_url ($node) {
+function _eres_resource_get_url($node) {
 	if ($node->type != 'eres_resource')
 	  throw new InvalidArgumentException(t('@func expects and eres_resource node, got @type', array('@func' => __FUNCTION__, '@type' => $node->type)));
 	if (!isset($node->field_cid[0]['value']))
@@ -50,7 +50,7 @@ function _eres_resource_get_url ($node) {
  * @param object $node
  * @return string
  */
-function _eres_resource_get_feed_url ($node) {
+function _eres_resource_get_feed_url($node) {
 	if ($node->type != 'eres_resource')
 	  throw new InvalidArgumentException(t('@func expects and eres_resource node, got @type', array('@func' => __FUNCTION__, '@type' => $node->type)));
 	if (!isset($node->field_cid[0]['value']))
