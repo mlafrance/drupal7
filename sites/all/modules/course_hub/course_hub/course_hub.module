@@ -601,5 +601,3 @@ function hook_hub_get_resource_url($resourceNode) {
 function hook_hub_get_updates($courseSiteTID) {
   return array();
 }
-
-?>
