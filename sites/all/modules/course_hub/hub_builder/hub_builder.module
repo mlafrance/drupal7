@@ -193,7 +193,7 @@ function hub_builder_build_term_sites(HubBuilder_Term $term) {
 
   $num = 0;
   foreach (hub_builder_get_subjects($xpath) as $subject) {
-    _hub_builder_print_unbuffered(t('Building course sites for @subject... ', array('@subject' => $subject['name'])));
+    _hub_builder_print_unbuffered(t('Building course sites for @subject...', array('@subject' => $subject['name'])) . ' ');
     $xml = hub_builder_build_subject_site_xml($term, $subject, $xpath, $destinationTID);
     $pages = mmporter_importer_import_string($destinationTID, $xml);
     _hub_builder_print_unbuffered("done<br/>\n");
