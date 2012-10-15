@@ -14,7 +14,7 @@ function hub_builder_catalogs_form(&$form_state) {
     $form[$catalog->id] = _hub_builder_catalog_fieldset($catalog);
   }
   if (!empty($form_state['storage']['add_new'])) {
-    $catalog = new StdClass();
+    $catalog = new stdClass();
     $catalog->id = '';
     $catalog->class_group_base_dn = 'OU=Classes,OU=Groups,DC=example,DC=edu';
     $catalog->main_data_url = 'http://catalog.example.edu/offerings/searchxml/catalog/[CATALOG_ID]/term/[TERM_ID]';
