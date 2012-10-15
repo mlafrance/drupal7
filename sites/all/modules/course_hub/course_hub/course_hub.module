@@ -165,11 +165,11 @@ function course_hub_preprocess_page(&$vars) {
   if (!$vars['is_front'])
     return;
 
-  global $course_hub_browsing;
+  global $_course_hub_browsing;
 
   // If we are browsing, just show the page
   // This is a flag used to communicate between course_hub_browse() and course_hub_preprocess_page().
-  if ($course_hub_browsing)
+  if ($_course_hub_browsing)
     return;
 
   // If we are authenticated, redirect to the dashboard.
@@ -476,11 +476,11 @@ function course_hub_perm() {
  * Answer the content for the browse page.
  */
 function course_hub_browse() {
-  global $custom_theme, $course_hub_browsing;
-  $custom_theme = 'coursehub_browse';
+  global $_course_hub_custom_theme, $_course_hub_browsing;
+  $_course_hub_custom_theme = 'coursehub_browse';
 
   $_GET["q"] = 'mm/7';
-  $course_hub_browsing = TRUE; // A flag used to communicate between course_hub_browse() and course_hub_preprocess_page().
+  $_course_hub_browsing = TRUE; // A flag used to communicate between course_hub_browse() and course_hub_preprocess_page().
   return mm_show_page();
 }
 
