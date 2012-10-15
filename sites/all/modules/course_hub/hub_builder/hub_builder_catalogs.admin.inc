@@ -49,8 +49,8 @@ function hub_builder_catalogs_form_add_new($form, &$form_state) {
 }
 
 function hub_builder_catalogs_form_delete($form, &$form_state) {
-  $catalogId = $form_state['clicked_button']['#parents'][0];
-  $catalog = hub_builder_get_catalog($catalogId);
+  $catalog_id = $form_state['clicked_button']['#parents'][0];
+  $catalog = hub_builder_get_catalog($catalog_id);
   $catalog->delete();
   $form_state['rebuild'] = TRUE; // Will cause the default submit function
                                  // to be skipped.

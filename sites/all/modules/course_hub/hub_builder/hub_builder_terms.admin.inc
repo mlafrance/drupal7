@@ -192,10 +192,10 @@ function hub_builder_term_test($term_id) {
   $results = array();
 
   $result = array('title' => "Import Path");
-  $destinationTID = course_hub_tid_from_path($term->import_path);
-  if ($destinationTID > 0) {
+  $destination_tid = course_hub_tid_from_path($term->import_path);
+  if ($destination_tid > 0) {
     $result['success'] = TRUE;
-    $result['content'] = t('@path exists with mmtid @tid', array('@path' => $term->import_path, '@tid' => $destinationTID));
+    $result['content'] = t('@path exists with mmtid @tid', array('@path' => $term->import_path, '@tid' => $destination_tid));
   }
   else {
     $result['success'] = FALSE;
@@ -256,58 +256,58 @@ function hub_builder_term_test($term_id) {
   try {
     if (empty($subjects))
       throw new Exception("Not continuing test due to previoius errors.");
-    $subjectsWithSections = 0;
-    $totalSections = 0;
-    $validSections = 0;
-    $invalidSections = 0;
-    $exampleInstructorId = NULL;
-    $exampleInstructorName = NULL;
-    $missingGroups = array();
+    $subjects_with_sections = 0;
+    $total_sections = 0;
+    $valid_sections = 0;
+    $invalid_sections = 0;
+    $example_instructor_id = NULL;
+    $example_instructor_name = NULL;
+    $missing_groups = array();
     $errors = array();
     foreach ($subjects as $subject) {
-      $sectionElements = hub_builder_get_section_elements_in_subject($xpath, $subject['id']);
-      if ($sectionElements->length) {
-        $subjectsWithSections++;
-        $totalSections += $sectionElements->length;
-        foreach ($sectionElements as $sectionElement) {
+      $section_elements = hub_builder_get_section_elements_in_subject($xpath, $subject['id']);
+      if ($section_elements->length) {
+        $subjects_with_sections++;
+        $total_sections += $section_elements->length;
+        foreach ($section_elements as $section_element) {
           try {
-            $data = hub_builder_get_section_data($term, $sectionElement, $xpath);
-            $validSections++;
+            $data = hub_builder_get_section_data($term, $section_element, $xpath);
+            $valid_sections++;
           } catch (Exception $e) {
-            $invalidSections++;
+            $invalid_sections++;
             $errors[] = $e->getMessage();
           }
 
           try {
             $info = casmm_group_mapper_get_info_for_group_external_id($data['instructorGroupDN']);
-            if (empty($exampleInstructorId)) {
+            if (empty($example_instructor_id)) {
               if (!empty($info['id'])) {
                 $instructors = mm_content_get_users_in_group($info['id'], NULL, FALSE, 1);
                 if (count($instructors)) {
-                  $exampleInstructorId = key($instructors);
-                  $exampleInstructorName = current($instructors);
+                  $example_instructor_id = key($instructors);
+                  $example_instructor_name = current($instructors);
                 }
               }
               else {
-                $missingGroups[] = $data['instructorGroupDN'];
+                $missing_groups[] = $data['instructorGroupDN'];
               }
             }
           } catch (Exception $e) {
-            $missingGroups[] = $data['instructorGroupDN'];
+            $missing_groups[] = $data['instructorGroupDN'];
           }
           try {
             $info = casmm_group_mapper_get_info_for_group_external_id($data['classGroupDN']);
             if (empty($info['id']))
-              $missingGroups[] = $data['classGroupDN'];
+              $missing_groups[] = $data['classGroupDN'];
           } catch (Exception $e) {
-            $missingGroups[] = $data['classGroupDN'];
+            $missing_groups[] = $data['classGroupDN'];
           }
         }
       }
     }
-    if (!$subjectsWithSections)
+    if (!$subjects_with_sections)
       throw new Exception("All subjects are empty, none have sections.");
-    $result['content'] = t("@with of @total subjects contain sections. <br/>@sections sections were found. @valid sections were valid and @invalid sections had errors.", array('@with' => $subjectsWithSections, '@total' => count($subjects), '@sections' => $totalSections, '@valid' => $validSections, '@invalid' => $invalidSections));
+    $result['content'] = t("@with of @total subjects contain sections. <br/>@sections sections were found. @valid sections were valid and @invalid sections had errors.", array('@with' => $subjects_with_sections, '@total' => count($subjects), '@sections' => $total_sections, '@valid' => $valid_sections, '@invalid' => $invalid_sections));
     if (count($errors) > 5) {
       $errors = array_slice($errors, 0, 5);
       $errors[] = '...';
@@ -315,7 +315,7 @@ function hub_builder_term_test($term_id) {
     if (count($errors)) {
       $result['content'] .= "\n<br/><strong>Errors:</strong>\n<br/>" . implode("\n<br/>", $errors);
     }
-    $result['success'] = ($invalidSections == 0);
+    $result['success'] = ($invalid_sections == 0);
   } catch (Exception $e) {
     $result['content'] = $e->getMessage();
     $result['success'] = FALSE;
@@ -323,9 +323,9 @@ function hub_builder_term_test($term_id) {
   $results[] = $result;
 
   $result = array('title' => "Main Data Url: Groups");
-  if (count($missingGroups)) {
+  if (count($missing_groups)) {
     $result['success'] = FALSE;
-    $result['content'] = count($missingGroups) . " class-groups are missing: <br/><br/>" . implode("\n<br/>", $missingGroups);
+    $result['content'] = count($missing_groups) . " class-groups are missing: <br/><br/>" . implode("\n<br/>", $missing_groups);
   }
   else {
     $result['success'] = TRUE;
@@ -338,13 +338,13 @@ function hub_builder_term_test($term_id) {
    *********************************************************/
   $result = array('title' => "Instructor Course List Url: Validation");
   try {
-    if (empty($exampleInstructorId))
+    if (empty($example_instructor_id))
       throw new Exception("No instructor was found in any course section in this term.");
 
-    $instructor = user_load($exampleInstructorId);
+    $instructor = user_load($example_instructor_id);
     $url = $term->getInstructorCourseListUrl($instructor->init);
     $result['success'] = is_string(filter_var($url, FILTER_VALIDATE_URL));
-    $result['content'] = t('Instructor: @id (@name) <br/> @url', array('@id' => $exampleInstructorId, '@name' => $exampleInstructorName, '@url' => $url));
+    $result['content'] = t('Instructor: @id (@name) <br/> @url', array('@id' => $example_instructor_id, '@name' => $example_instructor_name, '@url' => $url));
   } catch (Exception $e) {
     $result['content'] = $e->getMessage();
     $result['success'] = FALSE;
@@ -398,39 +398,39 @@ function hub_builder_term_test($term_id) {
   try {
     if (empty($subjects))
       throw new Exception("Not continuing test due to previoius errors.");
-    $subjectsWithSections = 0;
-    $totalSections = 0;
-    $validSections = 0;
-    $invalidSections = 0;
-    $sectionInfo = array();
+    $subjects_with_sections = 0;
+    $total_sections = 0;
+    $valid_sections = 0;
+    $invalid_sections = 0;
+    $section_info = array();
     $errors = array();
     foreach ($subjects as $subject) {
-      $sectionElements = hub_builder_get_section_elements_in_subject($xpath, $subject['id']);
-      if ($sectionElements->length) {
-        $subjectsWithSections++;
-        $totalSections += $sectionElements->length;
-        foreach ($sectionElements as $sectionElement) {
+      $section_elements = hub_builder_get_section_elements_in_subject($xpath, $subject['id']);
+      if ($section_elements->length) {
+        $subjects_with_sections++;
+        $total_sections += $section_elements->length;
+        foreach ($section_elements as $section_element) {
           try {
-            $data = hub_builder_get_section_data($term, $sectionElement, $xpath);
-            $sectionInfo[] = $data['uniqueId'] . ' ' . $data['offeringId'] . ' ' . $data['title'] . ' - ' . $data['genusTypeName'];
-            $validSections++;
+            $data = hub_builder_get_section_data($term, $section_element, $xpath);
+            $section_info[] = $data['uniqueId'] . ' ' . $data['offeringId'] . ' ' . $data['title'] . ' - ' . $data['genusTypeName'];
+            $valid_sections++;
           } catch (Exception $e) {
-            $invalidSections++;
+            $invalid_sections++;
             $errors[] = $e->getMessage();
           }
         }
       }
     }
-    if (!$subjectsWithSections)
+    if (!$subjects_with_sections)
       throw new Exception("All subjects are empty, none have sections.");
-    $result['content'] = t("@with of @total subjects contain sections. <br/>@sections sections were found. @valid sections were valid and @invalid sections had errors.", array('@with' => $subjectsWithSections, '@total' => count($subjects), '@sections' => $totalSections, '@valid' => $validSections, '@invalid' => $invalidSections));
+    $result['content'] = t("@with of @total subjects contain sections. <br/>@sections sections were found. @valid sections were valid and @invalid sections had errors.", array('@with' => $subjects_with_sections, '@total' => count($subjects), '@sections' => $total_sections, '@valid' => $valid_sections, '@invalid' => $invalid_sections));
 
-    if (count($sectionInfo) > 10) {
-      $sectionInfo = array_slice($sectionInfo, 0, 10);
-      $sectionInfo[] = '...';
+    if (count($section_info) > 10) {
+      $section_info = array_slice($section_info, 0, 10);
+      $section_info[] = '...';
     }
-    if (count($sectionInfo)) {
-      $result['content'] .= "\n<br/><strong>Sections:</strong>\n<br/>" . implode("\n<br/>", $sectionInfo);
+    if (count($section_info)) {
+      $result['content'] .= "\n<br/><strong>Sections:</strong>\n<br/>" . implode("\n<br/>", $section_info);
     }
 
     if (count($errors) > 5) {
@@ -440,7 +440,7 @@ function hub_builder_term_test($term_id) {
     if (count($errors)) {
       $result['content'] .= "\n<br/><strong>Errors:</strong>\n<br/>" . implode("\n<br/>", $errors);
     }
-    $result['success'] = ($invalidSections == 0);
+    $result['success'] = ($invalid_sections == 0);
   } catch (Exception $e) {
     $result['content'] = $e->getMessage();
     $result['success'] = FALSE;

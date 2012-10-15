@@ -31,7 +31,7 @@ function course_hub_admin_sites_in_use() {
   $header = array('Term', 'Title', 'Num Updates', 'Instructors', 'Latest Update');
   $rows = array();
 
-  $sitesResults = db_query(
+  $sites_results = db_query(
 "
 SELECT
   s.*,
@@ -92,7 +92,7 @@ ORDER BY
   term_id DESC,
   name ASC
   ");
-  while ($site = db_fetch_object($sitesResults)) {
+  while ($site = db_fetch_object($sites_results)) {
     $row = array($site->term_label);
     $row[] = "<a href='" . url('mm/' . $site->mmtid) . "' target='_blank'>" . $site->name . "</a>";
     $row[] = $site->num_updates;

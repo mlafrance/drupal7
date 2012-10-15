@@ -270,19 +270,19 @@ Proin odio dolor, dapibus ut pharetra sed, euismod sit amet augue. Etiam purus i
 function hub_builder_single_form_submit(&$form, &$form_state) {
   if ($form_state['clicked_button']['#title'] == 'build') {
     try {
-      $destinationTermPagePath = $form_state['values']['destination_path'];
-      if (!$destinationTermPagePath)
+      $destination_term_page_path = $form_state['values']['destination_path'];
+      if (!$destination_term_page_path)
         throw new InvalidArgumentException('Destination path is not defined.');
-      $destinationTID = course_hub_tid_from_path($destinationTermPagePath);
-      if (!$destinationTID)
+      $destination_tid = course_hub_tid_from_path($destination_term_page_path);
+      if (!$destination_tid)
         throw new InvalidArgumentException('Destination path is invalid.');
 
 
       $data = $form_state['values'];
 
       $instructors = array();
-      foreach (explode("\n", $data['instructors']) as $instLine) {
-        $parts = explode('|', $instLine);
+      foreach (explode("\n", $data['instructors']) as $inst_line) {
+        $parts = explode('|', $inst_line);
         $instructors[$parts[0]] = $parts[1];
       }
       $data['instructors'] = $instructors;
@@ -296,7 +296,7 @@ function hub_builder_single_form_submit(&$form, &$form_state) {
 ' . $xml . '
 </pages>';
 
-      $pages = mmporter_importer_import_string($destinationTID, $xml);
+      $pages = mmporter_importer_import_string($destination_tid, $xml);
       drupal_set_message(t('@num Course site built', array('@num' => count($pages))));
     } catch (Exception $e) {
       drupal_set_message(t('Error building site: !message', array('!message' => $e->getMessage())), 'error');
