@@ -10,12 +10,12 @@ function course_hub_roster_view($course_site_tid = null) {
     $course_site_tid = course_hub_get_course_site_tid();
 
   if (!course_hub_roster_visible($course_site_tid))
-    return "<h2>".t('Access Denied')."</h2><p>".t('You must be logged in as an instructor of the course to view the roster.')."</p>";
+    return "<h2>" . t('Access Denied') . "</h2><p>" . t('You must be logged in as an instructor of the course to view the roster.') . "</p>";
 
-  drupal_add_css(drupal_get_path('module', 'course_hub').'/course_hub_roster.css');
+  drupal_add_css(drupal_get_path('module', 'course_hub') . '/course_hub_roster.css');
 
   $metadata = course_hub_get_course_site_metadata($course_site_tid);
-  $photo_base_path = course_hub_get_path($course_site_tid).'/roster/photo';
+  $photo_base_path = course_hub_get_path($course_site_tid) . '/roster/photo';
   $students_mmtid = casmmsync_get_group_by_dn($metadata->field_students_dn[0]['value']);
   if ($students_mmtid)
     $students = course_hub_roster_get_people($students_mmtid, $photo_base_path);
@@ -42,7 +42,7 @@ function course_hub_roster_get_people($group_tid, $photo_base_path) {
   $names = array();
   foreach ($uids as $uid) {
     $user = user_load($uid);
-    $user->roster_photo_url = url($photo_base_path.'/'.$uid, array('absolute' => true));
+    $user->roster_photo_url = url($photo_base_path . '/' . $uid, array('absolute' => true));
     $users[] = $user;
     $names[] = $user->profile_display_name;
   }
@@ -64,12 +64,12 @@ function course_hub_roster_photo($mmtid, $uid) {
   }
 
   // Return from cache if exists.
-  $cache_key = 'course_hub_roster_photo_'.$mmtid.'_'.$uid;
+  $cache_key = 'course_hub_roster_photo_' . $mmtid . '_' . $uid;
   $photo = cache_get($cache_key);
   if (!empty($photo)) {
     // Output the photo
-    header('Content-Type: '.$photo->data['type']);
-    header('Content-Length: '.$photo->data['size']);
+    header('Content-Type: ' . $photo->data['type']);
+    header('Content-Length: ' . $photo->data['size']);
     header('Cache-Control: private,max-age=3600');
     print $photo->data['data'];
     exit;
@@ -101,14 +101,14 @@ function course_hub_roster_photo($mmtid, $uid) {
     null,
     '&');
   $result = drupal_http_request(
-    COURSE_HUB_ROSTER_PHOTO_URL.'?'.$get_data,
+    COURSE_HUB_ROSTER_PHOTO_URL . '?' . $get_data,
     array('Content-Type' => 'application/x-www-form-urlencoded'),
     'POST',
     $post_data
   );
   if ($result->code == 302) {
     $parts = parse_url(COURSE_HUB_ROSTER_PHOTO_URL);
-    $redirect = $parts['scheme'].'://'.$parts['host'].$result->redirect_url;
+    $redirect = $parts['scheme'] . '://' . $parts['host'] . $result->redirect_url;
     $result = drupal_http_request($redirect);
   }
   if ($result->code != 200) {
@@ -129,8 +129,8 @@ function course_hub_roster_photo($mmtid, $uid) {
   );
 
   // Output the photo
-  header('Content-Type: '.$result->headers['Content-Type']);
-  header('Content-Length: '.$result->headers['Content-Length']);
+  header('Content-Type: ' . $result->headers['Content-Type']);
+  header('Content-Length: ' . $result->headers['Content-Length']);
   header('Cache-Control: private,max-age=3600');
   print $result->data;
   exit;
@@ -146,14 +146,14 @@ function course_hub_roster_photo($mmtid, $uid) {
  */
 function course_hub_roster_photo_error($status, $title, $message) {
   watchdog('course_hub_roster', $message, array(), WATCHDOG_WARNING);
-  header('HTTP/1.1 '.$status.' '.$title);
+  header('HTTP/1.1 ' . $status . ' ' . $title);
     print '<html>
 <head>
-  <title>'.$title.'</title>
+  <title>' . $title . '</title>
 </head>
 <body>
-  <h1>'.$title.'</h1>
-  <p>'.$message.'</p>
+  <h1>' . $title . '</h1>
+  <p>' . $message . '</p>
 </body>
 </html>';
     exit;

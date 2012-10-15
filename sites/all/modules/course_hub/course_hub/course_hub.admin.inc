@@ -94,7 +94,7 @@ ORDER BY
   ");
   while ($site = db_fetch_object($sitesResults)) {
     $row = array($site->term_label);
-    $row[] = "<a href='".url('mm/'.$site->mmtid)."' target='_blank'>".$site->name."</a>";
+    $row[] = "<a href='" . url('mm/' . $site->mmtid) . "' target='_blank'>" . $site->name . "</a>";
     $row[] = $site->num_updates;
     $row[] = nl2br($site->user_names);
     if ($site->latest_update)

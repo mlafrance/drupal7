@@ -51,9 +51,9 @@ function syllabus_controls_visible() {
 function syllabus_get_controls() {
   ob_start();
   $path = course_hub_get_path();
-  print '<button onclick="window.location=\''.base_path().$path.'/class/contents/add/syllabus_text\'">+ Write/Paste Syllabus Text</button>';
-  print '<button onclick="window.location=\''.base_path().$path.'/class/contents/add/media\'">+ Upload Syllabus File</button>';
-  print '<button onclick="window.location=\''.base_path().$path.'/class/contents/add/syllabus_link\'">+ Link to Syllabus</button>';
+  print '<button onclick="window.location=\'' . base_path() . $path . '/class/contents/add/syllabus_text\'">+ Write/Paste Syllabus Text</button>';
+  print '<button onclick="window.location=\'' . base_path() . $path . '/class/contents/add/media\'">+ Upload Syllabus File</button>';
+  print '<button onclick="window.location=\'' . base_path() . $path . '/class/contents/add/syllabus_link\'">+ Link to Syllabus</button>';
   return ob_get_clean();
 }
 
@@ -202,10 +202,10 @@ function syllabus_hub_get_updates($courseSiteTID) {
     $update['source_id'] = $node->nid;
     $update['source_title'] = t('Syllabus');
     $update['source_type'] = 'syllabus';
-    $update['source_url'] = 'http://'.$_SERVER['HTTP_HOST'].url(course_hub_get_path($courseSiteTID).'/syllabus');
+    $update['source_url'] = 'http://' . $_SERVER['HTTP_HOST'] . url(course_hub_get_path($courseSiteTID) . '/syllabus');
     $update['url'] = $update['source_url'];
 
-    $update['guid'] = 'syllabus_added-'.$node->nid;
+    $update['guid'] = 'syllabus_added-' . $node->nid;
     $update['title'] = t('Syllabus Added');
 
     if (isset($node->field_hub_perms[0]['value']))
@@ -224,7 +224,7 @@ function syllabus_hub_get_updates($courseSiteTID) {
 
     // Add a Changed update
     if ($node->changed != $node->created) {
-      $update['guid'] = 'syllabus_updated-'.$node->nid;
+      $update['guid'] = 'syllabus_updated-' . $node->nid;
       $update['title'] = t('Syllabus Updated');
       $update['timestamp'] = date('c', intval($node->changed));
       $updates[] = $update;

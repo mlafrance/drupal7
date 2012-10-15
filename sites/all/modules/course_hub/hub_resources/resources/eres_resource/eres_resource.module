@@ -38,7 +38,7 @@ function _eres_resource_get_url($node) {
 	if (!$node->field_cid[0]['value'])
 	  throw new UnexpectedValueException(t('@func expects the node to have a cid value, none found.', array('@func' => __FUNCTION__)));
 
-	return 'http://eres.middlebury.edu/eres/coursepage.aspx?cid='.$node->field_cid[0]['value'];
+	return 'http://eres.middlebury.edu/eres/coursepage.aspx?cid=' . $node->field_cid[0]['value'];
 }
 
 /**
@@ -58,7 +58,7 @@ function _eres_resource_get_feed_url($node) {
 	if (!$node->field_cid[0]['value'])
 	  throw new UnexpectedValueException(t('@func expects the node to have a cid value, none found.', array('@func' => __FUNCTION__)));
 
-	return 'http://eres.middlebury.edu/eres/rss.aspx?cid='.$node->field_cid[0]['value'];
+	return 'http://eres.middlebury.edu/eres/rss.aspx?cid=' . $node->field_cid[0]['value'];
 }
 
 /**

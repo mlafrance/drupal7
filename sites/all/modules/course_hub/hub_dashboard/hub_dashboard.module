@@ -102,7 +102,7 @@ function hub_dashboard_list_instructor_sections($term_id) {
   $term_id = base64_decode($term_id);
   $term = hub_builder_get_term($term_id);
   $breadcrumb[] = l('Semester Dashboard', 'dashboard');
-  $breadcrumb[] = l(t('@term Dashboard', array('@term' => $term->display_name)), 'dashboard/'.$term->id);
+  $breadcrumb[] = l(t('@term Dashboard', array('@term' => $term->display_name)), 'dashboard/' . $term->id);
   drupal_set_breadcrumb($breadcrumb);
   drupal_set_title(t('Manage Course Hub Sites', array('@term' => $term->display_name)));
 
@@ -114,7 +114,7 @@ function hub_dashboard_list_instructor_sections($term_id) {
     $section['exists'] = !is_null($site_mmtid);
     if ($section['exists']) {
       $resources = hub_updates_get_resource_nodes($site_mmtid);
-      $syllabusPageTID = course_hub_tid_from_path($section['path'].'/syllabus/class');
+      $syllabusPageTID = course_hub_tid_from_path($section['path'] . '/syllabus/class');
       $syllabusNodeIds = mm_content_get_nids_by_mmtid($syllabusPageTID);
       $section['has_resources'] = count($resources) || count($syllabusNodeIds);
       $section['can_add'] = false;
@@ -151,7 +151,7 @@ function hub_dashboard_manage_instructor_section($op, $term_id, $offering_id) {
               $xml .= hub_builder_get_subject_site_xml_end($s['subject_info']);
               $destinationTID = course_hub_tid_from_path($term->import_path);
               $page = mmporter_importer_import_string($destinationTID, $xml);
-              drupal_set_message(t('%code added.', array('%code' => $s['subject'].' '.$s['number'].$s['sectionIdentifier'])));
+              drupal_set_message(t('%code added.', array('%code' => $s['subject'] . ' ' . $s['number'] . $s['sectionIdentifier'])));
 
             } catch (Exception $e) {
               watchdog('hub_dashboard', 'Error building site XML: !message', array('!message' => $e->getMessage()), WATCHDOG_ERROR);
@@ -167,24 +167,24 @@ function hub_dashboard_manage_instructor_section($op, $term_id, $offering_id) {
             drupal_set_message(t('No site exists at %path. can\'t delete.', array('%path' => $s['path'])), 'error');
           } else {
             $resources = hub_updates_get_resource_nodes($site_mmtid);
-            $syllabusPageTID = course_hub_tid_from_path($s['path'].'/syllabus/class');
+            $syllabusPageTID = course_hub_tid_from_path($s['path'] . '/syllabus/class');
             $syllabusNodeIds = mm_content_get_nids_by_mmtid($syllabusPageTID);
             if (!count($resources) && !count($syllabusNodeIds)) {
               mm_content_delete($site_mmtid, true);
             } else {
-              drupal_set_message(t('%code has resources or a syllabus. Can\'t delete.', array('%code' => $s['subject'].' '.$s['number'].$s['sectionIdentifier'])), 'error');
+              drupal_set_message(t('%code has resources or a syllabus. Can\'t delete.', array('%code' => $s['subject'] . ' ' . $s['number'] . $s['sectionIdentifier'])), 'error');
             }
           }
           break;
         default:
           drupal_set_message(t('Unknown operation %op.', array('%op' => $op)), 'error');
       }
-      drupal_goto('dashboard/'.base64_encode($term_id).'/instructor');
+      drupal_goto('dashboard/' . base64_encode($term_id) . '/instructor');
     }
   }
   watchdog('hub_dashboard', 'Offering %offering not found in %term for %user.', array('%offering' => $offering_id, '%term' => $term_id, '%user' => $user->name), WATCHDOG_ERROR);
   drupal_set_message(t('Error creating site. %offering not found in %term.', array('%offering' => $offering_id, '%term' => $term_id, '%user' => $user->name)), 'error');
-  drupal_goto('dashboard/'.base64_encode($term_id).'/instructor');
+  drupal_goto('dashboard/' . base64_encode($term_id) . '/instructor');
 }
 
 /**
@@ -215,7 +215,7 @@ function hub_dashboard_json() {
       $items = array();
 
       // Course Listing
-      $tid = course_hub_tid_from_path($coursePath.'/about');
+      $tid = course_hub_tid_from_path($coursePath . '/about');
       $nodeIds = mm_content_get_nids_by_mmtid($tid);
       if (!empty($nodeIds[0])) {
         $node = node_load($nodeIds[0]);
@@ -227,7 +227,7 @@ function hub_dashboard_json() {
       }
 
       // Course Listing
-      $classPageTID = course_hub_tid_from_path($coursePath.'/syllabus/class');
+      $classPageTID = course_hub_tid_from_path($coursePath . '/syllabus/class');
       $nodeIds = mm_content_get_nids_by_mmtid($classPageTID);
       // Placeholder if no Syllabus exists
       if (empty($nodeIds)) {
@@ -237,7 +237,7 @@ function hub_dashboard_json() {
           'type' => 'link',
           'title' => t('Add a Syllaus'),
           'emphasis' => true,
-          'url' => url($coursePath.'/syllabus', array('absolute' => true)),
+          'url' => url($coursePath . '/syllabus', array('absolute' => true)),
           );
         }
         // Message for students
@@ -310,8 +310,8 @@ function hub_dashboard_json() {
 
       // Manage links
       // Only show this to people who can add content to the resources' class page.
-      $resourcePath = $coursePath.'/resources';
-      $classPageTID = course_hub_tid_from_path($resourcePath.'/class');
+      $resourcePath = $coursePath . '/resources';
+      $classPageTID = course_hub_tid_from_path($resourcePath . '/class');
       if (mm_content_user_can($classPageTID, 'u')) {
         $items[] = array(
           'type' => 'link',
@@ -370,10 +370,10 @@ function hub_dashboard_block($op = 'list', $delta = 0, $edit = array()) {
         if (course_hub_is_authenticated())
           $path = url('dashboard');
         else
-          $path = cas_midd_login_url('http://'.$_SERVER['HTTP_HOST'].url('dashboard'));
+          $path = cas_midd_login_url('http://' . $_SERVER['HTTP_HOST'] . url('dashboard'));
         return array(
           'subject' => '<none>',
-          'content' => "<div class='hub_nav_item'><a href=\"".$path."\" ".((hub_dashboard_is_dashboard())?' class="active"':'').">".t('My Semester Dashboard')."</a></div>",
+          'content' => "<div class='hub_nav_item'><a href=\"" . $path . "\" " . ((hub_dashboard_is_dashboard())?' class="active"':'') . ">" . t('My Semester Dashboard') . "</a></div>",
         );
       case 3:
         $terms = hub_dashboard_get_terms_for_user();
@@ -384,11 +384,11 @@ function hub_dashboard_block($op = 'list', $delta = 0, $edit = array()) {
         ob_start();
         foreach ($terms as $code => $info) {
           print "\n\t\t<div class='term'>";
-          print "\n\t\t\t<a href='".url('dashboard/'.$code)."' ".(($code == $currentTerm)?' class="active"':'').">".$info['label']."</a>";
+          print "\n\t\t\t<a href='" . url('dashboard/' . $code) . "' " . (($code == $currentTerm)?' class="active"':'') . ">" . $info['label'] . "</a>";
           if ($code == $currentTerm && !hub_dashboard_is_dashboard() && $currentSiteTID = course_hub_get_course_site_tid()) {
             foreach (hub_dashboard_get_course_sites_for_user($currentTerm) as $site) {
               print "\n\t\t\t<div class='site_link'>";
-              print "\n\t\t\t\t<a href='".url(course_hub_get_path($site->mmtid))."' ".(($site->mmtid == $currentSiteTID)?' class="active"':'').">".course_hub_code_from_page_title($site->name)."</a>";
+              print "\n\t\t\t\t<a href='" . url(course_hub_get_path($site->mmtid)) . "' " . (($site->mmtid == $currentSiteTID)?' class="active"':'') . ">" . course_hub_code_from_page_title($site->name) . "</a>";
               print "\n\t\t\t</div>";
             }
           }
@@ -396,16 +396,16 @@ function hub_dashboard_block($op = 'list', $delta = 0, $edit = array()) {
         }
         return array(
           'subject' => '<none>',
-          'content' => "<div class='hub_nav_item'>".ob_get_clean()."</a></div>",
+          'content' => "<div class='hub_nav_item'>" . ob_get_clean() . "</a></div>",
         );
       case 4:
         if (course_hub_is_authenticated())
           $path = url('my_courses');
         else
-          $path = cas_midd_login_url('http://'.$_SERVER['HTTP_HOST'].url('my_courses'));
+          $path = cas_midd_login_url('http://' . $_SERVER['HTTP_HOST'] . url('my_courses'));
         return array(
           'subject' => '<none>',
-          'content' => "<div class='hub_nav_item'><a href=\"".$path."\" ".((hub_dashboard_is_my_courses())?' class="active"':'').">".t('My Courses')."</a></div>",
+          'content' => "<div class='hub_nav_item'><a href=\"" . $path . "\" " . ((hub_dashboard_is_my_courses())?' class="active"':'') . ">" . t('My Courses') . "</a></div>",
         );
     }
   }
@@ -450,7 +450,7 @@ function hub_dashboard_current_term() {
   $path = drupal_get_path_alias($_GET["q"]);
   $path = explode("/", $path);
   if (isset($path[1]) && isset($path[2])) {
-    $term = $path[1].'/'.$path[2];
+    $term = $path[1] . '/' . $path[2];
     return $term;
   }
 
@@ -464,7 +464,7 @@ function hub_dashboard_current_term() {
         continue;
 
       // If the end of the term is today or later, return the term id.
-      $end = strtotime($terms[$id]['end_date'].'T23:59:59');
+      $end = strtotime($terms[$id]['end_date'] . 'T23:59:59');
       if ($end > $now)
         return $id;
     }
@@ -515,15 +515,15 @@ function hub_dashboard_preprocess_hub_dashboard_site(&$vars) {
 
   // Manage links
   // Only show this to people who can add content to the resources' class page.
-  $resourcePath = $coursePath.'/resources';
-  $classPageTID = course_hub_tid_from_path($resourcePath.'/class');
+  $resourcePath = $coursePath . '/resources';
+  $classPageTID = course_hub_tid_from_path($resourcePath . '/class');
   if (mm_content_user_can($classPageTID, 'u')) {
-    $vars['manage_button'] .= '<button onclick="window.location=\''.base_path().$resourcePath.'\'">'.t('Manage Resources &raquo;').'</button>';
+    $vars['manage_button'] .= '<button onclick="window.location=\'' . base_path() . $resourcePath . '\'">' . t('Manage Resources &raquo;') . '</button>';
   }
 
   // About links:
   $vars['about_links'] = '<ul>';
-  $vars['about_links'] .= '<li><a href="'.base_path().$coursePath.'/about'.'">'.t('Course Listing').'</a></li>';
+  $vars['about_links'] .= '<li><a href="' . base_path() . $coursePath . '/about' . '">' . t('Course Listing') . '</a></li>';
 
   $syllabusNodes = syllabus_get_syllabus_nodes($vars['mmtid']);
   if (count($syllabusNodes)) {
@@ -531,26 +531,26 @@ function hub_dashboard_preprocess_hub_dashboard_site(&$vars) {
     if ($syllabus_node->type == 'syllabus_link') {
       $syllabus_url = $syllabus_node->field_link[0]['url'];
     } else {
-      $syllabus_url = base_path().$coursePath.'/syllabus';
+      $syllabus_url = base_path() . $coursePath . '/syllabus';
     }
-    $vars['about_links'] .= '<li><a href="'.$syllabus_url.'">'.t('Syllabus').'</a></li>';
+    $vars['about_links'] .= '<li><a href="' . $syllabus_url . '">' . t('Syllabus') . '</a></li>';
   } else {
-    $syllabusPath = $coursePath.'/syllabus';
-    $classPageTID = course_hub_tid_from_path($syllabusPath.'/class');
+    $syllabusPath = $coursePath . '/syllabus';
+    $classPageTID = course_hub_tid_from_path($syllabusPath . '/class');
     if (mm_content_user_can($classPageTID, 'u')) {
-      $vars['about_links'] .= '<li><a href="'.base_path().$syllabusPath.'">'.t('+ Add a Syllabus').'</a></li>';
+      $vars['about_links'] .= '<li><a href="' . base_path() . $syllabusPath . '">' . t('+ Add a Syllabus') . '</a></li>';
     }
   }
 
   if (course_hub_roster_visible($vars['mmtid'])) {
-    $vars['about_links'] .= "<li>".l('Roster *', $coursePath."/roster", array('attributes' => array('title' => "Visible to instructors only.")))."</li>";
+    $vars['about_links'] .= "<li>" . l('Roster *', $coursePath . "/roster", array('attributes' => array('title' => "Visible to instructors only."))) . "</li>";
   }
 
   $vars['about_links'] .= '</ul>';
 
   // Resource links;
   $view = views_get_view('course_site_links');
-  $vars['resource_links'] = $view->execute_display('default', array($vars['mmtid'], course_hub_tid_from_path($coursePath.'/resources/class')));
+  $vars['resource_links'] = $view->execute_display('default', array($vars['mmtid'], course_hub_tid_from_path($coursePath . '/resources/class')));
 
   hub_updates_preprocess_node($vars);
 }

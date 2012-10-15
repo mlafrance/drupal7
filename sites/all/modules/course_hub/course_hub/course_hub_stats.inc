@@ -7,7 +7,7 @@
  * @see system_settings_form().
  */
 function course_hub_stats_resource_stats() {
-  drupal_add_css(drupal_get_path('module', 'course_hub') .'/stats.css', 'module', 'all', FALSE);
+  drupal_add_css(drupal_get_path('module', 'course_hub') . '/stats.css', 'module', 'all', FALSE);
 
   if (empty($_GET['page'])) {
     $pages = course_hub_stats_get_pages();
@@ -22,7 +22,7 @@ function course_hub_stats_resource_stats() {
   print "\n<label for='term'>Term/Path: </label>";
   print "\n<select name='page' onchange='this.form.submit()'>";
   foreach ($pages as $mmtid => $path) {
-    print "\n\t<option value='".$mmtid."' ".(($mmtid == $current_page)?'selected="selected"':'').">".$path."</option>";
+    print "\n\t<option value='" . $mmtid . "' " . (($mmtid == $current_page)?'selected="selected"':'') . ">" . $path . "</option>";
   }
   print "\n</select>";
   print "\n</form>";
@@ -62,10 +62,10 @@ function course_hub_stats_resource_stats() {
     }
 
     // Add links to the stats array.
-    $stats[$type]['resource_list_url'] = url('admin/course_hub/stats/usage/resources/'.$current_page.'/'.$type);
-    $stats[$type]['resource_sites_url'] = url('admin/course_hub/stats/usage/sites/'.$current_page.'/'.$type);
-    $stats[$type]['resource_instructors_url'] = url('admin/course_hub/stats/usage/instructors/'.$current_page.'/'.$type);
-    $stats[$type]['resource_students_url'] = url('admin/course_hub/stats/usage/students/'.$current_page.'/'.$type);
+    $stats[$type]['resource_list_url'] = url('admin/course_hub/stats/usage/resources/' . $current_page . '/' . $type);
+    $stats[$type]['resource_sites_url'] = url('admin/course_hub/stats/usage/sites/' . $current_page . '/' . $type);
+    $stats[$type]['resource_instructors_url'] = url('admin/course_hub/stats/usage/instructors/' . $current_page . '/' . $type);
+    $stats[$type]['resource_students_url'] = url('admin/course_hub/stats/usage/students/' . $current_page . '/' . $type);
 
     $rows[] = array($name, theme('course_hub_stats_bars', $stats[$type]));
   }
@@ -149,7 +149,7 @@ function course_hub_stats_resource_list_public($mmtid) {
 							AND ((mm_tree.mmtid = %d) OR (mm_tree.parent = %d) OR (mm_tree_parents.parent = %d))";
 					$r = db_query($q, $resource_type, $mmtid, $mmtid, $mmtid);
 					while($row = db_fetch_object($r)) {
-						$resources[$row->nid] = 'http://blogs.middlebury.edu/'. $row->site .'/';
+						$resources[$row->nid] = 'http://blogs.middlebury.edu/' . $row->site . '/';
 					}
 					break;
 				default:
@@ -278,10 +278,7 @@ function course_hub_stats_resource_instructors($mmtid, $resource_type) {
   array_multisort($names, $rows);
   $not_using = theme('table', $header, $rows);
 
-  return $using
-    ."\n<h2>".t('Instructors NOT using %type Resources under @path', array('%type' => node_get_types('name',
-  $resource_type), '@path' => $path))."</h2> \n"
-    .$not_using;
+  return $using . "\n<h2>" . t('Instructors NOT using %type Resources under @path', array('%type' => node_get_types('name', $resource_type), '@path' => $path)) . "</h2> \n" . $not_using;
 }
 
 /**
@@ -351,7 +348,7 @@ function course_hub_stats_get_resource_stats($resource_type, $mmtid) {
         LEFT JOIN mm_tree t ON n2t.mmtid = t.mmtid
         LEFT JOIN mm_tree_parents p ON t.mmtid = p.mmtid
         LEFT JOIN mm_tree_flags f ON (p.parent = f.mmtid)
-      WHERE n2t.nid IN (".db_placeholders($nids).")
+      WHERE n2t.nid IN (" . db_placeholders($nids) . ")
         AND f.flag = 'coursehub_site'";
     $r = db_query($q, $nids);
     $mmtids = array();
@@ -374,7 +371,7 @@ function course_hub_stats_get_resource_stats($resource_type, $mmtid) {
         INNER JOIN {casmmsync_group_map} gm ON m.field_instructors_dn_value = gm.group_id
         INNER JOIN {mm_group} g ON gm.mmtid = g.gid
       WHERE
-        n2t.mmtid IN (".db_placeholders($mmtids).")";
+        n2t.mmtid IN (" . db_placeholders($mmtids) . ")";
     $r = db_query($q, $mmtids);
     while($row = db_fetch_array($r)) {
       $instructor_uids[] = $row['uid'];
@@ -393,14 +390,14 @@ function course_hub_stats_get_resource_stats($resource_type, $mmtid) {
     $q = "
       SELECT
         DISTINCT g.uid AS uid,
-        '".$resource_type."' as resource_type
+        '" . $resource_type . "' as resource_type
       FROM
         {mm_node2tree} n2t
         INNER JOIN {content_type_course_metadata} m ON n2t.nid = m.nid
         INNER JOIN {casmmsync_group_map} gm ON m.field_students_dn_value = gm.group_id
         INNER JOIN {mm_group} g ON gm.mmtid = g.gid
       WHERE
-        n2t.mmtid IN (".db_placeholders($mmtids).")";
+        n2t.mmtid IN (" . db_placeholders($mmtids) . ")";
     $r = db_query($q, $mmtids);
     while($row = db_fetch_array($r)) {
       $student_uids[] = $row['uid'];
@@ -609,7 +606,7 @@ function course_hub_stats_get_resource_stats_for_all($mmtid) {
         INNER JOIN {casmmsync_group_map} gm ON m.field_instructors_dn_value = gm.group_id
         INNER JOIN {mm_group} g ON gm.mmtid = g.gid
       WHERE
-        n2t.mmtid IN (".db_placeholders($all_stats['site_mmtids']).")";
+        n2t.mmtid IN (" . db_placeholders($all_stats['site_mmtids']) . ")";
     $r = db_query($q, $all_stats['site_mmtids']);
     while($row = db_fetch_array($r)) {
       $instructor_uids[] = $row['uid'];
@@ -635,7 +632,7 @@ function course_hub_stats_get_resource_stats_for_all($mmtid) {
         INNER JOIN {casmmsync_group_map} gm ON m.field_students_dn_value = gm.group_id
         INNER JOIN {mm_group} g ON gm.mmtid = g.gid
       WHERE
-        n2t.mmtid IN (".db_placeholders($all_stats['site_mmtids']).")";
+        n2t.mmtid IN (" . db_placeholders($all_stats['site_mmtids']) . ")";
     $r = db_query($q, $all_stats['site_mmtids']);
     while($row = db_fetch_array($r)) {
       $student_uids[] = $row['uid'];

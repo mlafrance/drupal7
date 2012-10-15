@@ -5,8 +5,8 @@
  * Configure and run updates from remote resources.
  */
 
-require_once(dirname(__FILE__)."/hub_builder_catalog.inc");
-require_once(dirname(__FILE__)."/hub_builder_term.inc");
+require_once(dirname(__FILE__) . "/hub_builder_catalog.inc");
+require_once(dirname(__FILE__) . "/hub_builder_term.inc");
 
 /**
  * Implements hook_menu().
@@ -166,10 +166,10 @@ function hub_builder_build_term($term_id) {
     hub_builder_build_term_sites(hub_builder_get_term($term_id));
   } catch (Exception $e) {
     watchdog('hub_builder', 'Error building sites: !message', array('!message' => $e->getMessage()), WATCHDOG_ERROR);
-    _hub_builder_print_unbuffered(t('Error building sites: !message', array('!message' => $e->getMessage()))."<br/>");
+    _hub_builder_print_unbuffered(t('Error building sites: !message', array('!message' => $e->getMessage())) . "<br/>");
     drupal_set_message(t('Error building sites: !message', array('!message' => $e->getMessage())), 'error');
   }
-  _hub_builder_print_unbuffered("<br/>Build Complete ".l(t('Continue >>'), 'admin/course_hub/builder/terms'));
+  _hub_builder_print_unbuffered("<br/>Build Complete " . l(t('Continue >>'), 'admin/course_hub/builder/terms'));
 }
 
 /**
@@ -264,7 +264,7 @@ function hub_builder_get_subjects($xpath) {
         'id'          => $id,
         'short_id'    => $shortId,
         'name'        => $subjectElement->nodeValue,
-        'external_id' => $termId.'/'.$shortId,
+        'external_id' => $termId . '/' . $shortId,
       );
     }
   }
@@ -305,11 +305,11 @@ function hub_builder_build_subject_site_xml(HubBuilder_Term $term, array $subjec
  * @return string
  */
 function hub_builder_get_subject_site_xml_start(array $subject) {
-  return '<'.'?xml  version="1.0" ?>
+  return '<' . '?xml  version="1.0" ?>
 <pages xmlns="http://www.middlebury.edu/nodeporter">
   <page max_depth="-1" node_info="0" comment="0">
-    <name><![CDATA['.$subject['name'].']]></name>
-    <alias><![CDATA['.$subject['short_id'].']]></alias>
+    <name><![CDATA[' . $subject['name'] . ']]></name>
+    <alias><![CDATA[' . $subject['short_id'] . ']]></alias>
     <permissions>
       <write></write>
       <add_pages></add_pages>
@@ -331,8 +331,8 @@ function hub_builder_get_subject_site_xml_end(array $subject) {
   return "
     </pages>
     <nodes>
-      <node type='subpglist' external_id='".$subject['external_id']."' status='1'  node_info='0' comment='0'>
-        <title><![CDATA[Course Sites for ".$subject['name']."]]></title>
+      <node type='subpglist' external_id='" . $subject['external_id'] . "' status='1'  node_info='0' comment='0'>
+        <title><![CDATA[Course Sites for " . $subject['name'] . "]]></title>
         <subpglist_fields>
           <columns>1</columns>
         </subpglist_fields>
@@ -350,7 +350,7 @@ function hub_builder_get_subject_site_xml_end(array $subject) {
  * @return DOMNodelist
  */
 function hub_builder_get_section_elements_in_subject(DOMXPath $xpath, $subject_id) {
-  return $xpath->query('//item[catalog:topic[@type="genera:topic/subject" and @id="'.$subject_id.'"]]');
+  return $xpath->query('//item[catalog:topic[@type="genera:topic/subject" and @id="' . $subject_id . '"]]');
 }
 
 /**
@@ -405,10 +405,10 @@ function hub_builder_get_section_data(HubBuilder_Term $term, DOMElement $item, D
   $baseDN = $term->getCatalog()->class_group_base_dn;
   if (empty($baseDN))
     throw new InvalidArgumentException("The catalogs's class_group_base_dn is empty.");
-  $data['classGroupDN'] = 'CN='.strtolower($code).',OU='.$sm[1].$sm[2].','.$baseDN;
-  $data['instructorGroupDN'] = 'CN='.strtolower($code).'-instructors,OU='.$sm[1].$sm[2].','.$baseDN;
-  $data['studentGroupDN'] = 'CN='.strtolower($code).'-students,OU='.$sm[1].$sm[2].','.$baseDN;
-  $data['auditGroupDN'] = 'CN='.strtolower($code).'-audits,OU='.$sm[1].$sm[2].','.$baseDN;
+  $data['classGroupDN'] = 'CN=' . strtolower($code) . ',OU=' . $sm[1] . $sm[2] . ',' . $baseDN;
+  $data['instructorGroupDN'] = 'CN=' . strtolower($code) . '-instructors,OU=' . $sm[1] . $sm[2] . ',' . $baseDN;
+  $data['studentGroupDN'] = 'CN=' . strtolower($code) . '-students,OU=' . $sm[1] . $sm[2] . ',' . $baseDN;
+  $data['auditGroupDN'] = 'CN=' . strtolower($code) . '-audits,OU=' . $sm[1] . $sm[2] . ',' . $baseDN;
 
   $data['institutionGroupDN'] = variable_get('hub_builder_institution_dn', false);
   if (!$data['institutionGroupDN'])
@@ -422,10 +422,10 @@ function hub_builder_get_section_data(HubBuilder_Term $term, DOMElement $item, D
     if (strpos($second, $first) === 0) {
       $title = $second;
     } else {
-      $title = $first."\n".$second;
+      $title = $first . "\n" . $second;
     }
     if (count($titleLines) > 2) {
-      $title .= "\n".implode("\n", array_slice($titleLines, 2));
+      $title .= "\n" . implode("\n", array_slice($titleLines, 2));
     }
   }
   $data['title'] = $title;
@@ -515,18 +515,18 @@ function hub_builder_build_site_xml_from_data(array $data) {
     throw new InvalidArgumentException('$data["instructors"] must be an array name => url.');
   $instructorLinks = array();
   foreach ($instructors as $instructorName => $instructorLink) {
-    $instructorLinks[] = "<a href='".$instructorLink."'>".$instructorName."</a>";
+    $instructorLinks[] = "<a href='" . $instructorLink . "'>" . $instructorName . "</a>";
   }
   $instructors = implode(", ", $instructorLinks);
 
   // Groups with read-write access to the hub site (instructors and support).
-  $readWriteGroups = "<group cas_id=\"".$instructorGroupDN."\"/>";
+  $readWriteGroups = "<group cas_id=\"" . $instructorGroupDN . "\"/>";
   // Groups for read-write support.
   $groupString = trim(variable_get('hub_builder_read_write_support_groups', ''));
   if (!empty($groupString)) {
     $groupDNs = explode("\n", $groupString);
     foreach ($groupDNs as $groupDN) {
-      $readWriteGroups .= "\n                    <group cas_id=\"".trim($groupDN)."\"/>";
+      $readWriteGroups .= "\n                    <group cas_id=\"" . trim($groupDN) . "\"/>";
     }
   }
   // Groups with add content access to the hub site (instructors and support).
@@ -536,72 +536,72 @@ function hub_builder_build_site_xml_from_data(array $data) {
   if (!empty($groupString)) {
     $groupDNs = explode("\n", $groupString);
     foreach ($groupDNs as $groupDN) {
-      $addContentGroups .= "\n                    <group cas_id=\"".trim($groupDN)."\"/>";
+      $addContentGroups .= "\n                    <group cas_id=\"" . trim($groupDN) . "\"/>";
     }
   }
   // Groups with read-only access to the hub site (students and support).
-  $readOnlyGroups = "<group cas_id=\"".$classGroupDN."\"/>";
+  $readOnlyGroups = "<group cas_id=\"" . $classGroupDN . "\"/>";
   // Groups for read-only support.
   $groupString = trim(variable_get('hub_builder_read_only_support_groups', ''));
   if (!empty($groupString)) {
     $groupDNs = explode("\n", $groupString);
     foreach ($groupDNs as $groupDN) {
-      $readOnlyGroups .= "\n                    <group cas_id=\"".trim($groupDN)."\"/>";
+      $readOnlyGroups .= "\n                    <group cas_id=\"" . trim($groupDN) . "\"/>";
     }
   }
 
   return "
       <page theme='coursehub_site' menu_start='1' node_info='0' comment='0' flags='coursehub_site'>
-        <name><![CDATA[".$subject." ".$number.$sectionIdentifier.": ".$title."]]></name>
-        <alias><![CDATA[".$number.$sectionIdentifier."]]></alias>
+        <name><![CDATA[" . $subject . " " . $number . $sectionIdentifier . ": " . $title . "]]></name>
+        <alias><![CDATA[" . $number . $sectionIdentifier . "]]></alias>
         <permissions>
           <read>
             <everyone/>
           </read>
         </permissions>
         <nodes>
-          <node type='course_metadata' status='1' external_id='".$uniqueId."_meta'>
-            <title><![CDATA[".$title."]]></title>
-            <body><![CDATA[".$description."]]></body>
+          <node type='course_metadata' status='1' external_id='" . $uniqueId . "_meta'>
+            <title><![CDATA[" . $title . "]]></title>
+            <body><![CDATA[" . $description . "]]></body>
             <teaser><![CDATA[]]></teaser>
             <field_catalog_url cck_field_type='text'>
-              <value>".$catalogUrl."</value>
+              <value>" . $catalogUrl . "</value>
             </field_catalog_url>
             <field_offering_id cck_field_type='text'>
-              <value>".$offeringId."</value>
+              <value>" . $offeringId . "</value>
             </field_offering_id>
             <field_short_name cck_field_type='text'>
-              <value>".$subject." ".$number.$sectionIdentifier."</value>
+              <value>" . $subject . " " . $number . $sectionIdentifier . "</value>
             </field_short_name>
             <field_term_id cck_field_type='text'>
-              <value>".$termId."</value>
+              <value>" . $termId . "</value>
             </field_term_id>
             <field_term_label cck_field_type='text'>
-              <value>".$termLabel."</value>
+              <value>" . $termLabel . "</value>
             </field_term_label>
             <field_term_start_date cck_field_type='text'>
-              <value>".$termStart."</value>
+              <value>" . $termStart . "</value>
             </field_term_start_date>
             <field_term_end_date cck_field_type='text'>
-              <value>".$termEnd."</value>
+              <value>" . $termEnd . "</value>
             </field_term_end_date>
             <field_term_weeks cck_field_type='text'>
-              <value>".$termWeeks."</value>
+              <value>" . $termWeeks . "</value>
             </field_term_weeks>
             <field_catalog_id cck_field_type='text'>
-              <value>".$catalogId."</value>
+              <value>" . $catalogId . "</value>
             </field_catalog_id>
             <field_group_dn cck_field_type='text'>
-              <value>".$classGroupDN."</value>
+              <value>" . $classGroupDN . "</value>
             </field_group_dn>
             <field_instructors_dn cck_field_type='text'>
-              <value>".$instructorGroupDN."</value>
+              <value>" . $instructorGroupDN . "</value>
             </field_instructors_dn>
             <field_students_dn cck_field_type='text'>
-              <value>".$studentGroupDN."</value>
+              <value>" . $studentGroupDN . "</value>
             </field_students_dn>
             <field_audits_dn cck_field_type='text'>
-              <value>".$auditGroupDN."</value>
+              <value>" . $auditGroupDN . "</value>
             </field_audits_dn>
           </node>
         </nodes>
@@ -621,13 +621,13 @@ function hub_builder_build_site_xml_from_data(array $data) {
                 <alias><![CDATA[class]]></alias>
                 <permissions>
                   <write>
-                    ".$readWriteGroups."
+                    " . $readWriteGroups . "
                   </write>
                   <add_content>
-                    ".$addContentGroups."
+                    " . $addContentGroups . "
                   </add_content>
                   <read>
-                    ".$readOnlyGroups."
+                    " . $readOnlyGroups . "
                   </read>
                 </permissions>
               </page>
@@ -636,7 +636,7 @@ function hub_builder_build_site_xml_from_data(array $data) {
                 <alias><![CDATA[institution]]></alias>
                 <permissions>
                   <read>
-                    <group cas_id=\"".$institutionGroupDN."\"/>
+                    <group cas_id=\"" . $institutionGroupDN . "\"/>
                   </read>
                 </permissions>
               </page>
@@ -651,7 +651,7 @@ function hub_builder_build_site_xml_from_data(array $data) {
               </page>
             </pages>
             <nodes>
-              <node type='hub_updates' status='1' external_id='".$uniqueId."_updates'>
+              <node type='hub_updates' status='1' external_id='" . $uniqueId . "_updates'>
                 <title><![CDATA[Updates]]></title>
                 <body><![CDATA[]]></body>
                 <teaser><![CDATA[]]></teaser>
@@ -671,20 +671,20 @@ function hub_builder_build_site_xml_from_data(array $data) {
               </read>
             </permissions>
             <nodes>
-              <node type='page' status='1' external_id='".$uniqueId."_about'>
-                <title><![CDATA[".$subject." ".$number.$sectionIdentifier.': '.$title."]]></title>
+              <node type='page' status='1' external_id='" . $uniqueId . "_about'>
+                <title><![CDATA[" . $subject . " " . $number . $sectionIdentifier . ': ' . $title . "]]></title>
                 <body><![CDATA[
-<p>".$description."</p>
+<p>" . $description . "</p>
 <dl>
   <dt>Instructors:</dt>
-  <dd>".$instructors."</dd>
+  <dd>" . $instructors . "</dd>
   <dt>Location:</dt>
-  <dd>".$location."</dd>
+  <dd>" . $location . "</dd>
   <dt>Schedule:</dt>
-  <dd>".$schedule."</dd>
+  <dd>" . $schedule . "</dd>
 </dl>
                 ]]></body>
-                <teaser><![CDATA[".$description."]]></teaser>
+                <teaser><![CDATA[" . $description . "]]></teaser>
               </node>
             </nodes>
           </page>
@@ -708,13 +708,13 @@ function hub_builder_build_site_xml_from_data(array $data) {
                 <alias><![CDATA[class]]></alias>
                 <permissions>
                   <write>
-                    ".$readWriteGroups."
+                    " . $readWriteGroups . "
                   </write>
                   <add_content>
-                    ".$addContentGroups."
+                    " . $addContentGroups . "
                   </add_content>
                   <read>
-                    ".$readOnlyGroups."
+                    " . $readOnlyGroups . "
                   </read>
                 </permissions>
               </page>
@@ -723,7 +723,7 @@ function hub_builder_build_site_xml_from_data(array $data) {
                 <alias><![CDATA[institution]]></alias>
                 <permissions>
                   <read>
-                    <group cas_id=\"".$institutionGroupDN."\"/>
+                    <group cas_id=\"" . $institutionGroupDN . "\"/>
                   </read>
                 </permissions>
               </page>
@@ -753,13 +753,13 @@ function hub_builder_build_site_xml_from_data(array $data) {
                 <alias><![CDATA[class]]></alias>
                 <permissions>
                   <write>
-                    ".$readWriteGroups."
+                    " . $readWriteGroups . "
                   </write>
                   <add_content>
-                    ".$addContentGroups."
+                    " . $addContentGroups . "
                   </add_content>
                   <read>
-                    ".$readOnlyGroups."
+                    " . $readOnlyGroups . "
                   </read>
                 </permissions>
               </page>
@@ -768,7 +768,7 @@ function hub_builder_build_site_xml_from_data(array $data) {
                 <alias><![CDATA[institution]]></alias>
                 <permissions>
                   <read>
-                    <group cas_id=\"".$institutionGroupDN."\"/>
+                    <group cas_id=\"" . $institutionGroupDN . "\"/>
                   </read>
                 </permissions>
               </page>
@@ -796,7 +796,7 @@ function hub_builder_build_site_xml_from_data(array $data) {
  * @return array
  */
 function hub_builder_get_instructors_course_data($user_external_id, $term_id) {
-  $cache_key = 'hb_courses:'.$user_external_id.':'.$term_id;
+  $cache_key = 'hb_courses:' . $user_external_id . ':' . $term_id;
   $data = hub_builder_cache_get_data($cache_key, 'cache');
   if ($data === 0) {
     $data = hub_builder_fetch_instructors_course_data ($user_external_id, $term_id);
@@ -824,7 +824,7 @@ function hub_builder_fetch_instructors_course_data($user_external_id, $term_id) 
       $sectionElements = hub_builder_get_section_elements_in_subject($xpath, $subject['id']);
       foreach ($sectionElements as $sectionElement) {
         $sectionData = hub_builder_get_section_data($term, $sectionElement, $xpath);
-        $sectionData['path'] = $term->import_path.'/'.$subject['short_id'].'/'.$sectionData['number'].$sectionData['sectionIdentifier'];
+        $sectionData['path'] = $term->import_path . '/' . $subject['short_id'] . '/' . $sectionData['number'] . $sectionData['sectionIdentifier'];
         $sectionData['subject_info'] = $subject;
         $data[] = $sectionData;
       }

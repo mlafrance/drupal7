@@ -47,7 +47,7 @@ function hub_updates_fetch() {
   // Log our stats
   $fetchTime = round(microtime(true) - $fetchStart, 2);
   $message = 'Fetched for @time on @numSites sites. @numSitesWithResources sites have resources and @numUpdates updates were fetched on these sites.';
-  $strings = array('@numSites' => $numSites, '@numUpdates' => $numUpdates, '@numSitesWithResources' => $numSitesWithResources, '@time' => $fetchTime.'s');
+  $strings = array('@numSites' => $numSites, '@numUpdates' => $numUpdates, '@numSitesWithResources' => $numSitesWithResources, '@time' => $fetchTime . 's');
   watchdog('hub_updates', $message, $strings, WATCHDOG_INFO);
   drupal_set_message(t($message, $strings));
 }
@@ -76,7 +76,7 @@ function hub_updates_fetch_updates($updatesPageTID) {
       if (hub_updates_add_update($update, $updatesPageTID))
        $numUpdates++;
     } catch (InvalidArgumentException $e) {
-      watchdog('hub_updates', 'Error adding @type update %title. Message: %message', array('@type' => $update['source_type'], '%title' => $update['source_title'], '%message' => $e->getMessage()), WATCHDOG_WARNING, l(t('view'), "node/".$update['source_id']));
+      watchdog('hub_updates', 'Error adding @type update %title. Message: %message', array('@type' => $update['source_type'], '%title' => $update['source_title'], '%message' => $e->getMessage()), WATCHDOG_WARNING, l(t('view'), "node/" . $update['source_id']));
     }
   }
   return $numUpdates;
@@ -91,7 +91,7 @@ function hub_updates_fetch_updates($updatesPageTID) {
  *      The number of updates added.
  */
 function hub_updates_fetch_updates_for_site($courseSiteTID) {
-  $updatesPageTID = course_hub_tid_from_path(course_hub_get_path($courseSiteTID).'/updates');
+  $updatesPageTID = course_hub_tid_from_path(course_hub_get_path($courseSiteTID) . '/updates');
   return hub_updates_fetch_updates($updatesPageTID);
 }
 
@@ -163,7 +163,7 @@ function hub_updates_disable_update_fetching($mmtid) {
 SET
   field_updates_enabled_value = 0
 WHERE
-  nid IN (".implode(', ', $nids).")
+  nid IN (" . implode(', ', $nids) . ")
   AND field_updates_enabled_value != 0");
   $rows = db_affected_rows();
   drupal_set_message(t('@changed sites had updates disabled. @unchanged sites were already disabled and not changed.', array('@changed' => $rows, '@unchanged' => (count($nids) - $rows))));
@@ -184,7 +184,7 @@ function hub_updates_enable_update_fetching($mmtid) {
 SET
   field_updates_enabled_value = 1
 WHERE
-  nid IN (".implode(', ', $nids).")
+  nid IN (" . implode(', ', $nids) . ")
   AND field_updates_enabled_value != 1");
   $rows = db_affected_rows();
   drupal_set_message(t('@changed sites had updates enabled. @unchanged sites were already enabled and not changed.', array('@changed' => $rows, '@unchanged' => (count($nids) - $rows))));
@@ -237,7 +237,7 @@ ORDER BY field_updates_fetched_value ASC",
 function hub_updates_get_resource_nodes($sectionTID) {
   $types = module_invoke_all('hub_get_resource_types');
   foreach ($types as $i => $val)
-    $types[$i] = "'".$val."'";
+    $types[$i] = "'" . $val . "'";
 
   $res = db_query(
 "SELECT
@@ -249,7 +249,7 @@ FROM
   INNER JOIN {node} n ON (n.nid = n2t.nid)
   LEFT JOIN {mm_recycle} r ON (r.type = 'node' AND r.id = n.nid)
 WHERE
-  n.type IN (".implode(', ', $types).")
+  n.type IN (" . implode(', ', $types) . ")
   AND (
     t.mmtid = %d
     OR t.parent = %d
@@ -405,7 +405,7 @@ function hub_updates_hub_get_resource_updates($resourceNode) {
   // Include 'Resource Added' updates for all resources.
   // Resources themselves will provide additional content updates.
   $update =  array();
-  $update['guid'] = 'hub_resource_created-'.$resourceNode->nid;
+  $update['guid'] = 'hub_resource_created-' . $resourceNode->nid;
   $update['title'] = t('Resource added: !title', array('!title' => $resourceNode->title));
 
   if (isset($resourceNode->field_hub_perms[0]['value']))
@@ -478,7 +478,7 @@ function hub_updates_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
       $updateNIDs = hub_updates_update_nids_for_resource($node->nid);
       foreach ($updateNIDs as $updateNID) {
         $updateNode = node_load($updateNID);
-        if (preg_match('/^('.implode('|', $contentTypes).'|syllabus)_(added|created|updated)-.+/', $updateNode->field_guid[0]['value'])) {
+        if (preg_match('/^(' . implode('|', $contentTypes) . '|syllabus)_(added|created|updated)-.+/', $updateNode->field_guid[0]['value'])) {
           node_delete($updateNID);
         }
       }
@@ -532,7 +532,7 @@ function hub_updates_form_alter(&$form, &$form_state, $form_id) {
     $contentTypes = module_invoke_all('hub_get_content_types');
     if (in_array($node->type, $contentTypes) && $numUpdates) {
       // Add our form text
-      $form['description']['#value'] .= ' '.t('@num updates from this resource will also be deleted.', array('@num' => $numUpdates));
+      $form['description']['#value'] .= ' ' . t('@num updates from this resource will also be deleted.', array('@num' => $numUpdates));
       $form['description']['#value'] .= '<br/><br/>';
 
       // if submitted, delete updates
@@ -589,7 +589,7 @@ function hub_updates_preprocess_node(&$vars) {
       $vars['url'] = $vars['node']->field_url[0]['value'];
     // If we have content, make a link to the update node.
     else if (strlen(trim($vars['node']->body)))
-      $vars['url'] = url(course_hub_get_path().'/node/'.$vars['node']->nid);
+      $vars['url'] = url(course_hub_get_path() . '/node/' . $vars['node']->nid);
 
     $vars['source_title'] = $vars['node']->field_source_title[0]['safe'];
     $vars['source_url'] = $vars['node']->field_source_url[0]['safe'];
@@ -635,7 +635,7 @@ function hub_updates_preprocess_page(&$vars) {
 //
 //     global $user;
 //     if (!$allSource->num_updates && !$user->uid) {
-//       $vars['content'] .= "\n<div class='hub_updates_message'>".t("Please log in to view private content.")."</div>";
+//       $vars['content'] .= "\n<div class='hub_updates_message'>" . t("Please log in to view private content.")."</div>";
 //     }
 
     // Display the course description if there are no updates.
@@ -664,7 +664,7 @@ function hub_updates_update_sources($mmtid) {
   if ($user->uid)
     $userWhere = "\n  OR (
     a.mode = 'r'
-    AND a.gid IN (SELECT gid FROM mm_group WHERE uid = ".$user->uid.")
+    AND a.gid IN (SELECT gid FROM mm_group WHERE uid = " . $user->uid . ")
   )";
   else
     $userWhere = '';
@@ -688,7 +688,7 @@ WHERE
     OR p.parent = %d
   )
   AND r.recycle_date IS NULL
-  AND (t.default_mode REGEXP('r') ".$userWhere.")
+  AND (t.default_mode REGEXP('r') " . $userWhere . ")
 GROUP BY
   field_source_id_value
 ORDER BY

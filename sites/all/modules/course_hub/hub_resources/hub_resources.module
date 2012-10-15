@@ -69,9 +69,9 @@ function hub_resources_get_controls() {
   $path = course_hub_get_path($classPageTID);
   if (mm_content_user_can($classPageTID, 'u')) {
     print "\n<p>";
-    print '<button onclick="window.location=\''.base_path().$path.'/contents/add\'">+ Add a Resource</button>';
+    print '<button onclick="window.location=\'' . base_path() . $path . '/contents/add\'">+ Add a Resource</button>';
     if (hub_resources_get_num_resources() > 1) {
-      print '&nbsp; &nbsp; <button onclick="window.location=\''.base_path().$path.'/contents/reorder\'">Reorder Resources</button>';
+      print '&nbsp; &nbsp; <button onclick="window.location=\'' . base_path() . $path . '/contents/reorder\'">Reorder Resources</button>';
     }
     print "<p>\n";
   }
@@ -193,14 +193,14 @@ function hub_resources_nodeapi(&$node, $op, $a3, $a4) {
     // Since we are hiding the permissions form, just blow away any manually set permissions.
     $grouplist = array();
     $result =
-      db_query('SELECT DISTINCT t2.mmtid, t2.name FROM {mm_tree} t '.
-               'INNER JOIN {mm_tree_access} a ON a.mmtid = t.mmtid '.
-               'LEFT JOIN {mm_tree} t2 ON a.gid = t2.mmtid '.
-               "WHERE t2.mmtid >= 0 AND (a.mode = 'w') ".
+      db_query('SELECT DISTINCT t2.mmtid, t2.name FROM {mm_tree} t ' .
+               'INNER JOIN {mm_tree_access} a ON a.mmtid = t.mmtid ' .
+               'LEFT JOIN {mm_tree} t2 ON a.gid = t2.mmtid ' .
+               "WHERE t2.mmtid >= 0 AND (a.mode = 'w') " .
                  'AND a.mmtid = %d ORDER BY t2.name', $node->mm_catlist_restricted[0]);
     $node->all_values_group = '';
     while ($r = db_fetch_object($result)) {
-      $node->all_values_group .= 'w'.$r->mmtid;
+      $node->all_values_group .= 'w' . $r->mmtid;
     }
 
     // If the user tries to hide the title, strip the square brackets.

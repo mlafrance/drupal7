@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(__FILE__).'/moodle_resource.admin.inc';
+require_once dirname(__FILE__) . '/moodle_resource.admin.inc';
 
 /**
  * Implements hook_perm()
@@ -50,7 +50,7 @@ function _moodle_resource_get_url($node) {
 	if (!$node->field_moodle_course_id[0]['value'])
 	  throw new UnexpectedValueException(t('@func expects the node to have a cid value, none found.', array('@func' => __FUNCTION__)));
 
-	return variable_get('moodle_resource_base_url', 'http://moodle.middlebury.edu/').'course/view.php?id='.$node->field_moodle_course_id[0]['value'];
+	return variable_get('moodle_resource_base_url', 'http://moodle.middlebury.edu/') . 'course/view.php?id=' . $node->field_moodle_course_id[0]['value'];
 }
 
 /**
@@ -113,7 +113,7 @@ function moodle_resource_form_alter(&$form, &$form_state, $form_id) {
           $form['moodle_visibility']['#default_value'] = $courses[0]->visible;
         }
       } catch (Exception $e) {
-        form_set_error('Can not communicate with Moodle. Error: '.$e->getMessage());
+        form_set_error('Can not communicate with Moodle. Error: ' . $e->getMessage());
       }
     }
 
@@ -156,7 +156,7 @@ function moodle_resource_form_alter(&$form, &$form_state, $form_id) {
         // If the Moodle Course no longer exists, note that.
         $courses = $client->get_course_byid($node->field_moodle_course_id[0]['value']);
         if (!count($courses) || !$courses[0]->id) {
-          $form['description']['#value'] .= '<br/><br/>'.t('The Moodle course site this Resource was connected to no longer exists. No additional Moodle data will be removed.');
+          $form['description']['#value'] .= '<br/><br/>' . t('The Moodle course site this Resource was connected to no longer exists. No additional Moodle data will be removed.');
         }
         // If the Moodle Course exists, determine if it should be deleted.
         else {
@@ -184,7 +184,7 @@ function moodle_resource_form_alter(&$form, &$form_state, $form_id) {
             }
             // This is the only section using the Moodle course site.
             else {
-              $form['description']['#value'] .= '<br/><br/>'.t(
+              $form['description']['#value'] .= '<br/><br/>' . t(
                 'Deleting this resource will also delete the connected !link and all of its data.',
                 array(
                   '%name' => $node->title,
@@ -201,7 +201,7 @@ function moodle_resource_form_alter(&$form, &$form_state, $form_id) {
           }
           // If we are attached to a course for another offering, don't delete the Moodle site.
           else {
-            $form['description']['#value'] .= '<br/><br/>'.t(
+            $form['description']['#value'] .= '<br/><br/>' . t(
               'The !link this Resource is attached to was created for another section. Deleting this Resource will un-enroll the students in this section from the !link, but will not delete the !link or affect students from other sections.',
               array(
                 '%name' => $node->title,
@@ -217,7 +217,7 @@ function moodle_resource_form_alter(&$form, &$form_state, $form_id) {
           }
         }
       } catch (Exception $e) {
-        form_set_error('Can not delete the resource due to error: '.$e->getMessage());
+        form_set_error('Can not delete the resource due to error: ' . $e->getMessage());
       }
       $form['description']['#value'] .= '<br/><br/>';
     }
@@ -254,7 +254,7 @@ WHERE
     $info[] = array(
       'nid' => $other_nid,
       'node_title' => $node->title,
-      'resource_page_path' => course_hub_get_path($course_site_tid).'/resources',
+      'resource_page_path' => course_hub_get_path($course_site_tid) . '/resources',
       'site_title' => $course_site_page->name,
     );
   }
@@ -505,9 +505,9 @@ function _moodle_resource_add_course(MoodleResource_SoapClient $client, $node) {
     $doc->loadXML($client->__getLastResponse());
     $errors = $doc->getElementsByTagName('error');
     if ($errors->length) {
-      throw new Exception('Could not create a new Moodle Course site for this course. The following error occured: <br/><br/>'.$errors->item(0)->nodeValue);
+      throw new Exception('Could not create a new Moodle Course site for this course. The following error occured: <br/><br/>' . $errors->item(0)->nodeValue);
     } else {
-      throw new Exception('Could not create the Moodle Course site. <br/><br/>'.htmlentities($client->__getLastRequest()).'<br/><br/>'.htmlentities($client->__getLastResponse()));
+      throw new Exception('Could not create the Moodle Course site. <br/><br/>' . htmlentities($client->__getLastRequest()) . '<br/><br/>' . htmlentities($client->__getLastResponse()));
     }
 
   }
@@ -537,9 +537,9 @@ function _moodle_resource_get_default_course_values(MoodleResource_SoapClient $c
   return array(
     // General
     'category'  => _moodle_resource_get_category($client, $node),
-    'fullname'  => str_replace('"', "&quot;", str_replace("'", "&#39;", $metadata->field_short_name[0]['value'].': '.$metadata->title)),
+    'fullname'  => str_replace('"', "&quot;", str_replace("'", "&#39;", $metadata->field_short_name[0]['value'] . ': ' . $metadata->title)),
     'summary'   => str_replace('"', "&quot;", str_replace("'", "&#39;", $metadata->body)),
-    'shortname' => $metadata->field_short_name[0]['value'].' ('.$metadata->field_term_label[0]['value'].')',
+    'shortname' => $metadata->field_short_name[0]['value'] . ' (' . $metadata->field_term_label[0]['value'] . ')',
     'idnumber'  => $metadata->field_offering_id[0]['value'],
     'id'        => 0,
 
@@ -699,7 +699,7 @@ function _moodle_resource_sync_enrollment(MoodleResource_SoapClient $client, $no
         drupal_set_message($e->getMessage(), 'error');
         if (empty($node->field_sync_state[0]['value']))
           $node->field_sync_state[0]['value'] = t('Enrollment sync failed.');
-        $node->field_sync_state[0]['value'] .= ' '.$e->getMessage();      }
+        $node->field_sync_state[0]['value'] .= ' ' . $e->getMessage();      }
     }
     // Remove any teachers that we previously synced, but that are no longer in our groups.
     foreach ($node->field_teachers_synced as $key => $value) {
@@ -727,7 +727,7 @@ function _moodle_resource_sync_enrollment(MoodleResource_SoapClient $client, $no
         drupal_set_message($e->getMessage(), 'error');
         if (empty($node->field_sync_state[0]['value']))
           $node->field_sync_state[0]['value'] = t('Enrollment sync failed.');
-        $node->field_sync_state[0]['value'] .= ' '.$e->getMessage();
+        $node->field_sync_state[0]['value'] .= ' ' . $e->getMessage();
       }
     }
     // Remove any students that we previously synced, but that are no longer in our groups.
@@ -920,9 +920,9 @@ function _moodle_resource_ensure_user(MoodleResource_SoapClient $client, $user) 
     $doc->loadXML($client->__getLastResponse());
     $errors = $doc->getElementsByTagName('error');
     if ($errors->length) {
-      throw new Exception('Error creating user. The following error occured: <br/>'.$errors->item(0)->nodeValue);
+      throw new Exception('Error creating user. The following error occured: <br/>' . $errors->item(0)->nodeValue);
     } else {
-      throw new Exception('Error creating user. <br/><br/>'.htmlentities($client->__getLastRequest()).'<br/><br/>'.htmlentities($client->__getLastResponse()));
+      throw new Exception('Error creating user. <br/><br/>' . htmlentities($client->__getLastRequest()) . '<br/><br/>' . htmlentities($client->__getLastResponse()));
     }
   }
 
@@ -980,9 +980,9 @@ function moodle_resource_hub_get_resource_updates($resourceNode) {
       $action = preg_replace('/^(add)(.*)$/', '\1ed\2', $c->type);
       $action = preg_replace('/^(update)(.*)$/', '\1d\2', $action);
       $action = preg_replace('/^(.+) post$/', '\1 a post in', $action);
-      $title = $c->author.' '.$action.' "'.$c->name.'"';
+      $title = $c->author . ' ' . $action . ' "' . $c->name . '"';
       $updates[] = array(
-        'guid' => $c->type.'-'.$c->id,
+        'guid' => $c->type . '-' . $c->id,
         'title' => $title,
         'timestamp' => date('c', $c->timestamp),
         'visibility' => $visibility,

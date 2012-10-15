@@ -21,14 +21,14 @@ function _hub_builder_term_elements($term = null) {
     '#attributes' => array(),
   );
 
-  $fieldset['id']['#value'] = l(t('@id', array('@id' => $term->id)), 'admin/course_hub/builder/terms/'. base64_encode($term->id).'/edit');
+  $fieldset['id']['#value'] = l(t('@id', array('@id' => $term->id)), 'admin/course_hub/builder/terms/' . base64_encode($term->id) . '/edit');
   $fieldset['display_name']['#value'] = t('@display_name', array('@display_name' => $term->display_name));
   $fieldset['import_path']['#value'] = l(t('@path', array('@path' => $term->import_path)), $term->import_path);
   $fieldset['last_built']['#value'] = $term->last_built;
   $fieldset['last_built_by']['#value'] = $term->last_built_by_name;
 
-  $fieldset['operations']['test']['#value'] = l(t('Test'), 'admin/course_hub/builder/terms/'. base64_encode($term->id).'/test');
-  $fieldset['operations']['build']['#value'] = l(t('Build'), 'admin/course_hub/builder/terms/'. base64_encode($term->id).'/build');
+  $fieldset['operations']['test']['#value'] = l(t('Test'), 'admin/course_hub/builder/terms/' . base64_encode($term->id) . '/test');
+  $fieldset['operations']['build']['#value'] = l(t('Build'), 'admin/course_hub/builder/terms/' . base64_encode($term->id) . '/build');
   return $fieldset;
 }
 
@@ -229,7 +229,7 @@ function hub_builder_term_test($term_id) {
       throw new Exception("No subjects found.");
 
     ob_start();
-    print count($subjects).' subjects found: ';
+    print count($subjects) . ' subjects found: ';
     $i = 0;
     print "<pre>";
     foreach ($subjects as $subject) {
@@ -309,7 +309,7 @@ function hub_builder_term_test($term_id) {
       $errors[] = '...';
     }
     if (count($errors)) {
-      $result['content'] .= "\n<br/><strong>Errors:</strong>\n<br/>".implode("\n<br/>", $errors);
+      $result['content'] .= "\n<br/><strong>Errors:</strong>\n<br/>" . implode("\n<br/>", $errors);
     }
     $result['success'] = ($invalidSections == 0);
   } catch (Exception $e) {
@@ -321,7 +321,7 @@ function hub_builder_term_test($term_id) {
   $result = array('title' => "Main Data Url: Groups");
   if (count($missingGroups)) {
     $result['success'] = false;
-    $result['content'] = count($missingGroups)." class-groups are missing: <br/><br/>".implode("\n<br/>", $missingGroups);
+    $result['content'] = count($missingGroups) . " class-groups are missing: <br/><br/>" . implode("\n<br/>", $missingGroups);
   } else {
     $result['success'] = true;
     $result['content'] = t('All class groups exist');
@@ -369,7 +369,7 @@ function hub_builder_term_test($term_id) {
       throw new Exception("No subjects found.");
 
     ob_start();
-    print count($subjects).' subjects found: ';
+    print count($subjects) . ' subjects found: ';
     $i = 0;
     print "<pre>";
     foreach ($subjects as $subject) {
@@ -407,7 +407,7 @@ function hub_builder_term_test($term_id) {
         foreach ($sectionElements as $sectionElement) {
           try {
             $data = hub_builder_get_section_data($term, $sectionElement, $xpath);
-            $sectionInfo[] = $data['uniqueId'].' '.$data['offeringId'].' '.$data['title'].' - '.$data['genusTypeName'];
+            $sectionInfo[] = $data['uniqueId'] . ' ' . $data['offeringId'] . ' ' . $data['title'] . ' - ' . $data['genusTypeName'];
             $validSections++;
           } catch (Exception $e) {
             $invalidSections++;
@@ -425,7 +425,7 @@ function hub_builder_term_test($term_id) {
       $sectionInfo[] = '...';
     }
     if (count($sectionInfo)) {
-      $result['content'] .= "\n<br/><strong>Sections:</strong>\n<br/>".implode("\n<br/>", $sectionInfo);
+      $result['content'] .= "\n<br/><strong>Sections:</strong>\n<br/>" . implode("\n<br/>", $sectionInfo);
     }
 
     if (count($errors) > 5) {
@@ -433,7 +433,7 @@ function hub_builder_term_test($term_id) {
       $errors[] = '...';
     }
     if (count($errors)) {
-      $result['content'] .= "\n<br/><strong>Errors:</strong>\n<br/>".implode("\n<br/>", $errors);
+      $result['content'] .= "\n<br/><strong>Errors:</strong>\n<br/>" . implode("\n<br/>", $errors);
     }
     $result['success'] = ($invalidSections == 0);
   } catch (Exception $e) {
@@ -457,11 +457,11 @@ function theme_hub_builder_term_tests($display_name, $results) {
   drupal_add_css(drupal_get_path('module', 'hub_builder') . '/hub_builder_terms_admin.css');
 
   ob_start();
-  print "\n<h1 class='term_test_header'>".$display_name."</h1>";
+  print "\n<h1 class='term_test_header'>" . $display_name . "</h1>";
   foreach ($results as $result) {
-    print "\n<div class='term_test term_test_".((empty($result['success']))?"failure":"success")."'>";
-    print "\n\t<h2>".$result['title']."</h2>";
-    print "\n\t<div class='term_test_content'>".$result['content']."</div>";
+    print "\n<div class='term_test term_test_" . ((empty($result['success']))?"failure":"success") . "'>";
+    print "\n\t<h2>" . $result['title'] . "</h2>";
+    print "\n\t<div class='term_test_content'>" . $result['content'] . "</div>";
     print "\n</div>";
   }
   return ob_get_clean();

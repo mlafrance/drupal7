@@ -53,7 +53,7 @@ function recycle_buttons_get_controls() {
   mm_parse_args($term_ids, $oarg_list, $current_tid);
   $path = course_hub_get_path();
   if (mm_content_user_can($current_tid, 'u')) {
-    print '<button onclick="window.location=\''.base_path().$path.'/settings/empty\'">Empty Recycle bin</button>';
+    print '<button onclick="window.location=\'' . base_path() . $path . '/settings/empty\'">Empty Recycle bin</button>';
   }
   return ob_get_clean();
 }

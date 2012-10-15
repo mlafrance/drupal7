@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(__FILE__).'/course_hub.admin.inc';
+require_once dirname(__FILE__) . '/course_hub.admin.inc';
 
 /**
  * Answer the id of the course site's root page.
@@ -16,7 +16,7 @@ function course_hub_get_course_site_tid($relativePath = '') {
     return $rootTID;
 
   $basePath = course_hub_get_path($rootTID);
-  return course_hub_tid_from_path($basePath.'/'.$relativePath);
+  return course_hub_tid_from_path($basePath . '/' . $relativePath);
 }
 
 /**
@@ -60,7 +60,7 @@ function course_hub_get_course_site_metadata($mmtid) {
       return $node;
     }
   }
-  throw new Exception('No metadata exists for the course site '.$mmtid);
+  throw new Exception('No metadata exists for the course site ' . $mmtid);
 }
 
 /**
@@ -127,7 +127,7 @@ function course_hub_get_path($tid = null) {
   if (is_null($tid))
     $path = $_GET["q"];
   else
-    $path = 'mm/'.$tid;
+    $path = 'mm/' . $tid;
   $options = array();
   custom_url_rewrite_outbound($path, $options, $path);
   return $path;
@@ -217,7 +217,7 @@ function course_hub_get_visibility_page($parentPageTID, $visibility) {
  */
 function course_hub_set_node_form_visibility($parentPagePath, &$form_state) {
   $visibility = $form_state['values']['field_hub_perms'][0]['value'];
-  $classPageTID = course_hub_get_course_site_tid($parentPagePath.'/class');
+  $classPageTID = course_hub_get_course_site_tid($parentPagePath . '/class');
   $visibilityPage = course_hub_get_visibility_page(course_hub_get_course_site_tid($parentPagePath), $visibility);
 
   switch ($visibility) {
@@ -321,7 +321,7 @@ function course_hub_get_roster_link() {
   print "\n\t<li class='leaf'>";
 
   print "<ul class='menu'>";
-  print "\n\t<li class='leaf'>".l('Roster *', course_hub_get_path(course_hub_get_course_site_tid())."/roster", array('attributes' => array('title' => "Visible to instructors only.")))."</li>";
+  print "\n\t<li class='leaf'>" . l('Roster *', course_hub_get_path(course_hub_get_course_site_tid()) . "/roster", array('attributes' => array('title' => "Visible to instructors only."))) . "</li>";
   print "\n\t</li>";
   print "\n\t</li>";
   print "\n</ul>";

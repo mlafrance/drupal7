@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(__FILE__).'/wordpress_resource.admin.inc';
+require_once dirname(__FILE__) . '/wordpress_resource.admin.inc';
 
 /**
  * Implementation of hook_preprocess_node().
@@ -150,25 +150,25 @@ function wordpress_resource_get_url($sitename = '', $path = '', $authenticated =
   $authPass = variable_get('wordpress_resource_http_pass', '');
   $authParam = variable_get('wordpress_resource_auth_param', '');
 
-  $url = $scheme.'://';
+  $url = $scheme . '://';
 
   if ($authenticated && $authUser && $authPass) {
-    $url .= $authUser.':'.$authPass.'@';
+    $url .= $authUser . ':' . $authPass . '@';
   }
 
   if ($isSubdomainInstall && $sitename)
-    $url .= $sitename.'.';
+    $url .= $sitename . '.';
   else
     $url .= $host;
   $url .= $basePath;
   if (!$isSubdomainInstall && $sitename)
-    $url .= $sitename.'/';
+    $url .= $sitename . '/';
 
   if ($path)
     $url .= $path;
 
   if ($authenticated && $authParam) {
-    $url .= '?'.$authParam;
+    $url .= '?' . $authParam;
   }
 
   return $url;
@@ -185,7 +185,7 @@ function wordpress_resource_get_url($sitename = '', $path = '', $authenticated =
  */
 function wordpress_resource_xmlrpc() {
   $args = func_get_args();
-  $url = wordpress_resource_get_url().'xmlrpc.php';
+  $url = wordpress_resource_get_url() . 'xmlrpc.php';
   array_unshift($args, $url);
   return call_user_func_array('hub_phpcas_xmlrpc', $args);
 }

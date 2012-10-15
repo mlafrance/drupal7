@@ -291,9 +291,9 @@ function hub_builder_single_form_submit(&$form, &$form_state) {
 
 
       $xml = hub_builder_build_site_xml_from_data($data);
-      $xml = '<'.'?xml  version="1.0" ?>
+      $xml = '<' . '?xml  version="1.0" ?>
 <pages xmlns="http://www.middlebury.edu/nodeporter">
-'.$xml.'
+' . $xml . '
 </pages>';
 
       $pages = mmporter_importer_import_string($destinationTID, $xml);

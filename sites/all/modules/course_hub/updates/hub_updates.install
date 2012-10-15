@@ -17,7 +17,7 @@ function hub_updates_update_6100(&$sandbox) {
 
   // Set our weight so that our hooks run after monster menus.
   $weight = db_result(db_query("SELECT weight FROM {system} WHERE name = 'monster_menus' AND type='module'"));
-  $ret[] = update_sql("UPDATE {system} SET weight = ".($weight + 1)." WHERE name = 'hub_updates' AND type='module'");
+  $ret[] = update_sql("UPDATE {system} SET weight = " . ($weight + 1) . " WHERE name = 'hub_updates' AND type='module'");
 
   return $ret;
 }
