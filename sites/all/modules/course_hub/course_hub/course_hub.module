@@ -321,7 +321,7 @@ function course_hub_get_roster_link() {
   print "\n\t<li class='leaf'>";
 
   print "<ul class='menu'>";
-  print "\n\t<li class='leaf'>" . l('Roster *', course_hub_get_path(course_hub_get_course_site_tid()) . "/roster", array('attributes' => array('title' => "Visible to instructors only."))) . "</li>";
+  print "\n\t<li class='leaf'>" . l('Roster *', course_hub_get_path(course_hub_get_course_site_tid()) . "/roster", array('attributes' => array('title' => t("Visible to instructors only.")))) . "</li>";
   print "\n\t</li>";
   print "\n\t</li>";
   print "\n</ul>";
