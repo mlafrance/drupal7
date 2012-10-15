@@ -5,7 +5,7 @@
  *
  * @return string
  */
-function course_hub_roster_view($course_site_tid = null) {
+function course_hub_roster_view($course_site_tid = NULL) {
   if (is_null($course_site_tid))
     $course_site_tid = course_hub_get_course_site_tid();
 
@@ -42,7 +42,7 @@ function course_hub_roster_get_people($group_tid, $photo_base_path) {
   $names = array();
   foreach ($uids as $uid) {
     $user = user_load($uid);
-    $user->roster_photo_url = url($photo_base_path . '/' . $uid, array('absolute' => true));
+    $user->roster_photo_url = url($photo_base_path . '/' . $uid, array('absolute' => TRUE));
     $users[] = $user;
     $names[] = $user->profile_display_name;
   }
@@ -89,16 +89,16 @@ function course_hub_roster_photo($mmtid, $uid) {
 
   $get_data = http_build_query(
     array(
-      'show' => 'true',
+      'show' => 'TRUE',
       'username' => $user->profile_login_handle
     ),
-    null,
+    NULL,
     '&');
   $post_data = http_build_query(
     array(
       'coursehub' => COURSE_HUB_ROSTER_PHOTO_KEY,
     ),
-    null,
+    NULL,
     '&');
   $result = drupal_http_request(
     COURSE_HUB_ROSTER_PHOTO_URL . '?' . $get_data,

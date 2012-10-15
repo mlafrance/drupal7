@@ -16,7 +16,7 @@ function hub_updates_fetch() {
   $numSites = 0;
   $numSitesWithResources = 0;
   $numUpdates = 0;
-  $fetchStart = microtime(true);
+  $fetchStart = microtime(TRUE);
 
   $maxPerFetch = intval(variable_get('hub_updates_max_per_fetch', 0));
 
@@ -45,7 +45,7 @@ function hub_updates_fetch() {
   }
 
   // Log our stats
-  $fetchTime = round(microtime(true) - $fetchStart, 2);
+  $fetchTime = round(microtime(TRUE) - $fetchStart, 2);
   $message = 'Fetched for @time on @numSites sites. @numSitesWithResources sites have resources and @numUpdates updates were fetched on these sites.';
   $strings = array('@numSites' => $numSites, '@numUpdates' => $numUpdates, '@numSitesWithResources' => $numSitesWithResources, '@time' => $fetchTime . 's');
   watchdog('hub_updates', $message, $strings, WATCHDOG_INFO);
@@ -266,14 +266,14 @@ WHERE
 }
 
 /**
- * Answer true if the update exists within an update page.
+ * Answer TRUE if the update exists within an update page.
  *
  * @param string $guid
  *      The globally unique identifier for the update.
  * @param integer $mmtid
  *      The update page id under which to search.
  * @return boolean
- *      True if the update exists.
+ *      TRUE if the update exists.
  */
 function hub_updates_update_exists($guid, $mmtid) {
   if (!$guid)
@@ -315,7 +315,7 @@ WHERE
  * @param int $updatesPageTID
  *      The page on which updates should be added.
  * @return boolean
- *      True if the update was added, false if it already exists.
+ *      TRUE if the update was added, FALSE if it already exists.
  */
 function hub_updates_add_update($update, $updatesPageTID) {
   if (!isset($update['guid']) || !$update['guid'])
@@ -329,8 +329,8 @@ function hub_updates_add_update($update, $updatesPageTID) {
     $edit['type'] = 'hub_update';
     $edit['uid'] = $GLOBALS['user']->uid;
     $node_type_default = variable_get('node_options_hub_update', array('status', 'promote'));
-    $edit['promote'] = false;
-    $edit['comment'] = false;
+    $edit['promote'] = FALSE;
+    $edit['comment'] = FALSE;
     $edit['format'] = FILTER_FORMAT_DEFAULT;
     $edit['status'] = 1;
     $edit['date'] = format_date(time(), 'custom', 'Y-m-d H:i:s O');
@@ -375,9 +375,9 @@ function hub_updates_add_update($update, $updatesPageTID) {
       watchdog('hub_updates', '@type update added: %title', array('@type' => $update['source_type'], '%title' => $node->title), WATCHDOG_NOTICE, l(t('view'), "node/$node->nid"));
       drupal_set_message(t('@type update added: %title', array('@type' => $update['source_type'], '%title' => $node->title)));
     }
-    return true;
+    return TRUE;
   }
-  return false;
+  return FALSE;
 }
 
 /**
@@ -458,12 +458,12 @@ function hub_updates_hub_resource_visibility($resourceNode, $visibility) {
 function hub_updates_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
   // Set a flag to prevent infinite recursion due to a node_save() operation in
   // an update.
-  static $fetching_updates = false;
+  static $fetching_updates = FALSE;
   if ($fetching_updates)
     return;
-  $fetching_updates = true;
+  $fetching_updates = TRUE;
 
-  static $contentTypes = null;
+  static $contentTypes = NULL;
   if (is_null($contentTypes))
     $contentTypes = module_invoke_all('hub_get_content_types');
 
@@ -497,7 +497,7 @@ function hub_updates_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
   }
 
   // Unset our recursion-prevention flag.
-  $fetching_updates = false;
+  $fetching_updates = FALSE;
 }
 
 /**
@@ -538,7 +538,7 @@ function hub_updates_form_alter(&$form, &$form_state, $form_id) {
       // if submitted, delete updates
       // (Attaching a submit handler via $form['#submit'][] didn't seem to work.)
       if ($form_state['post']['confirm'] == '1') {
-        mm_content_move_to_bin(null, hub_updates_update_nids_for_resource($form['nid']['#value']));
+        mm_content_move_to_bin(NULL, hub_updates_update_nids_for_resource($form['nid']['#value']));
       }
     }
   }
@@ -614,11 +614,11 @@ function hub_updates_preprocess_page(&$vars) {
 //     if (isset($_GET['source']))
 //       $current_filter = intval($_GET['source']);
 //     else
-//       $current_filter = null;
+//       $current_filter = NULL;
 //     $sources = hub_updates_update_sources(course_hub_get_course_site_tid());
 //     $base = course_hub_get_path();
 //     $allSource = new stdClass();
-//     $allSource->id = null;
+//     $allSource->id = NULL;
 //     $allSource->title = 'Updates from all Resources';
 //     $allSource->num_updates = 0;
 //     $allSource->filter_url = url($base);

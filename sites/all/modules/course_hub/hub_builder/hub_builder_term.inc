@@ -19,7 +19,7 @@ function hub_builder_get_terms() {
   $result = db_query($sql);
   $terms = array();
   while ($data = db_fetch_array($result))
-    $terms[] = new HubBuilder_Term($data, true);
+    $terms[] = new HubBuilder_Term($data, TRUE);
   return $terms;
 }
 
@@ -37,22 +37,22 @@ function hub_builder_get_term($id) {
   $result = db_query($sql, $id);
   $data = db_fetch_array($result);
   if (empty($data))
-    return null;
+    return NULL;
   else
-    return new HubBuilder_Term($data, true);
+    return new HubBuilder_Term($data, TRUE);
 }
 
 class HubBuilder_Term {
   private $data = array();
-  private $exists = false;
-  private $dbId = null;
-  private $changed = false;
+  private $exists = FALSE;
+  private $dbId = NULL;
+  private $changed = FALSE;
   private $catalog;
 
-  public function __construct(array $data = array(), $exists = false) {
+  public function __construct(array $data = array(), $exists = FALSE) {
     $this->data = $data;
     if ($exists) {
-      $this->exists = true;
+      $this->exists = TRUE;
       $this->dbId = $data['id'];
     }
   }
@@ -122,7 +122,7 @@ class HubBuilder_Term {
       VALUES ('%s', '%s', '%s', '%s')";
       if (db_query($sql, $this->catalog_id, $this->id, $this->display_name, $this->import_path)) {
         $this->dbId = $this->id;
-        $this->exists = true;
+        $this->exists = TRUE;
       }
       else {
         throw new Exception('Insert failed.');
@@ -135,8 +135,8 @@ class HubBuilder_Term {
       DELETE FROM {hub_builder_term}
       WHERE id = '%s'";
     if (db_query($sql, $this->dbId)) {
-      $this->dbId = null;
-      $this->exists = false;
+      $this->dbId = NULL;
+      $this->exists = FALSE;
     }
     else {
       throw new Exception("Delete failed.");
@@ -148,7 +148,7 @@ class HubBuilder_Term {
       return $this->data[$name];
     }
     else {
-      return null;
+      return NULL;
     }
   }
 
@@ -158,7 +158,7 @@ class HubBuilder_Term {
       throw new InvalidArgumentException(t("%name is not in the allowed list: @allowed", array("%name" => $name, "@allowed" => implode(", ", $allowed))));
 
     if (empty($this->data[$name]) || $this->data[$name] != $value)
-      $this->changed = true;
+      $this->changed = TRUE;
 
     $this->data[$name] = $value;
   }

@@ -16,7 +16,7 @@ function hub_builder_terms_form(&$form_state) {
 }
 
 
-function _hub_builder_term_elements($term = null) {
+function _hub_builder_term_elements($term = NULL) {
   $fieldset = array(
     '#attributes' => array(),
   );
@@ -86,7 +86,7 @@ function theme_hub_builder_terms_form($form) {
  * @ingroup forms
  * @see system_settings_form().
  */
-function hub_builder_term_edit_form(&$form_state, $term_id = null) {
+function hub_builder_term_edit_form(&$form_state, $term_id = NULL) {
   $form = array();
   if ($term_id) {
     $term_id = base64_decode($term_id);
@@ -194,11 +194,11 @@ function hub_builder_term_test($term_id) {
   $result = array('title' => "Import Path");
   $destinationTID = course_hub_tid_from_path($term->import_path);
   if ($destinationTID > 0) {
-    $result['success'] = true;
+    $result['success'] = TRUE;
     $result['content'] = t('@path exists with mmtid @tid', array('@path' => $term->import_path, '@tid' => $destinationTID));
   }
   else {
-    $result['success'] = false;
+    $result['success'] = FALSE;
     $result['content'] = t('@path doesn\'t exist.', array('@path' => $term->import_path));
   }
   $results[] = $result;
@@ -213,10 +213,10 @@ function hub_builder_term_test($term_id) {
   try {
     $xpath = hub_builder_get_xpath($url);
     $result['content'] = t('Successfully loaded the data document');
-    $result['success'] = true;
+    $result['success'] = TRUE;
   } catch (Exception $e) {
     $result['content'] = $e->getMessage();
-    $result['success'] = false;
+    $result['success'] = FALSE;
   }
   $results[] = $result;
 
@@ -245,10 +245,10 @@ function hub_builder_term_test($term_id) {
       print "\n...";
     print "</pre>";
     $result['content'] = ob_get_clean();
-    $result['success'] = true;
+    $result['success'] = TRUE;
   } catch (Exception $e) {
     $result['content'] = $e->getMessage();
-    $result['success'] = false;
+    $result['success'] = FALSE;
   }
   $results[] = $result;
 
@@ -260,8 +260,8 @@ function hub_builder_term_test($term_id) {
     $totalSections = 0;
     $validSections = 0;
     $invalidSections = 0;
-    $exampleInstructorId = null;
-    $exampleInstructorName = null;
+    $exampleInstructorId = NULL;
+    $exampleInstructorName = NULL;
     $missingGroups = array();
     $errors = array();
     foreach ($subjects as $subject) {
@@ -318,17 +318,17 @@ function hub_builder_term_test($term_id) {
     $result['success'] = ($invalidSections == 0);
   } catch (Exception $e) {
     $result['content'] = $e->getMessage();
-    $result['success'] = false;
+    $result['success'] = FALSE;
   }
   $results[] = $result;
 
   $result = array('title' => "Main Data Url: Groups");
   if (count($missingGroups)) {
-    $result['success'] = false;
+    $result['success'] = FALSE;
     $result['content'] = count($missingGroups) . " class-groups are missing: <br/><br/>" . implode("\n<br/>", $missingGroups);
   }
   else {
-    $result['success'] = true;
+    $result['success'] = TRUE;
     $result['content'] = t('All class groups exist');
   }
   $results[] = $result;
@@ -347,7 +347,7 @@ function hub_builder_term_test($term_id) {
     $result['content'] = t('Instructor: @id (@name) <br/> @url', array('@id' => $exampleInstructorId, '@name' => $exampleInstructorName, '@url' => $url));
   } catch (Exception $e) {
     $result['content'] = $e->getMessage();
-    $result['success'] = false;
+    $result['success'] = FALSE;
   }
   $results[] = $result;
 
@@ -355,10 +355,10 @@ function hub_builder_term_test($term_id) {
   try {
     $xpath = hub_builder_get_xpath($url);
     $result['content'] = t('Successfully loaded the data document');
-    $result['success'] = true;
+    $result['success'] = TRUE;
   } catch (Exception $e) {
     $result['content'] = $e->getMessage();
-    $result['success'] = false;
+    $result['success'] = FALSE;
   }
   $results[] = $result;
 
@@ -387,10 +387,10 @@ function hub_builder_term_test($term_id) {
       print "\n...";
     print "</pre>";
     $result['content'] = ob_get_clean();
-    $result['success'] = true;
+    $result['success'] = TRUE;
   } catch (Exception $e) {
     $result['content'] = $e->getMessage();
-    $result['success'] = false;
+    $result['success'] = FALSE;
   }
   $results[] = $result;
 
@@ -443,7 +443,7 @@ function hub_builder_term_test($term_id) {
     $result['success'] = ($invalidSections == 0);
   } catch (Exception $e) {
     $result['content'] = $e->getMessage();
-    $result['success'] = false;
+    $result['success'] = FALSE;
   }
   $results[] = $result;
 

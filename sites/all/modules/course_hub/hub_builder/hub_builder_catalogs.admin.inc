@@ -63,7 +63,7 @@ function hub_builder_catalogs_form_delete($form, &$form_state) {
  * @see system_settings_form().
  */
 // function hub_builder_catalogs_form_validate($form, &$form_state) {
-//   return true;
+//   return TRUE;
 // }
 
 /**
@@ -100,7 +100,7 @@ function hub_builder_catalogs_form_submit($form, &$form_state) {
   }
 }
 
-function _hub_builder_catalog_fieldset($catalog = null) {
+function _hub_builder_catalog_fieldset($catalog = NULL) {
   $fieldset = array(
     '#type' => 'fieldset',
     '#title' => t('@id', array('@id' => $catalog->id)),

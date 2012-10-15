@@ -18,7 +18,7 @@ function hub_builder_get_catalogs() {
   $result = db_query($sql);
   $catalogs = array();
   while ($data = db_fetch_array($result))
-    $catalogs[] = new HubBuilder_Catalog($data, true);
+    $catalogs[] = new HubBuilder_Catalog($data, TRUE);
   return $catalogs;
 }
 
@@ -35,18 +35,18 @@ function hub_builder_get_catalog($id) {
   $result = db_query($sql, $id);
   $data = db_fetch_array($result);
   if (empty($data))
-    return null;
+    return NULL;
   else
-    return new HubBuilder_Catalog($data, true);
+    return new HubBuilder_Catalog($data, TRUE);
 }
 
 class HubBuilder_Catalog {
   private $data = array();
-  private $exists = false;
-  private $dbId = null;
-  private $changed = false;
+  private $exists = FALSE;
+  private $dbId = NULL;
+  private $changed = FALSE;
 
-  public function __construct(array $data = array(), $exists = false) {
+  public function __construct(array $data = array(), $exists = FALSE) {
     if (!is_array($data['types_to_import'])) {
       $data['types_to_import'] = json_decode($data['types_to_import']);
     }
@@ -55,7 +55,7 @@ class HubBuilder_Catalog {
     }
     $this->data = $data;
     if ($exists) {
-      $this->exists = true;
+      $this->exists = TRUE;
       $this->dbId = $data['id'];
     }
   }
@@ -89,7 +89,7 @@ class HubBuilder_Catalog {
       VALUES ('%s', '%s', '%s', '%s', '%s')";
       if (db_query($sql, $this->id, $this->class_group_base_dn, $this->main_data_url, $this->instructor_course_list_url, json_encode($this->types_to_import))) {
         $this->dbId = $this->id;
-        $this->exists = true;
+        $this->exists = TRUE;
       }
       else {
         throw new Exception('Insert failed.');
@@ -102,8 +102,8 @@ class HubBuilder_Catalog {
       DELETE FROM {hub_builder_catalog}
       WHERE id = '%s'";
     if (db_query($sql, $this->dbId)) {
-      $this->dbId = null;
-      $this->exists = false;
+      $this->dbId = NULL;
+      $this->exists = FALSE;
     }
     else {
       throw new Exception("Delete failed.");
@@ -115,7 +115,7 @@ class HubBuilder_Catalog {
       return $this->data[$name];
     }
     else {
-      return null;
+      return NULL;
     }
   }
 
@@ -127,7 +127,7 @@ class HubBuilder_Catalog {
       throw new InvalidArgumentException(t("%name must be an array.", array("%name" => $name)));
 
     if (empty($this->data[$name]) || $this->data[$name] != $value)
-      $this->changed = true;
+      $this->changed = TRUE;
 
     $this->data[$name] = $value;
   }

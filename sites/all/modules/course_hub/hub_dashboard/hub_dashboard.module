@@ -9,7 +9,7 @@ function hub_dashboard_menu() {
     'description' => 'Semester Dashboard',
     'page callback' => 'hub_dashboard_view',
     'type' => MENU_CALLBACK,
-    'access callback' => true,
+    'access callback' => TRUE,
   );
   $items['dashboard/json'] = array(
     'title' => 'Dashboard Feed',
@@ -23,7 +23,7 @@ function hub_dashboard_menu() {
     'description' => t('Manage which additional sections (labs/discussions) have course hub sites.'),
     'page callback' => 'hub_dashboard_list_instructor_sections',
     'page arguments' => array(1),
-    'access callback' => true,
+    'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
   $items['dashboard/%/instructor/add/%'] = array(
@@ -31,7 +31,7 @@ function hub_dashboard_menu() {
     'description' => t('Add a course site for an additional lab/discussion section.'),
     'page callback' => 'hub_dashboard_manage_instructor_section',
     'page arguments' => array(3, 1, 4),
-    'access callback' => true,
+    'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
   $items['dashboard/%/instructor/delete/%'] = array(
@@ -39,7 +39,7 @@ function hub_dashboard_menu() {
     'description' => t('Remove a course site for an additional lab/discussion section.'),
     'page callback' => 'hub_dashboard_manage_instructor_section',
     'page arguments' => array(3, 1, 4),
-    'access callback' => true,
+    'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
   return $items;
@@ -118,13 +118,13 @@ function hub_dashboard_list_instructor_sections($term_id) {
       $syllabusPageTID = course_hub_tid_from_path($section['path'] . '/syllabus/class');
       $syllabusNodeIds = mm_content_get_nids_by_mmtid($syllabusPageTID);
       $section['has_resources'] = count($resources) || count($syllabusNodeIds);
-      $section['can_add'] = false;
+      $section['can_add'] = FALSE;
       $section['can_delete'] = ($section['can_manage'] && !$section['has_resources']);
     }
     else {
-      $section['has_resources'] = false;
+      $section['has_resources'] = FALSE;
       $section['can_add'] = $section['can_manage'];
-      $section['can_delete'] = false;
+      $section['can_delete'] = FALSE;
     }
   }
 
@@ -174,7 +174,7 @@ function hub_dashboard_manage_instructor_section($op, $term_id, $offering_id) {
             $syllabusPageTID = course_hub_tid_from_path($s['path'] . '/syllabus/class');
             $syllabusNodeIds = mm_content_get_nids_by_mmtid($syllabusPageTID);
             if (!count($resources) && !count($syllabusNodeIds)) {
-              mm_content_delete($site_mmtid, true);
+              mm_content_delete($site_mmtid, TRUE);
             }
             else {
               drupal_set_message(t('%code has resources or a syllabus. Can\'t delete.', array('%code' => $s['subject'] . ' ' . $s['number'] . $s['sectionIdentifier'])), 'error');
@@ -201,9 +201,9 @@ function hub_dashboard_json() {
 
   foreach ($terms as $id => $term) {
     if ($id == $current_term)
-      $terms[$id]['is_current'] = true;
+      $terms[$id]['is_current'] = TRUE;
     else
-      $terms[$id]['is_current'] = false;
+      $terms[$id]['is_current'] = FALSE;
 
     $sites = array();
     foreach (hub_dashboard_get_course_sites_for_user($id) as $page) {
@@ -215,7 +215,7 @@ function hub_dashboard_json() {
       $site['page_title'] = $page->name;
       $site['short_name'] = $metadata->field_short_name[0]['value'];
       $site['title'] = $metadata->title;
-      $site['site_url'] = url(course_hub_get_path($page->mmtid), array('absolute' => true));
+      $site['site_url'] = url(course_hub_get_path($page->mmtid), array('absolute' => TRUE));
 
       $items = array();
 
@@ -241,8 +241,8 @@ function hub_dashboard_json() {
           $items[] = array(
           'type' => 'link',
           'title' => t('Add a Syllaus'),
-          'emphasis' => true,
-          'url' => url($coursePath . '/syllabus', array('absolute' => true)),
+          'emphasis' => TRUE,
+          'url' => url($coursePath . '/syllabus', array('absolute' => TRUE)),
           );
         }
         // Message for students
@@ -266,7 +266,7 @@ function hub_dashboard_json() {
           if (empty($node->images)) {
             $items[] = array(
               'type' => 'html',
-              'emphasis' => true,
+              'emphasis' => TRUE,
               'title' => t('Syllabus'),
               'content' => t('The syllabus file is broken or was deleted.'),
             );
@@ -274,14 +274,14 @@ function hub_dashboard_json() {
           // Good files
           else {
             if (isset($node->filemime) && $icon = _media_get_icon($node->filemime)) {
-              $icon_url = url(drupal_get_path('module', 'media') . '/icons/' . $icon, array('absolute' => true));
+              $icon_url = url(drupal_get_path('module', 'media') . '/icons/' . $icon, array('absolute' => TRUE));
             }
             $items[] = array(
               'type' => 'link',
               'title' => t('Syllabus'),
               'icon' => ((empty($icon_url))?'':$icon_url),
-              'emphasis' => false,
-              'url' => url(file_create_path($node->images['original']), array('absolute' => true)),
+              'emphasis' => FALSE,
+              'url' => url(file_create_path($node->images['original']), array('absolute' => TRUE)),
             );
           }
         }
@@ -323,8 +323,8 @@ function hub_dashboard_json() {
         $items[] = array(
           'type' => 'link',
           'title' => t('Manage Resources'),
-          'emphasis' => true,
-          'url' => url($resourcePath, array('absolute' => true)),
+          'emphasis' => TRUE,
+          'url' => url($resourcePath, array('absolute' => TRUE)),
         );
       }
 
@@ -334,7 +334,7 @@ function hub_dashboard_json() {
         $items[] = array(
           'type' => 'html',
           'title' => 'Roster',
-          'emphasis' => true,
+          'emphasis' => TRUE,
           'content' => course_hub_roster_view($page->mmtid),
         );
       }
@@ -449,7 +449,7 @@ function hub_dashboard_theme($existing, $type, $theme, $path) {
 /**
  * Answer the current term.
  *
- * @return string or null
+ * @return string or NULL
  */
 function hub_dashboard_current_term() {
   $terms = hub_dashboard_get_terms_for_user();
@@ -485,15 +485,15 @@ function hub_dashboard_current_term() {
       $metadata = course_hub_get_course_site_metadata(course_hub_get_course_site_tid());
       return $metadata->field_term_id[0]['value'];
     } catch (Exception $e) {
-      return null;
+      return NULL;
     }
   }
 
-  return null;
+  return NULL;
 }
 
 /**
- * Answer true if we are looking at the dashboard.
+ * Answer TRUE if we are looking at the dashboard.
  *
  * @return boolean
  */
@@ -504,7 +504,7 @@ function hub_dashboard_is_dashboard() {
 }
 
 /**
- * Answer true if we are looking at the my courses page.
+ * Answer TRUE if we are looking at the my courses page.
  *
  * @return boolean
  */

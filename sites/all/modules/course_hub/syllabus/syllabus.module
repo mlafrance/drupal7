@@ -38,7 +38,7 @@ function syllabus_block($op = 'list', $delta = 0, $edit = array()) {
 }
 
 /**
- * Answer true if we are on a syllabus page and the block should be displayed.
+ * Answer TRUE if we are on a syllabus page and the block should be displayed.
  */
 function syllabus_controls_visible() {
   return (preg_match('/.+\/syllabus([?#].+)?$/', course_hub_get_path()) && !syllabus_get_num_nodes() && mm_content_user_can(course_hub_get_course_site_tid('syllabus/class'), 'u'));
@@ -122,7 +122,7 @@ function syllabus_form_alter(&$form, &$form_state, $form_id) {
         $form['uploaded_files']['uploaded_file_name-' . $hash] = array(
           '#type' => 'textfield',
           '#default_value' => $item['name'],
-          '#disabled' => true,
+          '#disabled' => TRUE,
           '#weight' => $i,
         );
         if (isset($form['uploaded_files']['caption-' . $hash])) {

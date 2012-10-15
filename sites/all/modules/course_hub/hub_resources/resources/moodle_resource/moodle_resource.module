@@ -120,14 +120,14 @@ function moodle_resource_form_alter(&$form, &$form_state, $form_id) {
 
     // Hide elements from non-admins
     if (!user_access('administer all menus')) {
-      $form['field_teachers_synced']['#access'] = false;
-      $form['field_students_synced']['#access'] = false;
-      $form['field_sync_state']['#access'] = false;
+      $form['field_teachers_synced']['#access'] = FALSE;
+      $form['field_students_synced']['#access'] = FALSE;
+      $form['field_sync_state']['#access'] = FALSE;
     }
 
     // Hide the course-id for update forms.
     if (!empty($form['nid']['#value'])) {
-      $form['field_moodle_course_id']['#access'] = false;
+      $form['field_moodle_course_id']['#access'] = FALSE;
     }
 
     // Add validation
@@ -175,7 +175,7 @@ function moodle_resource_form_alter(&$form, &$form_state, $form_id) {
                 print l(
                   t('%node_title on %site_title', array('%node_title' => $info['node_title'], '%site_title' => $info['site_title'])),
                   $info['resource_page_path'],
-                  array('html' => true, 'attributes' => array('target' => '_blank'))
+                  array('html' => TRUE, 'attributes' => array('target' => '_blank'))
                 );
                 print "</li>";
               }
@@ -331,11 +331,11 @@ function moodle_resource_site_validate($form, &$form_state) {
         // Verify that the current user is an instructor of the Moodle course
         if (!user_access('attach to any moodle site')) {
           $teachers = $client->get_users_bycourse($course_id, 'id', 3); // 3 == 'teacher'
-          $is_teacher = false;
+          $is_teacher = FALSE;
           global $user;
           foreach ($teachers as $teacher) {
             if (strtolower($teacher->username) == strtolower($user->init)) {
-              $is_teacher = true;
+              $is_teacher = TRUE;
               break;
             }
           }
@@ -421,35 +421,35 @@ function moodle_resource_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
         try {
           $datum = array(
             'action' => 'update',
-            'category' => null,
-            'cost' => null,
-            'enrolperiod' => null,
-            'error' => null,
-            'format' => null,
-            'fullname' => null,
-            'groupmode' => null,
-            'groupmodeforce' => null,
-            'guest' => null,
-            'hiddensections' => null,
+            'category' => NULL,
+            'cost' => NULL,
+            'enrolperiod' => NULL,
+            'error' => NULL,
+            'format' => NULL,
+            'fullname' => NULL,
+            'groupmode' => NULL,
+            'groupmodeforce' => NULL,
+            'guest' => NULL,
+            'hiddensections' => NULL,
             'id' => $node->field_moodle_course_id[0]['value'],
-            'idnumber' => null,
-            'lang' => null,
-            'marker' => null,
-            'maxbytes' => null,
-            'metacourse' => null,
-            'newsitems' => null,
-            'numsections' => null,
-            'password' => null,
-            'shortname' => null,
-            'showgrades' => null,
-            'sortorder' => null,
-            'startdate' => null,
-            'student' => null,
-            'students' => null,
-            'summary' => null,
-            'teacher' => null,
-            'teachers' => null,
-            'theme' => null,
+            'idnumber' => NULL,
+            'lang' => NULL,
+            'marker' => NULL,
+            'maxbytes' => NULL,
+            'metacourse' => NULL,
+            'newsitems' => NULL,
+            'numsections' => NULL,
+            'password' => NULL,
+            'shortname' => NULL,
+            'showgrades' => NULL,
+            'sortorder' => NULL,
+            'startdate' => NULL,
+            'student' => NULL,
+            'students' => NULL,
+            'summary' => NULL,
+            'teacher' => NULL,
+            'teachers' => NULL,
+            'theme' => NULL,
             'visible' => $node->moodle_visibility,
           );
           $client->update_course($datum, 'id');
@@ -617,7 +617,7 @@ function _moodle_resource_map_category_path(MoodleResource_SoapClient $client, $
 
   // Find the category id.
   $name = array_shift($path);
-  $id = null;
+  $id = NULL;
   $categories = $client->get_categories($parent_id, 'parent');
   foreach ($categories as $category) {
     if ($category->name == $name) {

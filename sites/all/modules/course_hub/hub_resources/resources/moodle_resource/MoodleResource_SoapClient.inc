@@ -61,7 +61,7 @@ class MoodleResource_SoapClient {
   }
 
   /**
-   * Answer the error string if one exists, null otherwise
+   * Answer the error string if one exists, NULL otherwise
    *
    * @return void
    */

@@ -133,7 +133,7 @@ function hub_builder_terms_show_tab($perm, $desired_action, $current_action) {
 //   var_dump($desired_action);
 //   var_dump($current_action);
   if (empty($current_action) || $current_action != $desired_action)
-    return false;
+    return FALSE;
   return user_access($perm);
 }
 
@@ -236,7 +236,7 @@ function _hub_builder_print_unbuffered($content) {
 function hub_builder_get_xpath($sourceUrl) {
   $doc = new DOMDocument;
   if (!@$doc->load($sourceUrl))
-    throw new Exception(t('Could not load source feed. !message', array('!message' => print_r(error_get_last(), true))));
+    throw new Exception(t('Could not load source feed. !message', array('!message' => print_r(error_get_last(), TRUE))));
 
   $xpath = new DOMXPath($doc);
   $xpath->registerNamespace('catalog', 'http://www.middlebury.edu/course_catalog');
@@ -410,7 +410,7 @@ function hub_builder_get_section_data(HubBuilder_Term $term, DOMElement $item, D
   $data['studentGroupDN'] = 'CN=' . strtolower($code) . '-students,OU=' . $sm[1] . $sm[2] . ',' . $baseDN;
   $data['auditGroupDN'] = 'CN=' . strtolower($code) . '-audits,OU=' . $sm[1] . $sm[2] . ',' . $baseDN;
 
-  $data['institutionGroupDN'] = variable_get('hub_builder_institution_dn', false);
+  $data['institutionGroupDN'] = variable_get('hub_builder_institution_dn', FALSE);
   if (!$data['institutionGroupDN'])
     throw new InvalidArgumentException('Institution Group DN is not defined.');
 
@@ -507,7 +507,7 @@ function hub_builder_build_site_xml_from_data(array $data) {
   );
   foreach ($elements as $key => $info) {
     if (!isset($data[$key]))
-      throw new InvalidArgumentException(t("\$data is missing %key, @info. \n<pre>@data</pre>", array('%key' => $key, '@info' => $info, '@data' => print_r($data, true))));
+      throw new InvalidArgumentException(t("\$data is missing %key, @info. \n<pre>@data</pre>", array('%key' => $key, '@info' => $info, '@data' => print_r($data, TRUE))));
   }
 
   extract($data);

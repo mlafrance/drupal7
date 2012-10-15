@@ -130,7 +130,7 @@ function wordpress_resource_hub_get_resource_types() {
  * @return array
  *    An array of url strings.
  */
-function wordpress_resource_hub_get_resource_url($resourceNode, $path = '', $authenticated = false) {
+function wordpress_resource_hub_get_resource_url($resourceNode, $path = '', $authenticated = FALSE) {
   if ($resourceNode->type == 'wordpress_resource')
     return wordpress_resource_get_url($resourceNode->field_wp_sitename[0]['value'], $path, $authenticated);
 }
@@ -143,7 +143,7 @@ function wordpress_resource_hub_get_resource_url($resourceNode, $path = '', $aut
  * @return string
  *      The URL to the site
  */
-function wordpress_resource_get_url($sitename = '', $path = '', $authenticated = false) {
+function wordpress_resource_get_url($sitename = '', $path = '', $authenticated = FALSE) {
   $scheme = variable_get('wordpress_resource_scheme', 'http');
   $host = variable_get('wordpress_resource_host', 'blogs.middlebury.edu');
   $basePath = variable_get('wordpress_resource_base_path', '/');
@@ -221,7 +221,7 @@ function wordpress_resource_hub_get_resource_updates($resourceNode) {
   if (!$resourceNode->field_wp_sitename[0]['value'])
     return array();
 
-  $postUpdates = rss_resource_fetch_updates(wordpress_resource_hub_get_resource_url($resourceNode, 'feed/', true), $resourceNode);
-  $commentUpdates = rss_resource_fetch_updates(wordpress_resource_hub_get_resource_url($resourceNode, 'comments/feed/', true), $resourceNode);
+  $postUpdates = rss_resource_fetch_updates(wordpress_resource_hub_get_resource_url($resourceNode, 'feed/', TRUE), $resourceNode);
+  $commentUpdates = rss_resource_fetch_updates(wordpress_resource_hub_get_resource_url($resourceNode, 'comments/feed/', TRUE), $resourceNode);
   return array_merge($postUpdates, $commentUpdates);
 }

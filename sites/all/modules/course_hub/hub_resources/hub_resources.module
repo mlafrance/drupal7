@@ -53,7 +53,7 @@ function hub_resources_block($op = 'list', $delta = 0, $edit = array()) {
 }
 
 /**
- * Answer true if we are on a resources page and the block should be displayed.
+ * Answer TRUE if we are on a resources page and the block should be displayed.
  */
 function hub_resources_controls_visible() {
   return preg_match('/.+\/resources([?#].+)?$/', course_hub_get_path());

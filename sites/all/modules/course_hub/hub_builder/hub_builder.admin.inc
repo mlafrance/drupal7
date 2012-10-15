@@ -287,7 +287,7 @@ function hub_builder_single_form_submit(&$form, &$form_state) {
       }
       $data['instructors'] = $instructors;
 
-      $data['institutionGroupDN'] = variable_get('hub_builder_institution_dn', false);
+      $data['institutionGroupDN'] = variable_get('hub_builder_institution_dn', FALSE);
 
 
       $xml = hub_builder_build_site_xml_from_data($data);

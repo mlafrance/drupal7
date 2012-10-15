@@ -119,7 +119,7 @@ function course_hub_stats_resource_list($mmtid, $resource_type) {
       $row[] = 'error';
     }
     $node = node_load($nid);
-    $row[] = node_view($node, true);
+    $row[] = node_view($node, TRUE);
     $rows[] = $row;
   }
   array_multisort($paths, $rows);
@@ -294,17 +294,17 @@ function course_hub_stats_get_pages($selected_tid = NULL) {
   $hub_root_tid = course_hub_tid_from_path('hub');
   $tree = mm_content_get_tree($hub_root_tid, array(
     MM_GET_TREE_DEPTH => 4,
-    MM_GET_TREE_RETURN_FLAGS => true,
+    MM_GET_TREE_RETURN_FLAGS => TRUE,
     MM_GET_TREE_WHERE => "theme!='coursehub_site' AND alias NOT IN ('about', 'updates', 'resources', 'syllabus')",
   ));
   $pages = array();
-  $in_term = false;
+  $in_term = FALSE;
   foreach ($tree as $i => $page) {
     // Skip subjects not under the currently selected term.
     if ($in_term && $page->level <= 3)
-      $in_term = false;
+      $in_term = FALSE;
     if ($page->mmtid == $selected_tid && $page->level == 3)
-      $in_term = true;
+      $in_term = TRUE;
     if ($page->level > 3 && !$in_term && $page->mmtid != $selected_tid)
       continue;
 

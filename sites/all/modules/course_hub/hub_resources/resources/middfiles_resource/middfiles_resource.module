@@ -286,7 +286,7 @@ function _middfiles_resource_get_short_path($dir) {
   return implode('/', $parts);
 }
 
-function _middfiles_resource_file_size($file, $setup = null)
+function _middfiles_resource_file_size($file, $setup = NULL)
 {
   $FZ = ($file && @is_file($file)) ? filesize($file) : NULL;
   $FS = array("B","kB","MB","GB","TB","PB","EB","ZB","YB");
@@ -359,11 +359,11 @@ function middfiles_resource_scan() {
         $resource_page_tid = course_hub_tid_from_path($resource_page_path);
         if (!is_null($resource_page_tid)) {
           $nids = mm_content_get_nids_by_mmtid($resource_page_tid);
-          $has_middfiles = false;
+          $has_middfiles = FALSE;
           foreach ($nids as $nid) {
             $node = node_load($nid);
             if ($node->type == 'middfiles_resource') {
-              $has_middfiles = true;
+              $has_middfiles = TRUE;
               break;
             }
           }
@@ -420,11 +420,11 @@ function middfiles_html_resource_scan() {
         $resource_page_tid = course_hub_tid_from_path($resource_page_path);
         if (!is_null($resource_page_tid)) {
           $nids = mm_content_get_nids_by_mmtid($resource_page_tid);
-          $has_middfiles = false;
+          $has_middfiles = FALSE;
           foreach ($nids as $nid) {
             $node = node_load($nid);
             if ($node->type == 'middfiles_html_resource') {
-              $has_middfiles = true;
+              $has_middfiles = TRUE;
               break;
             }
           }

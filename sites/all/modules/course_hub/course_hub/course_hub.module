@@ -64,9 +64,9 @@ function course_hub_get_course_site_metadata($mmtid) {
 }
 
 /**
- * Answer true if the current page is a child of the page at the relative path given.
+ * Answer TRUE if the current page is a child of the page at the relative path given.
  * For example, if the current relative path is resources/class, then this function would return
- * true for course_hub_is_child_of('resources');
+ * TRUE for course_hub_is_child_of('resources');
  *
  * @param string $relativePath
  *      The path (relative to the course site root) of the parent to check.
@@ -77,44 +77,44 @@ function course_hub_is_child_of($relativePath) {
 
   // No parents, we are at the root
   if (count($term_ids) < 2)
-    return false;
+    return FALSE;
 
   $parent = intval($term_ids[count($term_ids) - 2]);
   return ($parent == course_hub_get_course_site_tid($relativePath));
 }
 
 /**
- * Answer true if the current page is the root of the course hub.
+ * Answer TRUE if the current page is the root of the course hub.
  *
  * @return boolean
  */
 function course_hub_is_course_site_root() {
   global $theme_key;
   if ($theme_key != 'coursehub_site')
-    return false;
+    return FALSE;
   mm_parse_args($term_ids, $oarg_list, $current_tid);
   if (count($term_ids) <= 1)
-    return false;
+    return FALSE;
   if (count($oarg_list))
-    return false;
+    return FALSE;
   $rootTID = mm_content_get_blocks_at_mmtid($term_ids);
   return ($rootTID == $current_tid);
 }
 
 /**
- * Answer true if the current page is part of a course hub site.
+ * Answer TRUE if the current page is part of a course hub site.
  *
  * @return boolean
  */
 function course_hub_is_course_site() {
   global $theme_key;
   if ($theme_key != 'coursehub_site')
-    return false;
+    return FALSE;
   mm_parse_args($term_ids, $oarg_list, $current_tid);
   if (count($term_ids) <= 1)
-    return false;
+    return FALSE;
 
-  return true;
+  return TRUE;
 }
 
 /**
@@ -123,7 +123,7 @@ function course_hub_is_course_site() {
  * @param optional int $tid
  * @return string
  */
-function course_hub_get_path($tid = null) {
+function course_hub_get_path($tid = NULL) {
   if (is_null($tid))
     $path = $_GET["q"];
   else
@@ -139,12 +139,12 @@ function course_hub_get_path($tid = null) {
  * @param string $path
  *      The path to the page
  * @return int
- *      The page tid or null if not found.
+ *      The page tid or NULL if not found.
  */
 function course_hub_tid_from_path($path) {
-  custom_url_rewrite_inbound($result, $path, null);
+  custom_url_rewrite_inbound($result, $path, NULL);
   if (!preg_match('/^mm\/([0-9]+)$/', $result, $matches))
-    return null;
+    return NULL;
   return intval($matches[1]);
 }
 
@@ -198,7 +198,7 @@ function course_hub_preprocess_page(&$vars) {
  *      The mmtid of the page on which the update should be placed.
  */
 function course_hub_get_visibility_page($parentPageTID, $visibility) {
-  $pages = mm_content_get_tree($parentPageTID, array(MM_GET_TREE_FILTER_HIDDEN => true, MM_GET_TREE_DEPTH => 1, 'pprune' => 0));
+  $pages = mm_content_get_tree($parentPageTID, array(MM_GET_TREE_FILTER_HIDDEN => TRUE, MM_GET_TREE_DEPTH => 1, 'pprune' => 0));
   foreach ($pages as $page) {
     if ($page->alias == $visibility)
       return $page->mmtid;
@@ -278,13 +278,13 @@ function course_hub_block($op = 'list', $delta = 0, $edit = array()) {
  *
  * @return boolean
  */
-function course_hub_roster_visible($course_site_mmtid = null) {
-  static $visible = null;
+function course_hub_roster_visible($course_site_mmtid = NULL) {
+  static $visible = NULL;
 
   if (is_null($visible)) {
     global $user;
     if (!$user->uid) {
-      $visible = false;
+      $visible = FALSE;
       return $visible;
     }
 
@@ -294,7 +294,7 @@ function course_hub_roster_visible($course_site_mmtid = null) {
       $metadata = course_hub_get_course_site_metadata($course_site_mmtid);
       $instructors_gid = casmmsync_get_group_by_dn($metadata->field_instructors_dn[0]['value']);
       if (empty($instructors_gid))
-        return false;
+        return FALSE;
       $instructors = mm_content_get_users_in_group($instructors_gid);
 
       $visible = (isset($instructors[$user->uid]));
@@ -302,7 +302,7 @@ function course_hub_roster_visible($course_site_mmtid = null) {
     } catch (Exception $e) {
     }
 
-    $visible = false;
+    $visible = FALSE;
   }
   return $visible;
 }
@@ -314,7 +314,7 @@ function course_hub_roster_visible($course_site_mmtid = null) {
  */
 function course_hub_get_roster_link() {
   if (!course_hub_roster_visible())
-    return null;
+    return NULL;
 
   ob_start();
   print "<ul class='menu'>";
@@ -341,7 +341,7 @@ function course_hub_menu() {
     'description' => 'Browse Course Sites',
     'page callback' => 'course_hub_browse',
     'type' => MENU_CALLBACK,
-    'access callback' => true,
+    'access callback' => TRUE,
   );
   $items['admin/course_hub'] = array(
     'title' => t('Course Hub'),
@@ -420,7 +420,7 @@ function course_hub_menu() {
     'description' => 'Class Roster',
     'page callback' => 'course_hub_roster_view',
     'type' => MENU_NORMAL_ITEM,
-    'access callback' => true,
+    'access callback' => TRUE,
     'file' => 'course_hub_roster.inc',
   );
   $items['mm/%mm_mmtid/roster/photo/%'] = array(
@@ -428,7 +428,7 @@ function course_hub_menu() {
     'page callback' => 'course_hub_roster_photo',
     'page arguments' => array(1, 4),
     'type' => MENU_CALLBACK,
-    'access callback' => true,
+    'access callback' => TRUE,
     'file' => 'course_hub_roster.inc',
   );
   return $items;
@@ -458,7 +458,7 @@ function course_hub_theme($existing, $type, $theme, $path) {
 }
 
 /**
- * Answer true if the user is authenticated, false otherwise.
+ * Answer TRUE if the user is authenticated, FALSE otherwise.
  */
 function course_hub_is_authenticated() {
   global $user;
@@ -480,7 +480,7 @@ function course_hub_browse() {
   $custom_theme = 'coursehub_browse';
 
   $_GET["q"] = 'mm/7';
-  $course_hub_browsing = true; // A flag used to communicate between course_hub_browse() and course_hub_preprocess_page().
+  $course_hub_browsing = TRUE; // A flag used to communicate between course_hub_browse() and course_hub_preprocess_page().
   return mm_show_page();
 }
 

@@ -34,7 +34,7 @@ function link_resource_url_validate($form, &$form_state) {
  * @param string $url
  *      The URL to validate
  * @return boolean
- *      true if valid, false if not.
+ *      TRUE if valid, FALSE if not.
  */
 function link_resource_validate_url($url) {
   $regex = '@
