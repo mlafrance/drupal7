@@ -46,3 +46,9 @@
 [submodule "sites/all/modules/simplehtmldom"]
 	path = sites/all/modules/simplehtmldom
 	url = http://git.drupal.org/project/simplehtmldom.git
+[submodule "sites/all/modules/cas"]
+	path = sites/all/modules/cas
+	url = http://git.drupal.org/project/cas.git
+[submodule "sites/all/libraries/CAS"]
+	path = sites/all/libraries/CAS
+	url = git://github.com/Jasig/phpCAS.git
