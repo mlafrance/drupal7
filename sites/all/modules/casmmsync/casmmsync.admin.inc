@@ -14,7 +14,7 @@ function casmmsync_menu() {
   $items = array();
 
   $items['admin/user/casmmsync'] = array(
-    'title' => t('CAS-MM Sync settings'),
+    'title' => 'CAS-MM Sync settings',
     'description' => 'Configure synchronization of users and groups from a CASDirectory into Monster Menus',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('casmmsync_admin_settings'),
