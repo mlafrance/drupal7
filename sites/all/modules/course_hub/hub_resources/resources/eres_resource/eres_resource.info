@@ -1,4 +1,3 @@
-; $Id$
 name = ERES Resource
 description = "ERES Resources to provide the class with a link to the EReserves page for the course and updates of new document uploads."
 package = Course Hub Resources

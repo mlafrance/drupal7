@@ -1,6 +1,4 @@
 <?php
-// $Id$
-
 /**
  * @file
  * Configure and run updates from remote resources.

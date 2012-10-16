@@ -1,4 +1,3 @@
-; $Id$
 name = Course Hub Site Builder
 description = "Generates course hub sites from external data sources."
 package = Course Hub Resources

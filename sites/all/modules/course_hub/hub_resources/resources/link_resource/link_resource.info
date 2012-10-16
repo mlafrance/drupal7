@@ -1,4 +1,3 @@
-; $Id$
 name = Link Resource
 description = "Support for validating and displaying link resources."
 package = Course Hub Resources

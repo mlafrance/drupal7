@@ -1,4 +1,3 @@
-; $Id$
 name = Moodle Resource
 description = "Moodle Resources allow creation and enrollment provisioning of Moodle sites."
 package = Course Hub Resources

@@ -1,4 +1,3 @@
-; $Id$
 name = Recycle Buttons
 description = "Adds a recycle button to the top of the recycle bin pages."
 package = Course Hub Resources

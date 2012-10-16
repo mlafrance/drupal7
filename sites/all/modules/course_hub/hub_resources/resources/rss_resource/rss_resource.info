@@ -1,4 +1,3 @@
-; $Id$
 name = RSS Feed Resource
 description = "Support for validating and displaying RSS Resources."
 package = Course Hub Resources

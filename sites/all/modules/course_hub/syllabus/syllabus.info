@@ -1,4 +1,3 @@
-; $Id$
 name = Syllabus
 description = "Adds controls for syllabus managment."
 package = Course Hub Resources

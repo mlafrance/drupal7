@@ -1,4 +1,3 @@
-; $Id$
 name = Hub Resources
 description = "Provides general support for course hub resources."
 package = Course Hub Resources

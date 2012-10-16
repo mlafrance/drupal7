@@ -1,4 +1,3 @@
-; $Id$
 name = Hub Updates
 description = "Provides support for fetching and managing updates from hub resources"
 package = Course Hub Resources

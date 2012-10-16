@@ -1,4 +1,3 @@
-; $Id$
 name = WordPress Resource
 description = "Support for associating WordPress sites with a course."
 package = Course Hub Resources
