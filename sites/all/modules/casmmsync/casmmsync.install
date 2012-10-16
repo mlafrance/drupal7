@@ -1,5 +1,11 @@
 <?php
 /**
+ * @file
+ *
+ * Istaller for CAS-MM-sync
+ */
+
+/**
  * Implementation of hook_install().
  */
 function casmmsync_install() {
