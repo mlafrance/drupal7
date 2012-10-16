@@ -536,7 +536,7 @@ function casmmsync_get_or_create_group_by_dn($groupId) {
  *    The mmtid of the group or NULL if it doesn't exist.
  */
 function casmmsync_get_group_by_dn ($groupId) {
-	if (empty($groupId)) {
+  if (empty($groupId)) {
     watchdog('casmmsync', "Can't get group, no groupId passed.", array(), WATCHDOG_ERROR);
     return;
   }
