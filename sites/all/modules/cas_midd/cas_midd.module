@@ -13,7 +13,8 @@ function cas_midd_cas_phpcas_alter() {
 
   if (variable_get("cas_allow_any_proxychain", 0)) {
     phpCAS::allowProxyChain(new CAS_ProxyChain_Any);
-  } elseif (variable_get('cas_allowed_proxychains', '')) {
+  }
+  elseif (variable_get('cas_allowed_proxychains', '')) {
     eval(variable_get('cas_allowed_proxychains', ''));
   }
 
@@ -218,12 +219,14 @@ function cas_midd_block($op = 'list', $delta = 0, $edit = array()) {
   elseif ($op == 'save' && $delta == 0) {
     if ($edit['login_text'] && $edit['login_text'] != 'Log On') {
       variable_set('cas_midd_login_text', $edit['login_text']);
-    } else {
+    }
+    else {
       variable_del('cas_midd_login_text');
     }
     if ($edit['logout_text'] && $edit['logout_text'] != 'Log Off') {
       variable_set('cas_midd_logout_text', $edit['logout_text']);
-    } else {
+    }
+    else {
       variable_del('cas_midd_logout_text');
     }
   }
@@ -303,7 +306,8 @@ function cas_midd_login_url ($destination = null) {
   if (!$destination) {
     if (!empty($_REQUEST['q'])) {
       $destination = $_REQUEST['q'];   
-    } else {
+    }
+    else {
       $destination = base_path();
     }
   }
@@ -321,7 +325,8 @@ function cas_midd_logout_url ($destination = null) {
   if (!$destination) {
     if (!empty($_REQUEST['q'])) {
       $destination = $_REQUEST['q'];   
-    } else {
+    }
+    else {
       $destination = base_path();
     }
   }

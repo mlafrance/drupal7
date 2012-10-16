@@ -166,7 +166,8 @@ function _casmmsync_receive_group_update() {
     variable_set('casmmsync_group_update_queue', $queue);
     watchdog('casmmsync', "Cron running. Queued group for later sync: @groupDN.", array('@groupDN' => $_REQUEST['group_id']));
     print t("Cron running. Queued group for later sync: @groupDN.", array('@groupDN' => $_REQUEST['group_id']));
-  } else {
+  }
+  else {
     // Act as the admin user to create or delete groups
     global $user;
     $user = user_load(1);
@@ -202,7 +203,8 @@ function casmmsync_update_group($groupDN) {
      $results = db_query("SELECT group_id, mmtid FROM {casmmsync_group_map} WHERE group_id='%s'", $groupDN);
      if ($data = db_fetch_object($results)) {
        _casmmsync_delete_group($data->group_id, $data->mmtid);
-     } else {
+     }
+     else {
        watchdog('casmmsync', "Couldn't delete group @groupDN. Couldn't find the mmtid.", array('@groupDN' => $groupDN));
      }
      return;
@@ -305,14 +307,16 @@ function _casmmsync_sync_users() {
           foreach ($attributes['MemberOf'] as $groupId) {
             if (empty($groupId)) {
               watchdog('casmmsync', 'Empty MemberOf for user @uid (@webId).', array('@uid' => $uid, '@webId' => $webId), WATCHDOG_ERROR);
-            } else {
+            }
+            else {
               if (!isset($groups[$groupId]))
                 $groups[$groupId] = array();
               $groups[$groupId][] = $uid;
             }
           }
         }
-      } else {
+      }
+      else {
         $failed++;
       }
     }
@@ -491,7 +495,8 @@ function _casmmsync_get_attributes($xpath, $userElement) {
       }
 
       $attributes[$name][] = $value;
-    } else {
+    }
+    else {
       $attributes[$name] = $value;
     }
   }
@@ -918,7 +923,8 @@ function _casmmsync_parse_profile_field_map ($text) {
     // validate non-empty lines.
     if (preg_match('/^([^=]+)=(.+)$/', $line, $m)) {
       $map[trim($m[1])] = trim($m[2]);
-    } else {
+    }
+    else {
       throw new InvalidArgumentException(t('Invalid field map line: %line', array('%line' => $line)));
     }
   }
