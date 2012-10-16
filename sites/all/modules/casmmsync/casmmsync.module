@@ -196,7 +196,7 @@ function casmmsync_update_group($groupDN) {
   $base = variable_get('casmmsync_path', '');
   $doc = new DOMDocument;
   $url = $base . '?' . http_build_query($params, NULL, '&');
-  if(!$doc->load($url)) {
+  if (!$doc->load($url)) {
      watchdog('casmmsync', "Group is gone: @groupDN. Couldn't load XML at @url", array('@groupDN' => $groupDN, '@url' => $url));
      print t("Group is gone: @groupDN. Couldn't load XML at <a href='!url'>@url</a>", array('@groupDN' => $groupDN, '@url' => $url, '!url' => $url));
 
@@ -285,7 +285,7 @@ function _casmmsync_sync_users() {
 
   while (TRUE) {
 //   while ($synced < 1000 && $failed < 100) {
-    if(!$doc->load($base . '?' . http_build_query($params, NULL, '&')))
+    if (!$doc->load($base . '?' . http_build_query($params, NULL, '&')))
       throw new Exception('Failed to load ' . $base . '?' . http_build_query($params, NULL, '&'));
 
     $xpath = new DOMXPath($doc);
