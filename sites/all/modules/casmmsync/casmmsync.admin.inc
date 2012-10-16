@@ -24,7 +24,7 @@ function casmmsync_menu() {
 
   $items['casmmsync/update_group'] = array(
     'page callback' => '_casmmsync_receive_group_update',
-    'access callback' => true,
+    'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
 
@@ -90,8 +90,8 @@ function casmmsync_admin_settings() {
     '#type' => 'checkbox',
     '#title' => t('Always sync users'),
     '#default_value' => variable_get('casmmsync_always_sync_users', TRUE),
-    '#description' => t('If checked, users and groups will be synced on every cron run. <br/> If not checked, they will only be synced on cron runs that include <code>casmmsync_sync_users=true</code> in the request. This can be passed to cron web-requests as GET or POST variables such as in this example URL: <br/>&nbsp; &nbsp; <code>http://www.example.com/cron.php?casmmsync_sync_users=true</code> <br/><a href="!url">Run cron manually with user sync</a>. ', array(
-      '!url' => url('admin/reports/status/run-cron', array('query' => array('casmmsync_sync_users' => 'true'), 'absolute' => true,)),
+    '#description' => t('If checked, users and groups will be synced on every cron run. <br/> If not checked, they will only be synced on cron runs that include <code>casmmsync_sync_users=TRUE</code> in the request. This can be passed to cron web-requests as GET or POST variables such as in this example URL: <br/>&nbsp; &nbsp; <code>http://www.example.com/cron.php?casmmsync_sync_users=TRUE</code> <br/><a href="!url">Run cron manually with user sync</a>. ', array(
+      '!url' => url('admin/reports/status/run-cron', array('query' => array('casmmsync_sync_users' => 'TRUE'), 'absolute' => TRUE,)),
 
     )),
   );
@@ -115,7 +115,7 @@ function casmmsync_admin_settings() {
           'passkey' => 'XXXXX',
           'group_id' => 'YYYYY',
         ),
-        'absolute' => true,
+        'absolute' => TRUE,
       )))
     ),
   );

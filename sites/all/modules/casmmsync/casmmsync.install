@@ -68,8 +68,8 @@ function casmmsync_update_6001() {
     'cassmmsync_update_passkey' => 'casmmsync_update_passkey',
   );
   foreach ($vars as $old => $new) {
-    if (!variable_get($new, false) && variable_get($old, false)) {
-      variable_set($new, variable_get($old, false));
+    if (!variable_get($new, FALSE) && variable_get($old, FALSE)) {
+      variable_set($new, variable_get($old, FALSE));
       variable_del($old);
     }
   }

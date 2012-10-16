@@ -27,7 +27,7 @@ function casmmsync_user($op, &$edit, &$user) {
     $new_cas_group_dns = casmmsync_get_group_ids(cas_phpcas_attributes());
     // If we have an empty list, just stop in case there was an error in the response.
     if (empty($new_cas_group_dns)) {
-      watchdog('casmmsync', "On login skipping groups due to empty list of group dns. @attributes", array('@attributes' => print_r(cas_phpcas_attributes(), true)), WATCHDOG_NOTICE, l(t('edit'), 'user/' . $user->uid . '/edit'));
+      watchdog('casmmsync', "On login skipping groups due to empty list of group dns. @attributes", array('@attributes' => print_r(cas_phpcas_attributes(), TRUE)), WATCHDOG_NOTICE, l(t('edit'), 'user/' . $user->uid . '/edit'));
       return;
     }
     
@@ -87,15 +87,15 @@ function casmmsync_cron() {
   $user = user_load(1);
 
   // Skip syncing users if desired.
-  if (variable_get('casmmsync_always_sync_users', TRUE) || (isset($_REQUEST['casmmsync_sync_users']) && strtolower($_REQUEST['casmmsync_sync_users']) == 'true')) {
+  if (variable_get('casmmsync_always_sync_users', TRUE) || (isset($_REQUEST['casmmsync_sync_users']) && strtolower($_REQUEST['casmmsync_sync_users']) == 'TRUE')) {
     try {
       watchdog('casmmsync', "Sync started.", array(), WATCHDOG_NOTICE);
-      $start = microtime(true);
+      $start = microtime(TRUE);
       
       $groups = _casmmsync_sync_users();
       _casmmsync_sync_groups($groups);
       
-      $end = microtime(true);
+      $end = microtime(TRUE);
       watchdog('casmmsync', "Sync completed in @time.", array('@time' => _casmmsync_format_time($end - $start)), WATCHDOG_NOTICE);
     } catch (Exception $e) {
       watchdog('casmmsync', "Sync failed with %error", array('%error' => $e->getMessage()), WATCHDOG_ERROR);
@@ -160,7 +160,7 @@ function _casmmsync_receive_group_update() {
 
   // If cron is currently running, add our group to a queue to be updated at the
   // end of group sync or on the next cron run.
-  if (variable_get('cron_semaphore', false)) {
+  if (variable_get('cron_semaphore', FALSE)) {
     $queue = variable_get('casmmsync_group_update_queue', array());
     $queue[] = $_REQUEST['group_id'];
     variable_set('casmmsync_group_update_queue', $queue);
@@ -195,7 +195,7 @@ function casmmsync_update_group($groupDN) {
   );
   $base = variable_get('casmmsync_path', '');
   $doc = new DOMDocument;
-  $url = $base . '?' . http_build_query($params, null, '&');
+  $url = $base . '?' . http_build_query($params, NULL, '&');
   if(!$doc->load($url)) {
      watchdog('casmmsync', "Group is gone: @groupDN. Couldn't load XML at @url", array('@groupDN' => $groupDN, '@url' => $url));
      print t("Group is gone: @groupDN. Couldn't load XML at <a href='!url'>@url</a>", array('@groupDN' => $groupDN, '@url' => $url, '!url' => $url));
@@ -269,7 +269,7 @@ function _casmmsync_sync_users() {
     'ADMIN_ACCESS' => variable_get('casmmsync_adminkey', ''),
     'action'       => 'get_all_users',
     'page'         => 0,
-    'include_membership' => 'true',
+    'include_membership' => 'TRUE',
   );
   $base = variable_get('casmmsync_path', '');
 
@@ -283,10 +283,10 @@ function _casmmsync_sync_users() {
 
   $doc = new DOMDocument;
 
-  while (true) {
+  while (TRUE) {
 //   while ($synced < 1000 && $failed < 100) {
-    if(!$doc->load($base . '?' . http_build_query($params, null, '&')))
-      throw new Exception('Failed to load ' . $base . '?' . http_build_query($params, null, '&'));
+    if(!$doc->load($base . '?' . http_build_query($params, NULL, '&')))
+      throw new Exception('Failed to load ' . $base . '?' . http_build_query($params, NULL, '&'));
 
     $xpath = new DOMXPath($doc);
     $xpath->registerNamespace('cas', 'http://www.yale.edu/tp/cas');
@@ -552,7 +552,7 @@ function casmmsync_get_group_by_dn($groupId) {
   if (!empty($groupTId))
     return $groupTId;
   else
-    return null;
+    return NULL;
 }
 
 /**
@@ -589,7 +589,7 @@ function _casmmsync_sync_groups($groups) {
     db_query("DELETE FROM {mm_group} WHERE gid='%d' AND uid NOT IN (" . db_placeholders($members, 'int') . ")", $args);
 
     // Wipe out the member array to free memory.
-    $groups[$groupId] = null;
+    $groups[$groupId] = NULL;
 
     // Debugging status output
     if (variable_get('casmmsync_show_debug', FALSE) &&  $synced && $synced % 10 == 0) {
@@ -893,7 +893,7 @@ function _casmmsync_set_profile_field_value($uid, $field, $value) {
  * @return array
  */
 function _casmmsync_get_profile_field_map() {
-  static $map = null;
+  static $map = NULL;
   
   if (is_null($map)) {
     try {

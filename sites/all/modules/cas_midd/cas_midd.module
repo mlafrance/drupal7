@@ -302,7 +302,7 @@ function cas_midd_plain_login() {
  * 
  * @return string
  */
-function cas_midd_login_url($destination = null) {
+function cas_midd_login_url($destination = NULL) {
   if (!$destination) {
     if (!empty($_REQUEST['q'])) {
       $destination = $_REQUEST['q'];   
@@ -321,7 +321,7 @@ function cas_midd_login_url($destination = null) {
  * 
  * @return string
  */
-function cas_midd_logout_url($destination = null) {
+function cas_midd_logout_url($destination = NULL) {
   if (!$destination) {
     if (!empty($_REQUEST['q'])) {
       $destination = $_REQUEST['q'];   
