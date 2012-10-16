@@ -1,0 +1,331 @@
+<?php
+
+/**
+ * Implementation of cas_phpcas_alter()
+ *
+ * Initialize phpCAS further.
+ */
+function cas_midd_cas_phpcas_alter() {
+  // If we have a different URL to use for proxy-granting-ticket (PGT) storage.
+  if (variable_get("cas_fixed_callback_url", '')) {
+    phpCAS::setFixedCallbackURL(variable_get("cas_fixed_callback_url", ''));
+  }
+
+  if (variable_get("cas_allow_any_proxychain", 0)) {
+    phpCAS::allowProxyChain(new CAS_ProxyChain_Any);
+  } else if (variable_get('cas_allowed_proxychains', '')) {
+    eval(variable_get('cas_allowed_proxychains', ''));
+  }
+
+  // If we have a proxy ticket don't append the destination to the service URL
+  // unless it is already there.
+  if (!empty($_REQUEST['ticket']) && empty($_REQUEST['destination']) && !empty($_GET['q']) && $_GET['q'] != 'cas') {
+    // If we used the service URL set in cas_phpcas_init(), then it wouldn't match the url
+    // that the proxy-ticket was generated for and CAS would fail its validation.
+    phpCAS::setFixedServiceURL(url($_GET['q'], array('absolute' => TRUE)));
+
+    // Set the REQUEST['destination'] so that drupal_goto() called by cas_login_page()
+    // knows where to go.
+    $_REQUEST['destination'] = $_GET['q'];
+  }
+}
+
+/**
+ * Implementation of hook_form_alter()
+ */
+function cas_midd_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'cas_admin_settings') {
+    $form['advanced']['cas_fixed_callback_url'] = array(
+      '#type' => 'textfield',
+      '#title' => t('CAS PGT Fixed Callback URL'),
+      '#default_value' => variable_get('cas_fixed_callback_url', ''),
+      '#size' => 30,
+      '#description' => t("Only needed if 'Initialize CAS as proxy' is configured. Leave empty for default. When using proxy-initialization, the CAS server needs to make a request to an SSL url with the PGT-IOU that will allow access to a proxy-granting ticket (PGT). If your site is available under SSL (https), then the default will work fine. If your site isn't avalible under SSL, but shares a file-system with an SSL-enabled host, then an alternate fixed callback URL can be used to store the PGT-IOU. For example, if your primary hostname doesn't support SSL, your login link might be http://www.example.com/cas. If you have a separate host-name for SSL access your callback url might be https://encrypted.example.com/cas."),
+    );
+
+    $form['advanced']['allowed_proxies'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Allowed Proxies'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+    );
+
+    $form['advanced']['allowed_proxies']['cas_allow_any_proxychain'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Allow any proxy-chain in front of Drupal'),
+      '#default_value' => variable_get('cas_allow_any_proxychain', 0),
+      '#description' => t('Allow any applications to proxy their CAS authentication to Drupal. <strong>THIS SETTING NOT RECOMMENDED FOR PRODUCTION USE.</strong> This setting is useful for testing, but it is much better to explicitly list trusted applications (below) that will be allowed to make proxy-authenticated requests to Drupal.'),
+    );
+
+    $form['advanced']['allowed_proxies']['cas_allowed_proxychains'] = array(
+      '#type' => 'textarea',
+      '#cols' => 40,
+      '#rows' => 5,
+      '#title' => t('Allowed proxy-chains in front of Drupal'),
+      '#default_value' => variable_get('cas_allowed_proxychains', ''),
+      '#description' => t("If you want your service to be proxied you have to enable it (default
+disabled) and define an accepable list of proxies that are allowed to
+proxy your service.
+<br/><br/>Add each allowed proxy definition object. For the normal CAS_ProxyChain
+class, the constructor takes an array of proxies to match. The list is in
+reverse just as seen from the service. Proxies have to be defined in reverse
+from the service to the user. If a user hits service A and gets proxied via
+B to service C the list of acceptable on C would be array(B,A). The definition
+of an individual proxy can be either a string or a regexp (preg_match is used)
+that will be matched against the proxy list supplied by the cas server
+when validating the proxy tickets. The strings are compared starting from
+the beginning and must fully match with the proxies in the list. Example:
+<pre>phpCAS::allowProxyChain(new CAS_ProxyChain(array(
+    'https://app.example.com/'
+  )));
+phpCAS::allowProxyChain(new CAS_ProxyChain(array(
+    '/^https:\/\/app[0-9]\.example\.com\/rest\//',
+    'http://client.example.com/'
+  )));</pre>"),
+    );
+
+    // Add validation
+    $form['#validate'][] = 'cas_midd_admin_settings_validate';
+  }
+}
+
+/**
+ * Validation for the CAS admin settings form
+ *
+ */
+function cas_midd_admin_settings_validate ($form, &$form_state) {
+  if (!empty($form_state['values']['cas_allow_any_proxychain']) && !empty($form_state['values']['cas_allowed_proxychains'])) {
+    form_set_error('advanced][allowed_proxies][cas_allow_any_proxychain', t('Cannot allow all proxy-chains if particular allowed proxy-chains are defined.'));
+  }
+}
+
+/**
+ * Implementation of hook_user()
+ *
+ * Renames the user account using CAS attributes if authenticated via CAS.
+ */
+function cas_midd_user ($op, &$edit, &$account, $category = NULL) {
+  // For cas logins, set the user properties based on the CAS attributes.
+  if ($op == 'login' && class_exists('phpCAS') && phpCAS::isSessionAuthenticated()) {
+    $changes = array();
+    $name = cas_midd_get_name(cas_phpcas_attributes());
+    if ($name && $name != $account->name)
+      $changes['name'] = $name;
+    $mail = cas_midd_get_mail(cas_phpcas_attributes());
+    if ($mail && $mail != $account->mail)
+      $changes['mail'] = $mail;
+    if (count($changes))
+      $account = user_save($account, $changes);
+  }
+  // Case for scheduled synchronizing of users.
+  else if ($op = 'update' && isset($edit['casmmsync_attributes'])) {
+    $changes = array();
+    $name = cas_midd_get_name($edit['casmmsync_attributes']);
+    if ($name && $name != $account->name)
+      $changes['name'] = $name;
+    $mail = cas_midd_get_mail($edit['casmmsync_attributes']);
+    if ($mail && $mail != $account->mail)
+      $changes['mail'] = $mail;
+    if (count($changes))
+      $account = user_save($account, $changes);
+  }
+}
+
+/**
+ * Answer a name from a set of attributes.
+ * 
+ * @param array $attributes
+ *      Attributes returned by phpCAS::getAttributes();
+ * @return string
+ *      Return a name string or NULL if no name can be generated.
+ */
+function cas_midd_get_name (array $attributes) {
+  $name = '';
+  if (isset($attributes['FirstName']))
+    $name .= $attributes['FirstName'].' ';
+  if (isset($attributes['LastName']))
+    $name .= $attributes['LastName'].' ';
+  if (isset($attributes['EMail']))
+    $name .= $attributes['EMail'];
+  
+  $name = trim($name);
+  if (strlen($name))
+    return $name;
+  else
+    return NULL;
+}
+
+/**
+ * Answer a mail from a set of attributes.
+ * 
+ * @param array $attributes
+ *      Attributes returned by phpCAS::getAttributes();
+ * @return string
+ *      Return a mail string or NULL if no mail can be generated.
+ */
+function cas_midd_get_mail (array $attributes) {
+  if (!isset($attributes['EMail']))
+    return NULL;
+  
+  $mail = $attributes['EMail'];
+  $mail = trim($mail);
+  if (strlen($mail))
+    return $mail;
+  else
+    return NULL;
+}
+
+/**
+ * Implements hook_block().
+ */
+function cas_midd_block($op = 'list', $delta = 0, $edit = array()) {
+  if ($op == 'list') {
+    $blocks[0] = array(
+      'info' => t('Midd CAS Login'), 
+      'cache' => BLOCK_CACHE_PER_ROLE | BLOCK_CACHE_PER_PAGE, // The return URL will differ on each page, anonymous users will see 'login' while others will see 'logout'.
+      'visibility' => 0,
+      'status' => 1,
+      'weight' => 5,
+      'region' => 'left',
+    );
+    $blocks[1] = array(
+      'info' => t('Midd CAS Login w/ name'), 
+      'cache' => BLOCK_CACHE_PER_USER | BLOCK_CACHE_PER_PAGE, // The return URL will differ on each page.
+      'visibility' => 0,
+    );
+    $blocks[2] = array(
+      'info' => t('Midd CAS Login Plain'),
+      'cache' => BLOCK_CACHE_PER_USER | BLOCK_CACHE_PER_PAGE, // The return URL will differ on each page.
+      'visibility' => 0,
+    );
+
+    return $blocks;
+  }
+  else if ($op == 'configure' && $delta == 0) {
+    $form['login_text'] = array(
+      '#type' => 'textfield', 
+      '#title' => t('Login Text'), 
+      '#default_value' => variable_get('cas_midd_login_text', 'Log On'), 
+    );
+    $form['logout_text'] = array(
+      '#type' => 'textfield', 
+      '#title' => t('Logout Text'), 
+      '#default_value' => variable_get('cas_midd_logout_text', 'Log Off'), 
+    );
+    return $form;
+
+  }
+  else if ($op == 'save' && $delta == 0) {
+    if ($edit['login_text'] && $edit['login_text'] != 'Log On') {
+      variable_set('cas_midd_login_text', $edit['login_text']);
+    } else {
+      variable_del('cas_midd_login_text');
+    }
+    if ($edit['logout_text'] && $edit['logout_text'] != 'Log Off') {
+      variable_set('cas_midd_logout_text', $edit['logout_text']);
+    } else {
+      variable_del('cas_midd_logout_text');
+    }
+  }
+  else if ($op == 'view') {
+    switch ($delta) {
+      case 0:
+        // Your module will need to define this function to render the block.
+        $block = array(
+          'subject' => '<none>', 
+          'content' => cas_midd_short_login(),
+        );
+        break;
+      case 1:
+        // Your module will need to define this function to render the block.
+        $block = array(
+          'subject' => '<none>', 
+          'content' => cas_midd_long_login(),
+        );
+        break;
+      case 2:
+        // Your module will need to define this function to render the block.
+        $block = array(
+          'subject' => '<none>',
+          'content' => cas_midd_plain_login(),
+        );
+        break;
+    }
+    return $block;
+  }
+}
+
+/**
+ * Answer login/logout html.
+ * 
+ * @return string
+ */
+function cas_midd_short_login () {
+  global $user;
+  if ($user->uid > 0)
+    return '<a id="login" class="login" href="'.cas_midd_logout_url().'">'.t(variable_get('cas_midd_logout_text', 'Log Off')).'</a>';
+  else
+    return '<a id="login" class="login" href="'.cas_midd_login_url().'">'.t(variable_get('cas_midd_login_text', 'Log On')).'</a>';
+}
+
+/**
+ * Answer login/logout html.
+ * 
+ * @return string
+ */
+function cas_midd_long_login () {
+  global $user;
+  if ($user->uid > 0)
+    return t('Logged in as @name', array('@name' => $user->name)).' <a id="login_long" class="login" href="'.cas_midd_logout_url().'">'.t(variable_get('cas_midd_logout_text', 'Log Off')).'</a>';
+  else
+    return '<a id="login_long" class="login" href="'.cas_midd_login_url().'">'.t(variable_get('cas_midd_login_text', 'Log On')).'</a>';
+}
+
+/**
+ * Answer plain html.
+ *
+ * @return string
+ */
+function cas_midd_plain_login() {
+  global $user;
+  if ($user->uid > 0)
+    return '<a id="login_long" class="login" href="'.cas_midd_logout_url().'">'.t('Log Off').'</a>';
+  else
+    return '<a id="login_long" class="login" href="'.cas_midd_login_url().'">'.t('Log On').'</a>';
+}
+
+/**
+ * Answer the login URL.
+ * 
+ * @return string
+ */
+function cas_midd_login_url ($destination = null) {
+  if (!$destination) {
+    if (!empty($_REQUEST['q'])) {
+      $destination = $_REQUEST['q'];   
+    } else {
+      $destination = base_path();
+    }
+  }
+
+  custom_url_rewrite_inbound($destination, $destination, NULL);
+  return base_path().'cas?destination='.check_plain($destination);
+}
+
+/**
+ * Answer the logout URL.
+ * 
+ * @return string
+ */
+function cas_midd_logout_url ($destination = null) {
+  if (!$destination) {
+    if (!empty($_REQUEST['q'])) {
+      $destination = $_REQUEST['q'];   
+    } else {
+      $destination = base_path();
+    }
+  }
+
+  custom_url_rewrite_inbound($destination, $destination, NULL);
+  return base_path().'caslogout?destination='.check_plain($destination);
+}

@@ -1,0 +1,928 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Synchronizes users and groups from a CASDirectory into Monster Menus.
+ *
+ * Synchronizes users and groups from a CASDirectory into Monster Menus so they
+ * can be assigned permissions prior to logging in to Drupal.
+ */
+
+require_once 'casmmsync.admin.inc';
+module_load_include('inc', 'monster_menus', 'mm_create_path');
+
+/**
+ * Implementation of hook_user()
+ */
+function casmmsync_user($op, &$edit, &$user) {
+  // For cas logins, set the user properties based on the CAS attributes.
+  if ($op == 'login' && class_exists('phpCAS') && phpCAS::isSessionAuthenticated()) {
+    // Get a list of the user's existing groups
+    $existing_cas_groups = array();
+    $result = db_query("SELECT m.group_id AS dn, g.gid AS gid FROM {casmmsync_group_map} m INNER JOIN {mm_group} g ON g.gid = m.mmtid WHERE g.uid='%d'", $user->uid);    
+    while ($row = db_fetch_object($result)) {
+      $existing_cas_groups[$row->gid] = $row->dn;
+    }
+    
+    // Get a list of the new groups
+    $new_cas_group_dns = casmmsync_get_group_ids(cas_phpcas_attributes());
+    // If we have an empty list, just stop in case there was an error in the response.
+    if (empty($new_cas_group_dns)) {
+      watchdog('casmmsync', "On login skipping groups due to empty list of group dns. @attributes", array('@attributes' => print_r(cas_phpcas_attributes(), true)), WATCHDOG_NOTICE, l(t('edit'), 'user/'.$user->uid.'/edit'));
+      return;
+    }
+    
+    
+    // Remove the user from any existing CAS groups that they are no longer a member of.
+    foreach ($existing_cas_groups as $gid => $dn) {
+      if (!in_array($dn, $new_cas_group_dns)) {
+        db_query("DELETE FROM {mm_group} WHERE gid='%d' AND uid='%d'", $gid, $user->uid);
+        watchdog('casmmsync', "On login, removed user from @dn.", array('@dn' => $dn, '@user' => $user->name), WATCHDOG_NOTICE, l(t('edit'), 'user/'.$user->uid.'/edit'));
+      }
+    }
+    
+    // Add the user to any new CAS groups that they are now a part of.
+    foreach ($new_cas_group_dns as $dn) {
+      if (!in_array($dn, $existing_cas_groups)) {
+        $gid = casmmsync_get_or_create_group_by_dn($dn);
+        db_query("INSERT INTO {mm_group} (gid, uid) VALUES(%d, %d)", $gid, $user->uid);
+        watchdog('casmmsync', "On login, added user to @dn.", array('@dn' => $dn, '@user' => $user->name), WATCHDOG_NOTICE, l(t('edit'), 'user/'.$user->uid.'/edit'));
+      }
+    }
+  }
+}
+
+/**
+ * Answer an array of group ids from a set of attributes.
+ * 
+ * @param array $attributes
+ *      Attributes returned by phpCAS::getAttributes();
+ * @return string
+ *      Return a mail string or NULL if no mail can be generated.
+ */
+function casmmsync_get_group_ids (array $attributes) {
+  if (!isset($attributes['MemberOf']))
+    return array();
+  
+  if (is_array($attributes['MemberOf']))
+    return $attributes['MemberOf'];
+  else
+    return array($attributes['MemberOf']);
+}
+
+
+/**
+ * Implementation of hook_cron().
+ */
+function casmmsync_cron() {
+  if (_casmmsync_int_from_bytestring(ini_get('memory_limit')) < _casmmsync_int_from_bytestring(variable_get('memory_limit', '300M'))) {
+    ini_set('memory_limit', variable_get('memory_limit', '300M'));
+  }
+  
+  if ((int)ini_get('max_execution_time') < (int)variable_get('casmmsync_maxexectime', 300)) {
+    ini_set('max_execution_time', (int)variable_get('casmmsync_maxexectime', 300));
+  }
+  
+  // Act as the admin user to create or delete groups
+  global $user;
+  $user = user_load(1);
+
+  // Skip syncing users if desired.
+  if (variable_get('casmmsync_always_sync_users', TRUE) || (isset($_REQUEST['casmmsync_sync_users']) && strtolower($_REQUEST['casmmsync_sync_users']) == 'true')) {
+    try {
+      watchdog('casmmsync', "Sync started.", array(), WATCHDOG_NOTICE);
+      $start = microtime(true);
+      
+      $groups = _casmmsync_sync_users();
+      _casmmsync_sync_groups($groups);
+      
+      $end = microtime(true);
+      watchdog('casmmsync', "Sync completed in @time.", array('@time' => _casmmsync_format_time($end - $start)), WATCHDOG_NOTICE);
+    } catch (Exception $e) {
+      watchdog('casmmsync', "Sync failed with %error", array('%error' => $e->getMessage()), WATCHDOG_ERROR);
+      print t("Sync failed with %error", array('%error' => $e->getMessage()));
+      return;
+    }
+  }
+
+  // Sync any additional groups that might have had updates while we were running
+  // the user sync.
+  $queue = array_unique(variable_get('casmmsync_group_update_queue', array()));
+  foreach ($queue as $groupDN) {
+    casmmsync_update_group($groupDN);
+  }
+  variable_set('casmmsync_group_update_queue', array());
+}
+
+/**
+ * Format a time string.
+ * 
+ * @param float $seconds
+ * @return string
+ */
+function _casmmsync_format_time ($seconds) {
+  $time = '';
+  if ($seconds >= 3600) {
+      $hours = floor($seconds/3600);
+      if ($hours == 1)
+        $time .= '1 hour ';
+      else
+        $time .= $hours.' hours ';
+      $seconds = $seconds - ($hours * 3600);
+  }
+  if ($seconds >= 60) {
+      $minutes = floor($seconds/60);
+      if ($minutes == 1)
+        $time .= '1 minute ';
+      else
+        $time .= $minutes.' minutes ';
+      $seconds = $seconds - ($minutes * 60);
+  }
+  $time .= round($seconds, 2).' seconds';
+  return trim($time);
+}
+
+/**
+ * Receive a group update request and process it if authorized
+ */
+function _casmmsync_receive_group_update() {
+  if (!isset($_REQUEST['group_id']) || !strlen($_REQUEST['group_id'])) {
+    header('HTTP/1.1 400 Bad Request');
+    die('group_id missing.');
+  }
+  if (!isset($_REQUEST['passkey']) || !strlen($_REQUEST['passkey'])) {
+    header('HTTP/1.1 400 Bad Request');
+    die('passkey missing.');
+  }
+  if ($_REQUEST['passkey'] != variable_get('casmmsync_update_passkey', '')) {
+    header('HTTP/1.1 403 Bad Request');
+    die('Invalid passkey.');
+  }
+
+  // If cron is currently running, add our group to a queue to be updated at the
+  // end of group sync or on the next cron run.
+  if (variable_get('cron_semaphore', false)) {
+    $queue = variable_get('casmmsync_group_update_queue', array());
+    $queue[] = $_REQUEST['group_id'];
+    variable_set('casmmsync_group_update_queue', $queue);
+    watchdog('casmmsync', "Cron running. Queued group for later sync: @groupDN.", array('@groupDN' => $_REQUEST['group_id']));
+    print t("Cron running. Queued group for later sync: @groupDN.", array('@groupDN' => $_REQUEST['group_id']));
+  } else {
+    // Act as the admin user to create or delete groups
+    global $user;
+    $user = user_load(1);
+
+    casmmsync_update_group($_REQUEST['group_id']);
+  }
+}
+
+/**
+ * Update a single group by id.
+ *
+ * @param string $groupDN
+ *    The DN of the group to update.
+ */
+function casmmsync_update_group($groupDN) {
+  if (empty($groupDN)) {
+    watchdog('casmmsync', "Can't update group, no groupDN passed.", array(), WATCHDOG_ERROR);
+    return;
+  }
+  
+  $params = array(
+    'ADMIN_ACCESS' => variable_get('casmmsync_adminkey', ''),
+    'action'       => 'get_group_members',
+    'id'         => $groupDN,
+  );
+  $base = variable_get('casmmsync_path', '');
+  $doc = new DOMDocument;
+  $url = $base.'?'.http_build_query($params, null, '&');
+  if(!$doc->load($url)) {
+     watchdog('casmmsync', "Group is gone: @groupDN. Couldn't load XML at @url", array('@groupDN' => $groupDN, '@url' => $url));
+     print t("Group is gone: @groupDN. Couldn't load XML at <a href='!url'>@url</a>", array('@groupDN' => $groupDN, '@url' => $url, '!url' => $url));
+
+     $results = db_query("SELECT group_id, mmtid FROM {casmmsync_group_map} WHERE group_id='%s'", $groupDN);
+     if ($data = db_fetch_object($results)) {
+       _casmmsync_delete_group($data->group_id, $data->mmtid);
+     } else {
+       watchdog('casmmsync', "Couldn't delete group @groupDN. Couldn't find the mmtid.", array('@groupDN' => $groupDN));
+     }
+     return;
+  }
+  $xpath = new DOMXPath($doc);
+  $xpath->registerNamespace('cas', 'http://www.yale.edu/tp/cas');
+
+  $elements = $xpath->query('/cas:results/cas:entry/cas:user');
+  $newMembers = array();
+  foreach ($elements as $element) {
+    $newMembers[] = strval($element->nodeValue);
+  }
+
+  $groupTId = casmmsync_get_or_create_group_by_dn($groupDN);
+
+  $existingMembers = array();
+  $result = db_query("SELECT {users}.uid, init FROM {mm_group} LEFT JOIN users ON {mm_group}.uid = {users}.uid WHERE gid='%d'", $groupTId);
+  while ($row = db_fetch_object($result)) {
+    if ($row->init)
+      $existingMembers[] = $row->init;
+  }
+
+  $removedMembers = array_diff($existingMembers, $newMembers);
+  $addedMembers = array_diff($newMembers, $existingMembers);
+
+  foreach ($addedMembers as $webId) {
+    $userElement = $xpath->query("//cas:entry[cas:user = '".$webId."']")->item(0);
+    $attributes = _casmmsync_get_attributes($xpath, $userElement);
+    $uid = _casmmsync_sync_user($webId, $attributes);
+    @db_query('INSERT INTO {mm_group} (gid, uid) VALUES(%d, %d)', $groupTId, $uid);
+  }
+
+  foreach ($removedMembers as $webId) {
+    db_query("DELETE FROM {mm_group} WHERE gid='%d' AND uid IN (SELECT uid FROM {users} WHERE init='%s')", $groupTId, $webId);
+  }
+  
+  // Set the updated group to be selectable.
+  db_query("UPDATE {mm_tree} SET default_mode='ru' WHERE mmtid='%d'", $groupTId);
+
+  watchdog('casmmsync', "Group membership updated for @groupDN. @added members added, @removed members removed.", array('@groupDN' => $groupDN, '@added' => count($addedMembers), '@removed' => count($removedMembers)));
+
+  // Debugging status output
+  if (variable_get('casmmsync_show_debug', FALSE)) {
+    print t("Group membership updated for @groupDN. @added members added, @removed members removed.", array('@groupDN' => $groupDN, '@added' => count($addedMembers), '@removed' => count($removedMembers)));
+    while (ob_get_level())
+      ob_end_flush();
+    flush();
+  }
+}
+
+/**
+ * Synchronize all user records.
+ *
+ * return array An array of groups in which the members were found
+ */
+function _casmmsync_sync_users() {
+  $synced = 0;
+  $failed = 0;
+  $groups = array();
+
+  $params = array(
+    'ADMIN_ACCESS' => variable_get('casmmsync_adminkey', ''),
+    'action'       => 'get_all_users',
+    'page'         => 0,
+    'include_membership' => 'true',
+  );
+  $base = variable_get('casmmsync_path', '');
+
+  // Debugging status output
+  if (variable_get('casmmsync_show_debug', FALSE)) {
+    print "\n<h2>Syncronizing Users</h2>\n";
+    while (ob_get_level())
+      ob_end_flush();
+    flush();
+  }
+
+  $doc = new DOMDocument;
+
+  while (true) {
+//   while ($synced < 1000 && $failed < 100) {
+    if(!$doc->load($base.'?'.http_build_query($params, null, '&')))
+      throw new Exception('Failed to load '.$base.'?'.http_build_query($params, null, '&'));
+
+    $xpath = new DOMXPath($doc);
+    $xpath->registerNamespace('cas', 'http://www.yale.edu/tp/cas');
+
+    // Sync each user
+    foreach ($xpath->query('/cas:results/cas:entry') as $userElement) {
+      // Fetch properties from the XML
+      $webId = $xpath->query('./cas:user', $userElement)->item(0)->nodeValue;
+
+      $attributes = _casmmsync_get_attributes($xpath, $userElement);
+      
+      $uid = _casmmsync_sync_user($webId, $attributes);
+      if ($uid !== FALSE) {
+        $synced++;
+        
+        // Add our groups to the sync list
+        if (isset($attributes['MemberOf']) && is_array($attributes['MemberOf'])) {
+          foreach ($attributes['MemberOf'] as $groupId) {
+            if (empty($groupId)) {
+              watchdog('casmmsync', 'Empty MemberOf for user @uid (@webId).', array('@uid' => $uid, '@webId' => $webId), WATCHDOG_ERROR);
+            } else {
+              if (!isset($groups[$groupId]))
+                $groups[$groupId] = array();
+              $groups[$groupId][] = $uid;
+            }
+          }
+        }
+      } else {
+        $failed++;
+      }
+    }
+
+    // Debugging status output
+    if (variable_get('casmmsync_show_debug', FALSE)) {
+      if ($params['page'] && $params['page'] % 100 == 0)
+        print "\n<br/>";
+      print '.';
+      while (ob_get_level())
+        ob_end_flush();
+      flush();
+    }
+
+    if ($doc->documentElement->getAttribute('morePagesAvailable') != 'true')
+    break;
+
+    $params['page']++;
+  }
+  
+  // Debugging status output
+  if (variable_get('casmmsync_show_debug', FALSE)) {
+    print "\n<h2>User Synchronization Complete</h2>\n";
+    while (ob_get_level())
+      ob_end_flush();
+    flush();
+  }
+  
+  watchdog('casmmsync', 'CAS-MM User-Sync completed. @synced users synced. @failed users skipped.', array('@synced' => $synced, '@failed' => $failed));
+  
+  return $groups;
+}
+
+/**
+ * Syncronize or create a user.
+ * This function is based on the implementation of cas_login_check() and makes use
+ * of functions in the cas_module in order to allow the settings of that module to
+ * consistantly define user attributes.
+ *
+ * @param $webId
+ *    The user's identifier from the CAS Directory
+ * @param $attributes
+ *    An array of attributes in the same format as returned by phpCAS
+ * @return int User id on success, FALSE on failure.
+ */
+function _casmmsync_sync_user($webId, $attributes) {
+  $cas_name = $webId;
+
+  // Implementation beginning at line 86 of cas.module
+  // Build the user data
+
+  // Build the cas_user object and allow modules to alter it.
+  $cas_user = array(
+    'name' => $webId,
+    'login' => TRUE,
+    'register' => variable_get('cas_user_register', TRUE),
+    'attributes' => $attributes,
+  );
+  drupal_alter('cas_user', $cas_user);
+
+  // Bail out if a module denied login access for this user or unset the user
+  // name.
+  if (empty($cas_user['login']) || empty($cas_user['name'])) {
+    // Only set a warning if we forced login.
+    if ($cas_force_login) {
+      drupal_set_message(t('The user account %name is not available on this site.', array('%name' => $cas_name)), 'error');
+    }
+    return;
+  }
+
+  // Proceed with the login process, using the altered CAS username.
+  $cas_name = $cas_user['name'];
+
+  // blocked user check
+  $blocked = FALSE;
+  if (_cas_external_user_is_blocked($cas_name)) {
+    $blocked = 'The username %cas_name has been blocked.';
+  }
+  elseif (drupal_is_denied('user', $cas_name)) {
+    // denied by access controls
+    $blocked = 'The name %cas_name is a reserved username.';
+  }
+
+  if ($blocked) {
+    // Only display error messages only if the user intended to log in.
+    if ($cas_force_login) {
+      watchdog('cas', $blocked, array('%cas_name' => $cas_name), WATCHDOG_WARNING);
+      drupal_set_message(t($blocked, array('%cas_name' => $cas_name)), 'error');
+    }
+    return;
+  }
+
+  $account = cas_user_load_by_name($cas_name);
+
+  // Automatic user registration.
+  if (!$account && $cas_user['register']) {
+    // No account could be found and auto registration is enabled, so attempt
+    // to register a new user.
+    $account = cas_user_register($cas_name);
+    if (!$account) {
+      // The account could not be created, set a message.
+      if ($cas_force_login) {
+        drupal_set_message(t('A new account could not be created for %cas_name. The username is already in use on this site.', array('%cas_name' => $cas_name)), 'error');
+      }
+      return;
+    }
+    // CAS-MM-Sync addition
+    watchdog("casmmsync", 'new user: %n (CAS id=@webid)', array('%n' => $attributes['DisplayName'], '@webid' => $webId), WATCHDOG_NOTICE, l(t("edit user"), "admin/user/edit/$account->uid"));
+  }
+  
+  // final check to make sure we have a good user
+  if ($account && $account->uid > 0) {
+    // CAS-MM-Sync additions
+    $edit['casmmsync_webid'] = $webId;
+    $edit['casmmsync_attributes'] = $attributes;
+    
+    // Populate $edit with some basic properties.
+    $edit['cas_user'] = $cas_user;
+    $edit['roles'] = $account->roles + cas_roles();
+    if (module_exists('persistent_login') && $_SESSION['cas_remember']) {
+      $edit['persistent_login'] = 1;
+    }
+    // Allow other modules to make their own custom changes.
+    cas_user_module_invoke('presave', $edit, $account);
+
+    // Clean up extra variables before saving.
+    unset($edit['cas_user']);
+
+    // Save the user account and log the user in.
+    $user = user_save($account, $edit);
+//     user_authenticate_finalize($edit); // Not needed in CAS-MM-Sync since we aren't actually logging in.
+    
+    
+    // Profile fields CAS-MM-Sync
+    foreach (_casmmsync_get_profile_field_map() as $profile_field => $attribute_name) {
+      if (isset($attributes[$attribute_name]) && _casmmsync_get_profile_field_value($user->uid, $profile_field) != $attributes[$attribute_name])
+        _casmmsync_set_profile_field_value($user->uid, $profile_field, $attributes[$attribute_name]);
+    }
+
+    // if there was a problem saving the user
+    if (!is_object($user)) {
+      watchdog("casmmsync", 'Error saving user: %n (CAS id=@webid)', array('%n' => $attributes['DisplayName'], '@webid' => $webId), WATCHDOG_WARNING, l(t("edit user"), "admin/user/edit/$uid"));
+      return FALSE;
+    }
+  }
+  // if we don't have a good user
+  else {
+    return FALSE;
+  }
+  
+  return $user->uid;
+}
+
+/**
+ * Helper method for accessing attribute values.
+ *
+ * @param $xpath
+ *    The DOMXPath object to query
+ * @param $userElement
+ *    The DOMElement to use as a reference, must contain cas:attribute elements.
+ * @return
+ *    An array of attributes
+ */
+function _casmmsync_get_attributes($xpath, $userElement) {
+  $attributes = array();
+  foreach ($xpath->query('./cas:attribute', $userElement) as $elem) {
+    $name = $elem->getAttribute('name');
+    $value = $elem->getAttribute('value');
+
+    // If multiple attributes exist, add as an array value
+    if (isset($attributes[$name])) {
+      // Initialize the array with the existing value
+      if (!is_array($attributes[$name])) {
+        $existingValue = $attributes[$name];
+        $attributes[$name] = array($existingValue);
+      }
+
+      $attributes[$name][] = $value;
+    } else {
+      $attributes[$name] = $value;
+    }
+  }
+  return $attributes;
+}
+
+/**
+ * Get or create a group for a group DN
+ *
+ * @param string $groupId
+ *    The DN.
+ * @return int
+ *    The mmtid of the group
+ */
+function casmmsync_get_or_create_group_by_dn($groupId) {
+  if (empty($groupId)) {
+    watchdog('casmmsync', "Can't create group, no groupId passed.", array(), WATCHDOG_ERROR);
+    return;
+  }
+  
+  $results = db_query("SELECT DISTINCT(t.mmtid) FROM {casmmsync_group_map} m INNER JOIN {mm_tree} t ON m.mmtid = t.mmtid WHERE m.group_id='%s'", $groupId);
+  $groupTId = db_result($results);
+  
+  // If we don't have results or we have two matches, create the path
+  if (!$groupTId || db_result($results)) {
+    $groupPath = _casmmsync_get_group_path($groupId);
+    if (!mm_create_path($groupPath))
+      throw new Exception('Could not create group path for '.$groupId);
+    
+    $groupTId = $groupPath[count($groupPath) - 1]->mmtid;
+  }
+  _casmmsync_record_mapping($groupId, $groupTId);
+  return $groupTId;
+}
+
+/**
+ * Get a group mmtid for a DN if one exists.
+ * 
+ * @param string $groupId
+ *    The DN.
+ * @return int
+ *    The mmtid of the group or NULL if it doesn't exist.
+ */
+function casmmsync_get_group_by_dn ($groupId) {
+	if (empty($groupId)) {
+    watchdog('casmmsync', "Can't get group, no groupId passed.", array(), WATCHDOG_ERROR);
+    return;
+  }
+  
+  $results = db_query("SELECT DISTINCT(t.mmtid) FROM {casmmsync_group_map} m INNER JOIN {mm_tree} t ON m.mmtid = t.mmtid WHERE m.group_id='%s'", $groupId);
+  $groupTId = db_result($results);
+  
+  if (!empty($groupTId))
+    return $groupTId;
+  else
+    return null;
+}
+
+/**
+ * Syncronize groups from a list of groups
+ *
+ * @param array $groups Keys are group-ids, values are an array of members.
+ * @return void
+ */
+function _casmmsync_sync_groups($groups) {
+  // Debugging status output
+  if (variable_get('casmmsync_show_debug', FALSE)) {
+    print "\n<h2>Syncronizing Groups</h2>\n";
+    while (ob_get_level())
+      ob_end_flush();
+    flush();
+  }
+  
+  // Clear the sync status of all groups. We will mark keepers in the sync process
+  // and later delete any not still in the AD.
+  db_query('UPDATE {casmmsync_group_map} SET sync_keep = 0');
+  
+  $synced = 0;
+  foreach ($groups as $groupId => $members) {
+    $groupTId = casmmsync_get_or_create_group_by_dn($groupId);
+
+    // Add new members
+    foreach ($members as $memberId) {
+      @db_query('INSERT INTO {mm_group} (gid, uid) VALUES(%d, %d)', $groupTId, $memberId);
+    }
+
+    // Delete missing members
+    $args = array($groupTId);
+    $args = array_merge($args, $members);
+    db_query("DELETE FROM {mm_group} WHERE gid='%d' AND uid NOT IN (".db_placeholders($members, 'int').")", $args);
+
+    // Wipe out the member array to free memory.
+    $groups[$groupId] = null;
+
+    // Debugging status output
+    if (variable_get('casmmsync_show_debug', FALSE) &&  $synced && $synced % 10 == 0) {
+      if ($synced && $synced % 1000 == 0)
+        print "\n<br/>";
+      print '.';
+      while (ob_get_level())
+        ob_end_flush();
+      flush();
+    }
+    
+    $synced++;
+  }
+  
+  _casmmsync_clear_old_groups();
+  
+  // Set all of the synced groups to be selectable (while keeping their containers read-only).
+  db_query("UPDATE {mm_tree} SET default_mode='ru' WHERE mmtid IN (SELECT mmtid FROM  {casmmsync_group_map})");
+
+  // Debugging status output
+  if (variable_get('casmmsync_show_debug', FALSE)) {
+    print "\n<h2>Group Synchronization Complete</h2>\n";
+    while (ob_get_level())
+      ob_end_flush();
+    flush();
+  }
+  
+  watchdog('casmmsync', 'CAS-MM Group-Sync completed. @synced groups synced.', array('@synced' => $synced));
+}
+
+/**
+ * Record a mapping of the group id to the tid and mark the group as existing in
+ * the source data.
+ *
+ * @param string $groupId
+ * @param int $groupTId
+ * @return void
+ */
+function _casmmsync_record_mapping($groupId, $groupTId) {
+  if (empty($groupId)) {
+    watchdog('casmmsync', "Can't record group mapping, no groupId passed. groupId = '@groupId', groupTId = '@mmtid'.", array('@groupId' => $groupId, '@mmtid' => $groupTId), WATCHDOG_ERROR);
+    return;
+  }
+  if (empty($groupTId)) {
+    watchdog('casmmsync', "Can't record group mapping, no groupTId passed. groupId = '@groupId', groupTId = '@mmtid'.", array('@groupId' => $groupId, '@mmtid' => $groupTId), WATCHDOG_ERROR);
+    return;
+  }
+  
+  db_query("UPDATE {casmmsync_group_map} SET sync_keep = 1 WHERE group_id='%s'", $groupId);
+  if (!db_affected_rows()) {
+    db_query("INSERT INTO {casmmsync_group_map} (group_id, mmtid, sync_keep) VALUES ('%s', '%d', 1)", $groupId, $groupTId);
+  }
+}
+
+/**
+ * Clear out old groups that are no longer in the AD
+ *
+ * @return void
+ */
+function _casmmsync_clear_old_groups() {
+   // Debugging status output
+  if (variable_get('casmmsync_show_debug', FALSE)) {
+    print "\n<h3>Deleting missing groups</h3>\n";
+    while (ob_get_level())
+      ob_end_flush();
+    flush();
+  }
+  $deleted = 0;
+  
+  $results = db_query("SELECT group_id, mmtid FROM {casmmsync_group_map} WHERE sync_keep = 0");
+  while ($data = db_fetch_object($results)) {
+    _casmmsync_delete_group($data->group_id, $data->mmtid);
+    
+    // Debugging status output
+    if (variable_get('casmmsync_show_debug', FALSE) &&  $deleted && $deleted % 10 == 0) {
+      if ($deleted && $deleted % 1000 == 0)
+        print "\n<br/>";
+      print '.';
+      while (ob_get_level())
+        ob_end_flush();
+      flush();
+    }
+    $deleted++;
+  }
+  
+  if (variable_get('casmmsync_show_debug', FALSE)) {
+    print "\n<h3>Missing groups deleted</h3>\n";
+    while (ob_get_level())
+      ob_end_flush();
+    flush();
+  }
+}
+
+/**
+ * Delete a group.
+ *
+ * @param string $groupId
+ * @param int $groupTId
+ */
+function _casmmsync_delete_group($groupId, $groupTId) {
+  if (empty($groupId)) {
+    watchdog('casmmsync', "Can't delete group, no groupId passed. groupId = '@groupId', groupTId = '@mmtid'.", array('@groupId' => $groupId, '@mmtid' => $groupTId), WATCHDOG_ERROR);
+    return;
+  }
+  if (empty($groupTId)) {
+    watchdog('casmmsync', "Can't delete group, no groupTId passed. groupId = '@groupId', groupTId = '@mmtid'.", array('@groupId' => $groupId, '@mmtid' => $groupTId), WATCHDOG_ERROR);
+    return;
+  }
+  
+  $parent = mm_content_get_parent($groupTId);
+  
+  $group = mm_content_get($groupTId);
+  if ($group->name == MM_ENTRY_NAME_GROUPS || $groupTId < 10) {
+    watchdog('casmmsync', "Deleting group @mmtid is not allowed.", array('@mmtid' => $groupTId), WATCHDOG_ERROR);
+    return;
+  }
+    
+  // Delete the group
+  if ($error = mm_content_delete($groupTId, FALSE)) {
+    watchdog('casmmsync', "Error deleting group @mmtid: @error", array('@error' => $error, '@mmtid' => $groupTId));
+    return;
+  }
+  
+  // Prune the group parents if empty
+  _casmmsync_prune_empty_group_containers($parent);
+  
+  // Remove the mapping.
+  db_query("DELETE FROM {casmmsync_group_map} WHERE group_id='%s'", $groupId);
+
+  watchdog('casmmsync', "Deleted group with mmtid @mmtid and id @groupId .", array('@groupId' => $groupId, '@mmtid' => $groupTId));
+}
+
+/**
+ * Prune empty group containers
+ *
+ * @param int $containerId
+ */
+function _casmmsync_prune_empty_group_containers($containerId) {  
+  // Skip if we aren't given a parent Id.
+  if (!$containerId)
+    return;
+  
+  // Don't delete the root group container
+  if ($containerId == mm_content_groups_mmtid())
+    return;
+  
+  $tree = mm_content_get_tree($containerId);
+  
+  // Don't prune if not empty
+  if (is_array($tree) && count($tree) > 1)
+    return;
+  
+  // If empty delete and prune parent recursively
+  $parent = mm_content_get_parent($containerId);
+  mm_content_delete($containerId, FALSE);
+  
+  if ($parent != $containerId)
+    _casmmsync_prune_empty_group_containers($parent);
+}
+
+/**
+ * Given a group AD DN, answer an array of path parts for the group
+ *
+ * @param string $groupId
+ * @return array
+ */
+function _casmmsync_get_group_path($groupId) {
+  // Reverse the DN and trim off the domain parts.
+  $path = ldap_explode_dn($groupId, 1);
+  unset($path['count']);
+  $path = array_slice(array_reverse($path), 2);
+  
+  $groups = array();
+  $noUpdate = array(
+    'mmtid', 
+    'alias',
+    'cascaded',
+    'comment',
+    'default_mode',
+    'flags',
+    'hidden',
+    'hover',
+    'large_group',
+    'max_depth',
+    'max_parents',
+    'members',
+    'menu_start',
+    'name',
+    'node_info',
+    'perms',
+    'previews',
+    'propagate_node_perms',
+    'qfield',
+    'qfrom',
+    'recurs_perms',
+    'rss',
+    'theme',
+    'uid',
+    'weight',
+  );
+  // Prepend the top-level group 
+  $groups[] = new MMCreatePathGroup(array(
+    'name' => '.Groups', 
+    'alias' => 'groups', 
+    'default_mode' => 'r', 
+    'no_update' => $noUpdate,
+  ));
+  
+  // Make the DN parts the names (keys) and use an empty string for the alias (values).
+  foreach ($path as $name) {
+    $groups[] = new MMCreatePathGroup(array(
+      'name' => $name, 
+      'default_mode' => 'r', 
+      'no_update' => $noUpdate,
+    ));
+  }
+  
+  // Make the group itself selectable
+  $groups[count($groups) - 1]->default_mode = 'u,r';
+  
+  return $groups;
+}
+
+/**
+ * Answer the group name given an AD DN
+ *
+ * @param string $groupId
+ * @return string
+ */
+function _casmmsync_get_group_name($groupId) {
+  $parts = ldap_explode_dn($groupId, 1);
+  return $parts[0];
+}
+
+/**
+ * Convert a byte-ammount string into an integer.
+ * 
+ * @param string $byteString
+ * @return int
+ */
+function _casmmsync_int_from_bytestring($byteString) {
+  preg_match('/^\s*([0-9.]+)\s*([KMGTPE])B?\s*$/i', $byteString, $matches);
+  $num = (float)$matches[1];
+  switch (strtoupper($matches[2])) {
+    case 'E':
+      $num = $num * 1024;
+    case 'P':
+      $num = $num * 1024;
+    case 'T':
+      $num = $num * 1024;
+    case 'G':
+      $num = $num * 1024;
+    case 'M':
+      $num = $num * 1024;
+    case 'K':
+      $num = $num * 1024;
+  }
+  
+  return intval($num);
+}
+
+
+/*********************************************************
+ * Profile utility Functions from http://drupal.org/node/632140
+ *********************************************************/
+
+/*
+ * Get the profile field id for the given field name.
+ */
+function _casmmsync_get_profile_field_fid($name) {
+  return db_result(db_query("SELECT fid FROM {profile_fields} WHERE name='%s'", $name));
+}
+
+/*
+ * Get the profile field value for the given user and field. $field can be a field id or field name.
+ */
+function _casmmsync_get_profile_field_value($uid, $field) {
+  if (!is_numeric($field)) {
+    $field = _casmmsync_get_profile_field_fid($field);
+  }
+  return db_result(db_query("SELECT value FROM {profile_values} WHERE fid=%d AND uid=%d", $field, $uid));
+}
+
+/*
+ * Set the profile field value for the given user and field. $field can be a field id or field name.
+ */
+function _casmmsync_set_profile_field_value($uid, $field, $value) {
+  if (!is_numeric($field))
+    $field = _casmmsync_get_profile_field_fid($field);
+  db_query("DELETE FROM {profile_values} WHERE fid=%d AND uid=%d", $field, $uid);
+  db_query("INSERT INTO {profile_values} (fid, uid, value) VALUES (%d, %d, '%s')", $field, $uid, $value);
+}
+
+/*********************************************************
+ * End Profile utility functions
+ *********************************************************/
+
+/**
+ * Answer a mapping of profile fields to attributes.
+ * 
+ * @return array
+ */
+function _casmmsync_get_profile_field_map () {
+  static $map = null;
+  
+  if (is_null($map)) {
+    try {
+      $map = _casmmsync_parse_profile_field_map(variable_get('casmmsync_profile_field_map', ''));
+    } catch (InvalidArgumentException $e) {
+      $map = array();
+      watchdog('casmmsync', "Error parsing profile field map: ".$e->getMessage(), array(), WATCHDOG_WARNING);
+    }
+  }
+  
+  return $map;
+}
+
+/**
+ * Answer a mapping of profile fields to attributes.
+ * 
+ * @return array
+ */
+function _casmmsync_parse_profile_field_map ($text) {
+  $map = array();
+  $trimmed = trim($text);
+  $lines = explode("\n", $trimmed);
+  foreach ($lines as $line) {
+    // Skip empty lines.
+    if (!strlen(trim($line)))
+      continue;
+    // validate non-empty lines.
+    if (preg_match('/^([^=]+)=(.+)$/', $line, $m)) {
+      $map[trim($m[1])] = trim($m[2]);
+    } else {
+      throw new InvalidArgumentException(t('Invalid field map line: %line', array('%line' => $line)));
+    }
+  }
+  return $map;
+}
