@@ -43,3 +43,6 @@
 [submodule "sites/all/modules/video_filter"]
 	path = sites/all/modules/video_filter
 	url = http://git.drupal.org/project/video_filter.git
+[submodule "sites/all/modules/simplehtmldom"]
+	path = sites/all/modules/simplehtmldom
+	url = http://git.drupal.org/project/simplehtmldom.git
