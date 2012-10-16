@@ -58,3 +58,9 @@
 [submodule "sites/all/modules/token"]
 	path = sites/all/modules/token
 	url = http://git.drupal.org/project/token.git
+[submodule "sites/all/modules/nodeporter"]
+	path = sites/all/modules/nodeporter
+	url = http://git.drupal.org/sandbox/adamfranco/1475756.git
+[submodule "sites/all/modules/mmporter"]
+	path = sites/all/modules/mmporter
+	url = http://git.drupal.org/sandbox/adamfranco/1475768.git
