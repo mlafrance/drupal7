@@ -13,7 +13,7 @@ function cas_midd_cas_phpcas_alter() {
 
   if (variable_get("cas_allow_any_proxychain", 0)) {
     phpCAS::allowProxyChain(new CAS_ProxyChain_Any);
-  } else if (variable_get('cas_allowed_proxychains', '')) {
+  } elseif (variable_get('cas_allowed_proxychains', '')) {
     eval(variable_get('cas_allowed_proxychains', ''));
   }
 
@@ -118,7 +118,7 @@ function cas_midd_user ($op, &$edit, &$account, $category = NULL) {
       $account = user_save($account, $changes);
   }
   // Case for scheduled synchronizing of users.
-  else if ($op = 'update' && isset($edit['casmmsync_attributes'])) {
+  elseif ($op = 'update' && isset($edit['casmmsync_attributes'])) {
     $changes = array();
     $name = cas_midd_get_name($edit['casmmsync_attributes']);
     if ($name && $name != $account->name)
@@ -201,7 +201,7 @@ function cas_midd_block($op = 'list', $delta = 0, $edit = array()) {
 
     return $blocks;
   }
-  else if ($op == 'configure' && $delta == 0) {
+  elseif ($op == 'configure' && $delta == 0) {
     $form['login_text'] = array(
       '#type' => 'textfield', 
       '#title' => t('Login Text'), 
@@ -215,7 +215,7 @@ function cas_midd_block($op = 'list', $delta = 0, $edit = array()) {
     return $form;
 
   }
-  else if ($op == 'save' && $delta == 0) {
+  elseif ($op == 'save' && $delta == 0) {
     if ($edit['login_text'] && $edit['login_text'] != 'Log On') {
       variable_set('cas_midd_login_text', $edit['login_text']);
     } else {
@@ -227,7 +227,7 @@ function cas_midd_block($op = 'list', $delta = 0, $edit = array()) {
       variable_del('cas_midd_logout_text');
     }
   }
-  else if ($op == 'view') {
+  elseif ($op == 'view') {
     switch ($delta) {
       case 0:
         // Your module will need to define this function to render the block.
