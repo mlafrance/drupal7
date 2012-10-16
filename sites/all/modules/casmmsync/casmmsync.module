@@ -1,6 +1,4 @@
 <?php
-// $Id$
-
 /**
  * @file
  * Synchronizes users and groups from a CASDirectory into Monster Menus.

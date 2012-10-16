@@ -1,4 +1,3 @@
-; $Id $
 name = CAS-Midd
 description = Custom login hook implementations for Middlebury CAS authentication. Also includes Nicer CAS-login blocks than are provided with the CAS module.
 core = 6.x
