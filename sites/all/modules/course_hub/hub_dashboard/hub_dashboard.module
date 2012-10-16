@@ -464,7 +464,7 @@ function hub_dashboard_current_term() {
   // Return the default term if we are on the dashboard.
   if ($path[0] == 'dashboard' && count($terms)) {
     // go through the terms from oldest to newest
-    $now = time();
+    $now = REQUEST_TIME;
     foreach (array_reverse(array_keys($terms)) as $id) {
       // Skip terms that don't have end dates.
       if (empty($terms[$id]['end_date']))

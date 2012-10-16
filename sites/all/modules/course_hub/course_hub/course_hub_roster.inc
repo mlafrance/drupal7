@@ -122,7 +122,7 @@ function course_hub_roster_photo($mmtid, $uid) {
   }
 
   // Cache the photo for later use.
-  $expires = time() + 3600;
+  $expires = REQUEST_TIME + 3600;
   cache_set(
     $cache_key,
     array(
