@@ -27,7 +27,7 @@ function casmmsync_user($op, &$edit, &$user) {
     $new_cas_group_dns = casmmsync_get_group_ids(cas_phpcas_attributes());
     // If we have an empty list, just stop in case there was an error in the response.
     if (empty($new_cas_group_dns)) {
-      watchdog('casmmsync', "On login skipping groups due to empty list of group dns. @attributes", array('@attributes' => print_r(cas_phpcas_attributes(), true)), WATCHDOG_NOTICE, l(t('edit'), 'user/'.$user->uid.'/edit'));
+      watchdog('casmmsync', "On login skipping groups due to empty list of group dns. @attributes", array('@attributes' => print_r(cas_phpcas_attributes(), true)), WATCHDOG_NOTICE, l(t('edit'), 'user/' . $user->uid . '/edit'));
       return;
     }
     
@@ -36,7 +36,7 @@ function casmmsync_user($op, &$edit, &$user) {
     foreach ($existing_cas_groups as $gid => $dn) {
       if (!in_array($dn, $new_cas_group_dns)) {
         db_query("DELETE FROM {mm_group} WHERE gid='%d' AND uid='%d'", $gid, $user->uid);
-        watchdog('casmmsync', "On login, removed user from @dn.", array('@dn' => $dn, '@user' => $user->name), WATCHDOG_NOTICE, l(t('edit'), 'user/'.$user->uid.'/edit'));
+        watchdog('casmmsync', "On login, removed user from @dn.", array('@dn' => $dn, '@user' => $user->name), WATCHDOG_NOTICE, l(t('edit'), 'user/' . $user->uid . '/edit'));
       }
     }
     
@@ -45,7 +45,7 @@ function casmmsync_user($op, &$edit, &$user) {
       if (!in_array($dn, $existing_cas_groups)) {
         $gid = casmmsync_get_or_create_group_by_dn($dn);
         db_query("INSERT INTO {mm_group} (gid, uid) VALUES(%d, %d)", $gid, $user->uid);
-        watchdog('casmmsync', "On login, added user to @dn.", array('@dn' => $dn, '@user' => $user->name), WATCHDOG_NOTICE, l(t('edit'), 'user/'.$user->uid.'/edit'));
+        watchdog('casmmsync', "On login, added user to @dn.", array('@dn' => $dn, '@user' => $user->name), WATCHDOG_NOTICE, l(t('edit'), 'user/' . $user->uid . '/edit'));
       }
     }
   }
@@ -126,7 +126,7 @@ function _casmmsync_format_time($seconds) {
       if ($hours == 1)
         $time .= '1 hour ';
       else
-        $time .= $hours.' hours ';
+        $time .= $hours . ' hours ';
       $seconds = $seconds - ($hours * 3600);
   }
   if ($seconds >= 60) {
@@ -134,10 +134,10 @@ function _casmmsync_format_time($seconds) {
       if ($minutes == 1)
         $time .= '1 minute ';
       else
-        $time .= $minutes.' minutes ';
+        $time .= $minutes . ' minutes ';
       $seconds = $seconds - ($minutes * 60);
   }
-  $time .= round($seconds, 2).' seconds';
+  $time .= round($seconds, 2) . ' seconds';
   return trim($time);
 }
 
@@ -195,7 +195,7 @@ function casmmsync_update_group($groupDN) {
   );
   $base = variable_get('casmmsync_path', '');
   $doc = new DOMDocument;
-  $url = $base.'?'.http_build_query($params, null, '&');
+  $url = $base . '?' . http_build_query($params, null, '&');
   if(!$doc->load($url)) {
      watchdog('casmmsync', "Group is gone: @groupDN. Couldn't load XML at @url", array('@groupDN' => $groupDN, '@url' => $url));
      print t("Group is gone: @groupDN. Couldn't load XML at <a href='!url'>@url</a>", array('@groupDN' => $groupDN, '@url' => $url, '!url' => $url));
@@ -231,7 +231,7 @@ function casmmsync_update_group($groupDN) {
   $addedMembers = array_diff($newMembers, $existingMembers);
 
   foreach ($addedMembers as $webId) {
-    $userElement = $xpath->query("//cas:entry[cas:user = '".$webId."']")->item(0);
+    $userElement = $xpath->query("//cas:entry[cas:user = '" . $webId . "']")->item(0);
     $attributes = _casmmsync_get_attributes($xpath, $userElement);
     $uid = _casmmsync_sync_user($webId, $attributes);
     @db_query('INSERT INTO {mm_group} (gid, uid) VALUES(%d, %d)', $groupTId, $uid);
@@ -285,8 +285,8 @@ function _casmmsync_sync_users() {
 
   while (true) {
 //   while ($synced < 1000 && $failed < 100) {
-    if(!$doc->load($base.'?'.http_build_query($params, null, '&')))
-      throw new Exception('Failed to load '.$base.'?'.http_build_query($params, null, '&'));
+    if(!$doc->load($base . '?' . http_build_query($params, null, '&')))
+      throw new Exception('Failed to load ' . $base . '?' . http_build_query($params, null, '&'));
 
     $xpath = new DOMXPath($doc);
     $xpath->registerNamespace('cas', 'http://www.yale.edu/tp/cas');
@@ -524,7 +524,7 @@ function casmmsync_get_or_create_group_by_dn($groupId) {
   if (!$groupTId || db_result($results)) {
     $groupPath = _casmmsync_get_group_path($groupId);
     if (!mm_create_path($groupPath))
-      throw new Exception('Could not create group path for '.$groupId);
+      throw new Exception('Could not create group path for ' . $groupId);
     
     $groupTId = $groupPath[count($groupPath) - 1]->mmtid;
   }
@@ -586,7 +586,7 @@ function _casmmsync_sync_groups($groups) {
     // Delete missing members
     $args = array($groupTId);
     $args = array_merge($args, $members);
-    db_query("DELETE FROM {mm_group} WHERE gid='%d' AND uid NOT IN (".db_placeholders($members, 'int').")", $args);
+    db_query("DELETE FROM {mm_group} WHERE gid='%d' AND uid NOT IN (" . db_placeholders($members, 'int') . ")", $args);
 
     // Wipe out the member array to free memory.
     $groups[$groupId] = null;
@@ -900,7 +900,7 @@ function _casmmsync_get_profile_field_map() {
       $map = _casmmsync_parse_profile_field_map(variable_get('casmmsync_profile_field_map', ''));
     } catch (InvalidArgumentException $e) {
       $map = array();
-      watchdog('casmmsync', "Error parsing profile field map: ".$e->getMessage(), array(), WATCHDOG_WARNING);
+      watchdog('casmmsync', "Error parsing profile field map: " . $e->getMessage(), array(), WATCHDOG_WARNING);
     }
   }
   

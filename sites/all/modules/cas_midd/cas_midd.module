@@ -143,9 +143,9 @@ function cas_midd_user($op, &$edit, &$account, $category = NULL) {
 function cas_midd_get_name(array $attributes) {
   $name = '';
   if (isset($attributes['FirstName']))
-    $name .= $attributes['FirstName'].' ';
+    $name .= $attributes['FirstName'] . ' ';
   if (isset($attributes['LastName']))
-    $name .= $attributes['LastName'].' ';
+    $name .= $attributes['LastName'] . ' ';
   if (isset($attributes['EMail']))
     $name .= $attributes['EMail'];
   
@@ -266,9 +266,9 @@ function cas_midd_block($op = 'list', $delta = 0, $edit = array()) {
 function cas_midd_short_login() {
   global $user;
   if ($user->uid > 0)
-    return '<a id="login" class="login" href="'.cas_midd_logout_url().'">'.t(variable_get('cas_midd_logout_text', 'Log Off')).'</a>';
+    return '<a id="login" class="login" href="' . cas_midd_logout_url() . '">' . t(variable_get('cas_midd_logout_text', 'Log Off')) . '</a>';
   else
-    return '<a id="login" class="login" href="'.cas_midd_login_url().'">'.t(variable_get('cas_midd_login_text', 'Log On')).'</a>';
+    return '<a id="login" class="login" href="' . cas_midd_login_url() . '">' . t(variable_get('cas_midd_login_text', 'Log On')) . '</a>';
 }
 
 /**
@@ -279,9 +279,9 @@ function cas_midd_short_login() {
 function cas_midd_long_login() {
   global $user;
   if ($user->uid > 0)
-    return t('Logged in as @name', array('@name' => $user->name)).' <a id="login_long" class="login" href="'.cas_midd_logout_url().'">'.t(variable_get('cas_midd_logout_text', 'Log Off')).'</a>';
+    return t('Logged in as @name', array('@name' => $user->name)) . ' <a id="login_long" class="login" href="' . cas_midd_logout_url() . '">' . t(variable_get('cas_midd_logout_text', 'Log Off')) . '</a>';
   else
-    return '<a id="login_long" class="login" href="'.cas_midd_login_url().'">'.t(variable_get('cas_midd_login_text', 'Log On')).'</a>';
+    return '<a id="login_long" class="login" href="' . cas_midd_login_url() . '">' . t(variable_get('cas_midd_login_text', 'Log On')) . '</a>';
 }
 
 /**
@@ -292,9 +292,9 @@ function cas_midd_long_login() {
 function cas_midd_plain_login() {
   global $user;
   if ($user->uid > 0)
-    return '<a id="login_long" class="login" href="'.cas_midd_logout_url().'">'.t('Log Off').'</a>';
+    return '<a id="login_long" class="login" href="' . cas_midd_logout_url() . '">' . t('Log Off') . '</a>';
   else
-    return '<a id="login_long" class="login" href="'.cas_midd_login_url().'">'.t('Log On').'</a>';
+    return '<a id="login_long" class="login" href="' . cas_midd_login_url() . '">' . t('Log On') . '</a>';
 }
 
 /**
@@ -313,7 +313,7 @@ function cas_midd_login_url($destination = null) {
   }
 
   custom_url_rewrite_inbound($destination, $destination, NULL);
-  return base_path().'cas?destination='.check_plain($destination);
+  return base_path() . 'cas?destination=' . check_plain($destination);
 }
 
 /**
@@ -332,5 +332,5 @@ function cas_midd_logout_url($destination = null) {
   }
 
   custom_url_rewrite_inbound($destination, $destination, NULL);
-  return base_path().'caslogout?destination='.check_plain($destination);
+  return base_path() . 'caslogout?destination=' . check_plain($destination);
 }
