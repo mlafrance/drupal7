@@ -1,7 +1,7 @@
 name = RSS Feed Resource
 description = "Support for validating and displaying RSS Resources."
 package = Course Hub Resources
-core = 6.x
+core = 7.x
 dependencies[] = "hub_resources"
 dependencies[] = "link_resource"
 dependencies[] = "content"

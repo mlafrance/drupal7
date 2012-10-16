@@ -1,7 +1,7 @@
 name = Hub Updates
 description = "Provides support for fetching and managing updates from hub resources"
 package = Course Hub Resources
-core = 6.x
+core = 7.x
 dependencies[] = "course_hub"
 dependencies[] = "content"
 dependencies[] = "htmlstring"

@@ -1,7 +1,7 @@
 name = Course Hub Site Builder
 description = "Generates course hub sites from external data sources."
 package = Course Hub Resources
-core = 6.x
+core = 7.x
 
 dependencies[] = "course_hub"
 dependencies[] = "monster_menus"

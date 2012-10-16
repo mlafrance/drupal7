@@ -1,7 +1,7 @@
 name = WordPress Resource
 description = "Support for associating WordPress sites with a course."
 package = Course Hub Resources
-core = 6.x
+core = 7.x
 dependencies[] = "hub_resources"
 dependencies[] = "rss_resource"
 dependencies[] = "content"

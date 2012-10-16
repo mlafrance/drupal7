@@ -1,6 +1,6 @@
 name = Link Resource
 description = "Support for validating and displaying link resources."
 package = Course Hub Resources
-core = 6.x
+core = 7.x
 dependencies[] = "hub_resources"
 dependencies[] = "content"

@@ -1,5 +1,5 @@
 name = Moodle Resource
 description = "Moodle Resources allow creation and enrollment provisioning of Moodle sites."
 package = Course Hub Resources
-core = 6.x
+core = 7.x
 dependencies[] = "hub_resources"

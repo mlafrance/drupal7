@@ -1,7 +1,7 @@
 name = Course Hub Dashboard
 description = "Provides a user-centered view of their courses."
 package = Course Hub Resources
-core = 6.x
+core = 7.x
 
 dependencies[] = "course_hub"
 dependencies[] = "hub_updates"

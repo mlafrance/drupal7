@@ -1,7 +1,7 @@
 name = Hub Resources
 description = "Provides general support for course hub resources."
 package = Course Hub Resources
-core = 6.x
+core = 7.x
 
 dependencies[] = "course_hub"
 dependencies[] = "monster_menus"
