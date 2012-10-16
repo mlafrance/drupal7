@@ -52,3 +52,9 @@
 [submodule "sites/all/libraries/CAS"]
 	path = sites/all/libraries/CAS
 	url = git://github.com/Jasig/phpCAS.git
+[submodule "sites/all/modules/cas_attributes"]
+	path = sites/all/modules/cas_attributes
+	url = http://git.drupal.org/project/cas_attributes.git
+[submodule "sites/all/modules/token"]
+	path = sites/all/modules/token
+	url = http://git.drupal.org/project/token.git
