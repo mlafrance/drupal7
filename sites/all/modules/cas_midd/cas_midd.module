@@ -94,7 +94,7 @@ phpCAS::allowProxyChain(new CAS_ProxyChain(array(
  * Validation for the CAS admin settings form
  *
  */
-function cas_midd_admin_settings_validate ($form, &$form_state) {
+function cas_midd_admin_settings_validate($form, &$form_state) {
   if (!empty($form_state['values']['cas_allow_any_proxychain']) && !empty($form_state['values']['cas_allowed_proxychains'])) {
     form_set_error('advanced][allowed_proxies][cas_allow_any_proxychain', t('Cannot allow all proxy-chains if particular allowed proxy-chains are defined.'));
   }
@@ -105,7 +105,7 @@ function cas_midd_admin_settings_validate ($form, &$form_state) {
  *
  * Renames the user account using CAS attributes if authenticated via CAS.
  */
-function cas_midd_user ($op, &$edit, &$account, $category = NULL) {
+function cas_midd_user($op, &$edit, &$account, $category = NULL) {
   // For cas logins, set the user properties based on the CAS attributes.
   if ($op == 'login' && class_exists('phpCAS') && phpCAS::isSessionAuthenticated()) {
     $changes = array();
@@ -140,7 +140,7 @@ function cas_midd_user ($op, &$edit, &$account, $category = NULL) {
  * @return string
  *      Return a name string or NULL if no name can be generated.
  */
-function cas_midd_get_name (array $attributes) {
+function cas_midd_get_name(array $attributes) {
   $name = '';
   if (isset($attributes['FirstName']))
     $name .= $attributes['FirstName'].' ';
@@ -164,7 +164,7 @@ function cas_midd_get_name (array $attributes) {
  * @return string
  *      Return a mail string or NULL if no mail can be generated.
  */
-function cas_midd_get_mail (array $attributes) {
+function cas_midd_get_mail(array $attributes) {
   if (!isset($attributes['EMail']))
     return NULL;
   
@@ -263,7 +263,7 @@ function cas_midd_block($op = 'list', $delta = 0, $edit = array()) {
  * 
  * @return string
  */
-function cas_midd_short_login () {
+function cas_midd_short_login() {
   global $user;
   if ($user->uid > 0)
     return '<a id="login" class="login" href="'.cas_midd_logout_url().'">'.t(variable_get('cas_midd_logout_text', 'Log Off')).'</a>';
@@ -276,7 +276,7 @@ function cas_midd_short_login () {
  * 
  * @return string
  */
-function cas_midd_long_login () {
+function cas_midd_long_login() {
   global $user;
   if ($user->uid > 0)
     return t('Logged in as @name', array('@name' => $user->name)).' <a id="login_long" class="login" href="'.cas_midd_logout_url().'">'.t(variable_get('cas_midd_logout_text', 'Log Off')).'</a>';
@@ -302,7 +302,7 @@ function cas_midd_plain_login() {
  * 
  * @return string
  */
-function cas_midd_login_url ($destination = null) {
+function cas_midd_login_url($destination = null) {
   if (!$destination) {
     if (!empty($_REQUEST['q'])) {
       $destination = $_REQUEST['q'];   
@@ -321,7 +321,7 @@ function cas_midd_login_url ($destination = null) {
  * 
  * @return string
  */
-function cas_midd_logout_url ($destination = null) {
+function cas_midd_logout_url($destination = null) {
   if (!$destination) {
     if (!empty($_REQUEST['q'])) {
       $destination = $_REQUEST['q'];   

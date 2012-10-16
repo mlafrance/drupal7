@@ -59,7 +59,7 @@ function casmmsync_user($op, &$edit, &$user) {
  * @return string
  *      Return a mail string or NULL if no mail can be generated.
  */
-function casmmsync_get_group_ids (array $attributes) {
+function casmmsync_get_group_ids(array $attributes) {
   if (!isset($attributes['MemberOf']))
     return array();
   
@@ -119,7 +119,7 @@ function casmmsync_cron() {
  * @param float $seconds
  * @return string
  */
-function _casmmsync_format_time ($seconds) {
+function _casmmsync_format_time($seconds) {
   $time = '';
   if ($seconds >= 3600) {
       $hours = floor($seconds/3600);
@@ -540,7 +540,7 @@ function casmmsync_get_or_create_group_by_dn($groupId) {
  * @return int
  *    The mmtid of the group or NULL if it doesn't exist.
  */
-function casmmsync_get_group_by_dn ($groupId) {
+function casmmsync_get_group_by_dn($groupId) {
   if (empty($groupId)) {
     watchdog('casmmsync', "Can't get group, no groupId passed.", array(), WATCHDOG_ERROR);
     return;
@@ -892,7 +892,7 @@ function _casmmsync_set_profile_field_value($uid, $field, $value) {
  * 
  * @return array
  */
-function _casmmsync_get_profile_field_map () {
+function _casmmsync_get_profile_field_map() {
   static $map = null;
   
   if (is_null($map)) {
@@ -912,7 +912,7 @@ function _casmmsync_get_profile_field_map () {
  * 
  * @return array
  */
-function _casmmsync_parse_profile_field_map ($text) {
+function _casmmsync_parse_profile_field_map($text) {
   $map = array();
   $trimmed = trim($text);
   $lines = explode("\n", $trimmed);

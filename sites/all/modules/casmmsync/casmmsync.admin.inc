@@ -143,7 +143,7 @@ function casmmsync_admin_settings() {
 /**
  * Validate the form
  */
-function casmmsync_admin_settings_validate ($form, &$form_state) {
+function casmmsync_admin_settings_validate($form, &$form_state) {
   try {
     $map = _casmmsync_parse_profile_field_map($form_state['values']['casmmsync_profile_field_map']);
     foreach ($map as $profile_field => $attribute_field) {
