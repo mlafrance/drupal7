@@ -119,7 +119,7 @@ function casmmsync_admin_settings() {
       )))
     ),
   );
-  
+
   // Profile
   $form['profile'] = array(
     '#type' => 'fieldset',

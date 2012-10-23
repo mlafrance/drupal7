@@ -59,7 +59,7 @@ function casmmsync_schema() {
     'unique keys' => array('mmtid_unique' => array('mmtid')),
     'indexes' => array('mmtid' => array('mmtid')),
   );
-  
+
   return $schema;
 }
 

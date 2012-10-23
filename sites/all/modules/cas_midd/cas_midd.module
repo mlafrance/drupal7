@@ -134,7 +134,7 @@ function cas_midd_user($op, &$edit, &$account, $category = NULL) {
 
 /**
  * Answer a name from a set of attributes.
- * 
+ *
  * @param array $attributes
  *      Attributes returned by phpCAS::getAttributes();
  * @return string
@@ -148,7 +148,7 @@ function cas_midd_get_name(array $attributes) {
     $name .= $attributes['LastName'] . ' ';
   if (isset($attributes['EMail']))
     $name .= $attributes['EMail'];
-  
+
   $name = trim($name);
   if (strlen($name))
     return $name;
@@ -158,7 +158,7 @@ function cas_midd_get_name(array $attributes) {
 
 /**
  * Answer a mail from a set of attributes.
- * 
+ *
  * @param array $attributes
  *      Attributes returned by phpCAS::getAttributes();
  * @return string
@@ -167,7 +167,7 @@ function cas_midd_get_name(array $attributes) {
 function cas_midd_get_mail(array $attributes) {
   if (!isset($attributes['EMail']))
     return NULL;
-  
+
   $mail = $attributes['EMail'];
   $mail = trim($mail);
   if (strlen($mail))
@@ -182,7 +182,7 @@ function cas_midd_get_mail(array $attributes) {
 function cas_midd_block($op = 'list', $delta = 0, $edit = array()) {
   if ($op == 'list') {
     $blocks[0] = array(
-      'info' => t('Midd CAS Login'), 
+      'info' => t('Midd CAS Login'),
       'cache' => BLOCK_CACHE_PER_ROLE | BLOCK_CACHE_PER_PAGE, // The return URL will differ on each page, anonymous users will see 'login' while others will see 'logout'.
       'visibility' => 0,
       'status' => 1,
@@ -190,7 +190,7 @@ function cas_midd_block($op = 'list', $delta = 0, $edit = array()) {
       'region' => 'left',
     );
     $blocks[1] = array(
-      'info' => t('Midd CAS Login w/ name'), 
+      'info' => t('Midd CAS Login w/ name'),
       'cache' => BLOCK_CACHE_PER_USER | BLOCK_CACHE_PER_PAGE, // The return URL will differ on each page.
       'visibility' => 0,
     );
@@ -204,14 +204,14 @@ function cas_midd_block($op = 'list', $delta = 0, $edit = array()) {
   }
   elseif ($op == 'configure' && $delta == 0) {
     $form['login_text'] = array(
-      '#type' => 'textfield', 
-      '#title' => t('Login Text'), 
-      '#default_value' => variable_get('cas_midd_login_text', 'Log On'), 
+      '#type' => 'textfield',
+      '#title' => t('Login Text'),
+      '#default_value' => variable_get('cas_midd_login_text', 'Log On'),
     );
     $form['logout_text'] = array(
-      '#type' => 'textfield', 
-      '#title' => t('Logout Text'), 
-      '#default_value' => variable_get('cas_midd_logout_text', 'Log Off'), 
+      '#type' => 'textfield',
+      '#title' => t('Logout Text'),
+      '#default_value' => variable_get('cas_midd_logout_text', 'Log Off'),
     );
     return $form;
 
@@ -235,14 +235,14 @@ function cas_midd_block($op = 'list', $delta = 0, $edit = array()) {
       case 0:
         // Your module will need to define this function to render the block.
         $block = array(
-          'subject' => '<none>', 
+          'subject' => '<none>',
           'content' => cas_midd_short_login(),
         );
         break;
       case 1:
         // Your module will need to define this function to render the block.
         $block = array(
-          'subject' => '<none>', 
+          'subject' => '<none>',
           'content' => cas_midd_long_login(),
         );
         break;
@@ -260,7 +260,7 @@ function cas_midd_block($op = 'list', $delta = 0, $edit = array()) {
 
 /**
  * Answer login/logout html.
- * 
+ *
  * @return string
  */
 function cas_midd_short_login() {
@@ -273,7 +273,7 @@ function cas_midd_short_login() {
 
 /**
  * Answer login/logout html.
- * 
+ *
  * @return string
  */
 function cas_midd_long_login() {
@@ -299,13 +299,13 @@ function cas_midd_plain_login() {
 
 /**
  * Answer the login URL.
- * 
+ *
  * @return string
  */
 function cas_midd_login_url($destination = NULL) {
   if (!$destination) {
     if (!empty($_REQUEST['q'])) {
-      $destination = $_REQUEST['q'];   
+      $destination = $_REQUEST['q'];
     }
     else {
       $destination = base_path();
@@ -318,13 +318,13 @@ function cas_midd_login_url($destination = NULL) {
 
 /**
  * Answer the logout URL.
- * 
+ *
  * @return string
  */
 function cas_midd_logout_url($destination = NULL) {
   if (!$destination) {
     if (!empty($_REQUEST['q'])) {
-      $destination = $_REQUEST['q'];   
+      $destination = $_REQUEST['q'];
     }
     else {
       $destination = base_path();
