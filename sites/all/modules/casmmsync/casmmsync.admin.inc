@@ -36,7 +36,7 @@ function casmmsync_menu() {
  * Form builder. Configure CAS-MM Sync
  *
  * @ingroup forms
- * @see system_settings_form().
+ * @see system_settings_form()
  */
 function casmmsync_admin_settings() {
   // Server
