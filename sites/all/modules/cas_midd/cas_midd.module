@@ -150,7 +150,7 @@ function cas_midd_get_name(array $attributes) {
     $name .= $attributes['EMail'];
 
   $name = trim($name);
-  if (strlen($name))
+  if (!empty($name))
     return $name;
   else
     return NULL;
@@ -170,7 +170,7 @@ function cas_midd_get_mail(array $attributes) {
 
   $mail = $attributes['EMail'];
   $mail = trim($mail);
-  if (strlen($mail))
+  if (!empty($mail))
     return $mail;
   else
     return NULL;

@@ -87,7 +87,7 @@ function casmmsync_cron() {
   $user = user_load(1);
 
   // Skip syncing users if desired.
-  if (variable_get('casmmsync_always_sync_users', TRUE) || (isset($_REQUEST['casmmsync_sync_users']) && strtolower($_REQUEST['casmmsync_sync_users']) == 'TRUE')) {
+  if (variable_get('casmmsync_always_sync_users', TRUE) || (isset($_REQUEST['casmmsync_sync_users']) && drupal_strtolower($_REQUEST['casmmsync_sync_users']) == 'TRUE')) {
     try {
       watchdog('casmmsync', "Sync started.", array(), WATCHDOG_NOTICE);
       $start = microtime(TRUE);
@@ -145,11 +145,11 @@ function _casmmsync_format_time($seconds) {
  * Receive a group update request and process it if authorized
  */
 function _casmmsync_receive_group_update() {
-  if (!isset($_REQUEST['group_id']) || !strlen($_REQUEST['group_id'])) {
+  if (empty($_REQUEST['group_id'])) {
     header('HTTP/1.1 400 Bad Request');
     die('group_id missing.');
   }
-  if (!isset($_REQUEST['passkey']) || !strlen($_REQUEST['passkey'])) {
+  if (empty($_REQUEST['passkey'])) {
     header('HTTP/1.1 400 Bad Request');
     die('passkey missing.');
   }
@@ -833,7 +833,7 @@ function _casmmsync_get_group_name($groupId) {
 function _casmmsync_int_from_bytestring($byteString) {
   preg_match('/^\s*([0-9.]+)\s*([KMGTPE])B?\s*$/i', $byteString, $matches);
   $num = (float)$matches[1];
-  switch (strtoupper($matches[2])) {
+  switch (drupal_strtoupper($matches[2])) {
     case 'E':
       $num = $num * 1024;
     case 'P':
@@ -918,7 +918,7 @@ function _casmmsync_parse_profile_field_map($text) {
   $lines = explode("\n", $trimmed);
   foreach ($lines as $line) {
     // Skip empty lines.
-    if (!strlen(trim($line)))
+    if (empty(trim($line)))
       continue;
     // validate non-empty lines.
     if (preg_match('/^([^=]+)=(.+)$/', $line, $m)) {
