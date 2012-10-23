@@ -2,25 +2,25 @@
 /**
  * @file
  *
- * Istaller for CAS-MM-sync
+ * Installer for CAS-MM-sync
  */
 
 /**
- * Implementation of hook_install().
+ * Implements hook_install().
  */
 function casmmsync_install() {
   drupal_install_schema('casmmsync');
 }
 
 /**
- * Implementation of hook_uninstall().
+ * Implements hook_uninstall().
  */
 function casmmsync_uninstall() {
   drupal_uninstall_schema('casmmsync');
 }
 
 /**
- * Implementation of hook_enable().
+ * Implements hook_enable().
  */
 function casmmsync_enable() {
   if (!db_table_exists('casmmsync_group_map')) {
@@ -29,7 +29,7 @@ function casmmsync_enable() {
 }
 
 /**
- * Implementation of hook_schema().
+ * Implements hook_schema().
  */
 function casmmsync_schema() {
   $schema['casmmsync_group_map'] = array(

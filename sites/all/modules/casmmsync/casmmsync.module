@@ -11,7 +11,7 @@ require_once 'casmmsync.admin.inc';
 module_load_include('inc', 'monster_menus', 'mm_create_path');
 
 /**
- * Implementation of hook_user()
+ * Implements hook_user().
  */
 function casmmsync_user($op, &$edit, &$user) {
   // For cas logins, set the user properties based on the CAS attributes.
@@ -71,7 +71,7 @@ function casmmsync_get_group_ids(array $attributes) {
 
 
 /**
- * Implementation of hook_cron().
+ * Implements hook_cron().
  */
 function casmmsync_cron() {
   if (_casmmsync_int_from_bytestring(ini_get('memory_limit')) < _casmmsync_int_from_bytestring(variable_get('memory_limit', '300M'))) {

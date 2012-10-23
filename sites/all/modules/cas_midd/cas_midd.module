@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Implementation of cas_phpcas_alter()
+ * Implements cas_phpcas_alter().
  *
  * Initialize phpCAS further.
  */
@@ -32,7 +32,7 @@ function cas_midd_cas_phpcas_alter() {
 }
 
 /**
- * Implementation of hook_form_alter()
+ * Implements hook_form_alter().
  */
 function cas_midd_form_alter(&$form, &$form_state, $form_id) {
   if ($form_id == 'cas_admin_settings') {
@@ -101,7 +101,7 @@ function cas_midd_admin_settings_validate($form, &$form_state) {
 }
 
 /**
- * Implementation of hook_user()
+ * Implements hook_user().
  *
  * Renames the user account using CAS attributes if authenticated via CAS.
  */
