@@ -6,29 +6,6 @@
  */
 
 /**
- * Implements hook_install().
- */
-function casmmsync_install() {
-  drupal_install_schema('casmmsync');
-}
-
-/**
- * Implements hook_uninstall().
- */
-function casmmsync_uninstall() {
-  drupal_uninstall_schema('casmmsync');
-}
-
-/**
- * Implements hook_enable().
- */
-function casmmsync_enable() {
-  if (!db_table_exists('casmmsync_group_map')) {
-    drupal_install_schema('casmmsync');
-  }
-}
-
-/**
  * Implements hook_schema().
  */
 function casmmsync_schema() {
