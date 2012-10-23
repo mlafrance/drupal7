@@ -11,14 +11,14 @@ require_once 'casmmsync.admin.inc';
 module_load_include('inc', 'monster_menus', 'mm_create_path');
 
 /**
- * Implements hook_user().
+ * Implements hook_user_login().
  */
-function casmmsync_user($op, &$edit, &$user) {
+function casmmsync_user_login(&$edit, $acount) {
   // For cas logins, set the user properties based on the CAS attributes.
-  if ($op == 'login' && class_exists('phpCAS') && phpCAS::isSessionAuthenticated()) {
+  if (class_exists('phpCAS') && phpCAS::isSessionAuthenticated()) {
     // Get a list of the user's existing groups
     $existing_cas_groups = array();
-    $result = db_query("SELECT m.group_id AS dn, g.gid AS gid FROM {casmmsync_group_map} m INNER JOIN {mm_group} g ON g.gid = m.mmtid WHERE g.uid='%d'", $user->uid);
+    $result = db_query("SELECT m.group_id AS dn, g.gid AS gid FROM {casmmsync_group_map} m INNER JOIN {mm_group} g ON g.gid = m.mmtid WHERE g.uid='%d'", $acount->uid);
     while ($row = db_fetch_object($result)) {
       $existing_cas_groups[$row->gid] = $row->dn;
     }
@@ -27,7 +27,7 @@ function casmmsync_user($op, &$edit, &$user) {
     $new_cas_group_dns = casmmsync_get_group_ids(cas_phpcas_attributes());
     // If we have an empty list, just stop in case there was an error in the response.
     if (empty($new_cas_group_dns)) {
-      watchdog('casmmsync', "On login skipping groups due to empty list of group dns. @attributes", array('@attributes' => print_r(cas_phpcas_attributes(), TRUE)), WATCHDOG_NOTICE, l(t('edit'), 'user/' . $user->uid . '/edit'));
+      watchdog('casmmsync', "On login skipping groups due to empty list of group dns. @attributes", array('@attributes' => print_r(cas_phpcas_attributes(), TRUE)), WATCHDOG_NOTICE, l(t('edit'), 'user/' . $acount->uid . '/edit'));
       return;
     }
 
@@ -35,8 +35,8 @@ function casmmsync_user($op, &$edit, &$user) {
     // Remove the user from any existing CAS groups that they are no longer a member of.
     foreach ($existing_cas_groups as $gid => $dn) {
       if (!in_array($dn, $new_cas_group_dns)) {
-        db_query("DELETE FROM {mm_group} WHERE gid='%d' AND uid='%d'", $gid, $user->uid);
-        watchdog('casmmsync', "On login, removed user from @dn.", array('@dn' => $dn, '@user' => $user->name), WATCHDOG_NOTICE, l(t('edit'), 'user/' . $user->uid . '/edit'));
+        db_query("DELETE FROM {mm_group} WHERE gid='%d' AND uid='%d'", $gid, $acount->uid);
+        watchdog('casmmsync', "On login, removed user from @dn.", array('@dn' => $dn, '@user' => $acount->name), WATCHDOG_NOTICE, l(t('edit'), 'user/' . $acount->uid . '/edit'));
       }
     }
 
@@ -44,8 +44,8 @@ function casmmsync_user($op, &$edit, &$user) {
     foreach ($new_cas_group_dns as $dn) {
       if (!in_array($dn, $existing_cas_groups)) {
         $gid = casmmsync_get_or_create_group_by_dn($dn);
-        db_query("INSERT INTO {mm_group} (gid, uid) VALUES(%d, %d)", $gid, $user->uid);
-        watchdog('casmmsync', "On login, added user to @dn.", array('@dn' => $dn, '@user' => $user->name), WATCHDOG_NOTICE, l(t('edit'), 'user/' . $user->uid . '/edit'));
+        db_query("INSERT INTO {mm_group} (gid, uid) VALUES(%d, %d)", $gid, $acount->uid);
+        watchdog('casmmsync', "On login, added user to @dn.", array('@dn' => $dn, '@user' => $acount->name), WATCHDOG_NOTICE, l(t('edit'), 'user/' . $acount->uid . '/edit'));
       }
     }
   }
