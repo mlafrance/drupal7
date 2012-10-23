@@ -9,14 +9,14 @@
  * Implementation of hook_install().
  */
 function casmmsync_install() {
-   drupal_install_schema('casmmsync');
+  drupal_install_schema('casmmsync');
 }
 
 /**
  * Implementation of hook_uninstall().
  */
 function casmmsync_uninstall() {
-   drupal_uninstall_schema('casmmsync');
+  drupal_uninstall_schema('casmmsync');
 }
 
 /**
