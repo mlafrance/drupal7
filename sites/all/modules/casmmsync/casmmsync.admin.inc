@@ -99,7 +99,7 @@ function casmmsync_admin_settings() {
   // Update Notification
   $form['update_notify'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Update notification settings'),
+    '#title' => t('Update-notification settings'),
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
   );
