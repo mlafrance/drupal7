@@ -20,14 +20,15 @@ function cas_midd_cas_phpcas_alter() {
 
   // If we have a proxy ticket don't append the destination to the service URL
   // unless it is already there.
-  if (!empty($_REQUEST['ticket']) && empty($_REQUEST['destination']) && !empty($_GET['q']) && $_GET['q'] != 'cas') {
+  $request_path = request_path();
+  if (!empty($_REQUEST['ticket']) && empty($_GET['destination']) && !empty($request_path) && $request_path != 'cas') {
     // If we used the service URL set in cas_phpcas_init(), then it wouldn't match the url
     // that the proxy-ticket was generated for and CAS would fail its validation.
-    phpCAS::setFixedServiceURL(url($_GET['q'], array('absolute' => TRUE)));
+    phpCAS::setFixedServiceURL(url($request_path, array('absolute' => TRUE)));
 
     // Set the REQUEST['destination'] so that drupal_goto() called by cas_login_page()
     // knows where to go.
-    $_REQUEST['destination'] = $_GET['q'];
+    $_GET['destination'] = $_GET['q'];
   }
 }
 
