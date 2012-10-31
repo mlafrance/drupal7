@@ -314,15 +314,9 @@ function cas_midd_plain_login() {
  */
 function cas_midd_login_url($destination = NULL) {
   if (!$destination) {
-    $request_path = request_path();
-    if (!empty($request_path)) {
-      $destination = $request_path;
-    }
-    else {
-      $destination = base_path();
-    }
+    $dest = cas_login_destination();
+    $destination = $dest['destination'];  
   }
-
   return base_path() . 'cas?destination=' . check_plain($destination);
 }
 
@@ -333,14 +327,8 @@ function cas_midd_login_url($destination = NULL) {
  */
 function cas_midd_logout_url($destination = NULL) {
   if (!$destination) {
-    $request_path = request_path();
-    if (!empty($request_path)) {
-      $destination = $request_path;
-    }
-    else {
-      $destination = base_path();
-    }
+    $dest = cas_login_destination();
+    $destination = $dest['destination'];  
   }
-
   return base_path() . 'caslogout?destination=' . check_plain($destination);
 }
