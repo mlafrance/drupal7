@@ -8,31 +8,6 @@
  */
 
 /**
- * Implements hook_menu().
- */
-function casmmsync_menu() {
-  $items = array();
-
-  $items['admin/user/casmmsync'] = array(
-    'title' => 'CAS-MM Sync settings',
-    'description' => 'Configure synchronization of users and groups from a CASDirectory into Monster Menus',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('casmmsync_admin_settings'),
-    'access arguments' => array('administer site configuration'),
-    'type' => MENU_NORMAL_ITEM,
-  );
-
-  $items['casmmsync/update_group'] = array(
-    'page callback' => '_casmmsync_receive_group_update',
-    'access callback' => TRUE,
-    'type' => MENU_CALLBACK,
-  );
-
-  return $items;
-}
-
-
-/**
  * Form builder. Configure CAS-MM Sync
  *
  * @ingroup forms

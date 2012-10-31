@@ -7,8 +7,32 @@
  * can be assigned permissions prior to logging in to Drupal.
  */
 
-require_once 'casmmsync.admin.inc';
 module_load_include('inc', 'monster_menus', 'mm_create_path');
+
+/**
+ * Implements hook_menu().
+ */
+function casmmsync_menu() {
+  $items = array();
+
+  $items['admin/config/people/cas/casmmsync'] = array(
+    'title' => 'CAS-MM Sync',
+    'description' => 'Configure synchronization of users and groups from a CASDirectory into Monster Menus',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('casmmsync_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'casmmsync.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  $items['casmmsync/update_group'] = array(
+    'page callback' => '_casmmsync_receive_group_update',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
 
 /**
  * Implements hook_user_login().
@@ -918,7 +942,8 @@ function _casmmsync_parse_profile_field_map($text) {
   $lines = explode("\n", $trimmed);
   foreach ($lines as $line) {
     // Skip empty lines.
-    if (empty(trim($line)))
+    $line = trim($line);
+    if (empty($line))
       continue;
     // validate non-empty lines.
     if (preg_match('/^([^=]+)=(.+)$/', $line, $m)) {
