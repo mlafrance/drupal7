@@ -291,7 +291,7 @@ function casmmsync_update_group($group_dn) {
   foreach ($removed_members as $web_id) {
     db_delete('mm_group')
       ->condition('gid', $group_mmtid)
-      ->condition('uid', db_select('users')->fields(array('uid'))->condition('init', $web_id), 'IN')
+      ->condition('uid', db_select('users', 'u')->fields('u', array('uid'))->condition('init', $web_id), 'IN')
       ->execute();
   }
 
@@ -646,14 +646,21 @@ function _casmmsync_sync_groups($groups) {
     $group_mmtid = casmmsync_get_or_create_group_by_dn($group_id);
 
     // Add new members
-    foreach ($members as $memberId) {
-      @db_query('INSERT INTO {mm_group} (gid, uid) VALUES(%d, %d)', $group_mmtid, $memberId);
+    foreach ($members as $member_id) {
+      // @todo we may need error suppression here.
+      db_insert('mm_group')
+        ->fields(array(
+          'gid' => $group_mmtid,
+          'uid' => $member_id,
+        ))
+        ->execute();
     }
 
     // Delete missing members
-    $args = array($group_mmtid);
-    $args = array_merge($args, $members);
-    db_query("DELETE FROM {mm_group} WHERE gid='%d' AND uid NOT IN (" . db_placeholders($members, 'int') . ")", $args);
+    db_delete('mm_group')
+      ->condition('gid', $group_mmtid)
+      ->condition('uid', $members, 'NOT IN')
+      ->execute();
 
     // Wipe out the member array to free memory.
     $groups[$group_id] = NULL;
@@ -674,8 +681,11 @@ function _casmmsync_sync_groups($groups) {
   _casmmsync_clear_old_groups();
 
   // Set all of the synced groups to be selectable (while keeping their containers read-only).
-  db_query("UPDATE {mm_tree} SET default_mode='ru' WHERE mmtid IN (SELECT mmtid FROM  {casmmsync_group_map})");
-
+  db_update('mm_tree')
+    ->fields(array('default_mode' => 'ru'))
+    ->condition('mmtid', db_select('casmmsync_group_map', 'm')->fields('m', array('mmtid')), 'IN')
+    ->execute();
+  
   // Debugging status output
   if (variable_get('casmmsync_show_debug', FALSE)) {
     print "\n<h2>Group Synchronization Complete</h2>\n";
@@ -705,9 +715,18 @@ function _casmmsync_record_mapping($group_id, $group_mmtid) {
     return;
   }
 
-  db_query("UPDATE {casmmsync_group_map} SET sync_keep = 1 WHERE group_id='%s'", $group_id);
-  if (!db_affected_rows()) {
-    db_query("INSERT INTO {casmmsync_group_map} (group_id, mmtid, sync_keep) VALUES ('%s', '%d', 1)", $group_id, $group_mmtid);
+  $num_affected = db_update('casmmsync_group_map')
+    ->fields(array('sync_keep' => 1))
+    ->condition('group_id', $group_id)
+    ->execute();
+  if (!$num_affected) {
+    db_insert('casmmsync_group_map')
+      ->fields(array(
+        'group_id' => $group_id,
+        'mmtid' => $group_mmtid,
+        'sync_keep' => 1,
+      ))
+      ->execute();
   }
 }
 
@@ -726,8 +745,11 @@ function _casmmsync_clear_old_groups() {
   }
   $deleted = 0;
 
-  $results = db_query("SELECT group_id, mmtid FROM {casmmsync_group_map} WHERE sync_keep = 0");
-  while ($data = db_fetch_object($results)) {
+  $results = db_select('casmmsync_group_map', 'm')
+    ->fields('m', array('group_id', 'mmtid'))
+    ->condition('sync_keep', 0)
+    ->execute();
+  while ($data = $results->fetchObject()) {
     _casmmsync_delete_group($data->group_id, $data->mmtid);
 
     // Debugging status output
@@ -784,7 +806,9 @@ function _casmmsync_delete_group($group_id, $group_mmtid) {
   _casmmsync_prune_empty_group_containers($parent);
 
   // Remove the mapping.
-  db_query("DELETE FROM {casmmsync_group_map} WHERE group_id='%s'", $group_id);
+  db_delete('casmmsync_group_map')
+    ->condition('group_id', $group_id)
+    ->execute();
 
   watchdog('casmmsync', "Deleted group with mmtid @mmtid and id @group_id .", array('@group_id' => $group_id, '@mmtid' => $group_mmtid));
 }
@@ -927,7 +951,11 @@ function _casmmsync_int_from_bytestring($byteString) {
  * Get the profile field id for the given field name.
  */
 function _casmmsync_get_profile_field_fid($name) {
-  return db_result(db_query("SELECT fid FROM {profile_fields} WHERE name='%s'", $name));
+  return db_select('profile_fields', 'f')
+    ->fields('f', array('fid'))
+    ->condition('name', $name)
+    ->execute()
+    ->fetchField();
 }
 
 /*
@@ -937,7 +965,12 @@ function _casmmsync_get_profile_field_value($uid, $field) {
   if (!is_numeric($field)) {
     $field = _casmmsync_get_profile_field_fid($field);
   }
-  return db_result(db_query("SELECT value FROM {profile_values} WHERE fid=%d AND uid=%d", $field, $uid));
+  return db_select('profile_values', 'v')
+    ->fields('v', array('value'))
+    ->condition('fid', $field)
+    ->condition('uid', $uid)
+    ->execute()
+    ->fetchField();
 }
 
 /*
@@ -946,8 +979,17 @@ function _casmmsync_get_profile_field_value($uid, $field) {
 function _casmmsync_set_profile_field_value($uid, $field, $value) {
   if (!is_numeric($field))
     $field = _casmmsync_get_profile_field_fid($field);
-  db_query("DELETE FROM {profile_values} WHERE fid=%d AND uid=%d", $field, $uid);
-  db_query("INSERT INTO {profile_values} (fid, uid, value) VALUES (%d, %d, '%s')", $field, $uid, $value);
+  db_delete('profile_values')
+    ->condition('fid', $field)
+    ->condition('uid', $uid)
+    ->execute();
+  db_insert('profile_values')
+    ->fields(array(
+      'fid' => $field,
+      'uid' => $uid,
+      'value' => $value,
+    ))
+    ->execute();
 }
 
 /*********************************************************
