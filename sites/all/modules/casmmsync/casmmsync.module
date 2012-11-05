@@ -37,7 +37,7 @@ function casmmsync_menu() {
 /**
  * Implements hook_user_login().
  */
-function casmmsync_user_login(&$edit, $acount) {
+function casmmsync_user_login(&$edit, $account) {
   // For cas logins, set the user properties based on the CAS attributes.
   if (class_exists('phpCAS') && phpCAS::isSessionAuthenticated()) {
     // Get a list of the user's existing groups
@@ -56,7 +56,7 @@ function casmmsync_user_login(&$edit, $acount) {
     $new_cas_group_dns = casmmsync_get_group_ids(cas_phpcas_attributes());
     // If we have an empty list, just stop in case there was an error in the response.
     if (empty($new_cas_group_dns)) {
-      watchdog('casmmsync', "On login skipping groups due to empty list of group dns. @attributes", array('@attributes' => print_r(cas_phpcas_attributes(), TRUE)), WATCHDOG_NOTICE, l(t('edit'), 'user/' . $acount->uid . '/edit'));
+      watchdog('casmmsync', "On login skipping groups due to empty list of group dns. @attributes", array('@attributes' => print_r(cas_phpcas_attributes(), TRUE)), WATCHDOG_NOTICE, l(t('edit'), 'user/' . $account->uid . '/edit'));
       return;
     }
 
@@ -66,9 +66,9 @@ function casmmsync_user_login(&$edit, $acount) {
       if (!in_array($dn, $new_cas_group_dns)) {
         db_delete('mm_group')
           ->condition('gid', $gid, '=')
-          ->condition('uid', $acount->uid, '=')
+          ->condition('uid', $account->uid, '=')
           ->execute();
-        watchdog('casmmsync', "On login, removed user from @dn.", array('@dn' => $dn, '@user' => $acount->name), WATCHDOG_NOTICE, l(t('edit'), 'user/' . $acount->uid . '/edit'));
+        watchdog('casmmsync', "On login, removed user from @dn.", array('@dn' => $dn, '@user' => $account->name), WATCHDOG_NOTICE, l(t('edit'), 'user/' . $account->uid . '/edit'));
       }
     }
 
@@ -79,10 +79,10 @@ function casmmsync_user_login(&$edit, $acount) {
         db_insert('mm_group')
           ->fields(array(
             'gid' => $gid,
-            'uid' => $acount->uid,
+            'uid' => $account->uid,
           ))
           ->execute();
-        watchdog('casmmsync', "On login, added user to @dn.", array('@dn' => $dn, '@user' => $acount->name), WATCHDOG_NOTICE, l(t('edit'), 'user/' . $acount->uid . '/edit'));
+        watchdog('casmmsync', "On login, added user to @dn.", array('@dn' => $dn, '@user' => $account->name), WATCHDOG_NOTICE, l(t('edit'), 'user/' . $account->uid . '/edit'));
       }
     }
   }
@@ -830,7 +830,7 @@ function _casmmsync_get_group_path($group_id) {
   $path = array_slice(array_reverse($path), 2);
 
   $groups = array();
-  $noUpdate = array(
+  $no_update = array(
     'mmtid',
     'alias',
     'cascaded',
@@ -862,7 +862,7 @@ function _casmmsync_get_group_path($group_id) {
     'name' => '.Groups',
     'alias' => 'groups',
     'default_mode' => 'r',
-    'no_update' => $noUpdate,
+    'no_update' => $no_update,
   ));
 
   // Make the DN parts the names (keys) and use an empty string for the alias (values).
@@ -870,7 +870,7 @@ function _casmmsync_get_group_path($group_id) {
     $groups[] = new MMCreatePathGroup(array(
       'name' => $name,
       'default_mode' => 'r',
-      'no_update' => $noUpdate,
+      'no_update' => $no_update,
     ));
   }
 
