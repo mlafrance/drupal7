@@ -572,7 +572,7 @@ function casmmsync_get_or_create_group_by_dn($group_id) {
     watchdog('casmmsync', "Can't create group, no group_id passed.", array(), WATCHDOG_ERROR);
     return;
   }
-  
+
   $query = db_select('casmmsync_group_map', 'm');
   $query->addJoin('INNER', 'mm_tree', 't', 'm.mmtid = t.mmtid');
   $query->addField('t', 'mmtid');
@@ -606,7 +606,7 @@ function casmmsync_get_group_by_dn($group_id) {
     watchdog('casmmsync', "Can't get group, no group_id passed.", array(), WATCHDOG_ERROR);
     return;
   }
-  
+
   $query = db_select('casmmsync_group_map', 'm');
   $query->addJoin('INNER', 'mm_tree', 't', 'm.mmtid = t.mmtid');
   $query->addField('t', 'mmtid');
@@ -640,7 +640,7 @@ function _casmmsync_sync_groups($groups) {
   db_update('casmmsync_group_map')
     ->fields(array('sync_keep' => 0))
     ->execute();
-  
+
   $synced = 0;
   foreach ($groups as $group_id => $members) {
     $group_mmtid = casmmsync_get_or_create_group_by_dn($group_id);
@@ -685,7 +685,7 @@ function _casmmsync_sync_groups($groups) {
     ->fields(array('default_mode' => 'ru'))
     ->condition('mmtid', db_select('casmmsync_group_map', 'm')->fields('m', array('mmtid')), 'IN')
     ->execute();
-  
+
   // Debugging status output
   if (variable_get('casmmsync_show_debug', FALSE)) {
     print "\n<h2>Group Synchronization Complete</h2>\n";
@@ -714,7 +714,7 @@ function _casmmsync_record_mapping($group_id, $group_mmtid) {
     watchdog('casmmsync', "Can't record group mapping, no group_mmtid passed. group_id = '@group_id', group_mmtid = '@mmtid'.", array('@group_id' => $group_id, '@mmtid' => $group_mmtid), WATCHDOG_ERROR);
     return;
   }
-  
+
   $num_affected = db_update('casmmsync_group_map')
     ->fields(array('sync_keep' => 1))
     ->condition('group_id', $group_id)
