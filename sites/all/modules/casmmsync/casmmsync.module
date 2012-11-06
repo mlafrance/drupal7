@@ -46,7 +46,7 @@ function casmmsync_user_login(&$edit, $account) {
     $select->addJoin('INNER', 'mm_group', 'g', 'g.gid = m.mmtid');
     $select->addField('m', 'group_id', 'dn');
     $select->addField('g', 'gid', 'gid');
-    $select->condition('g.gid', $account->uid, '=');
+    $select->condition('g.uid', $account->uid, '=');
     $result = $select->execute();
     while ($map = $result->fetchObject()) {
       $existing_cas_groups[$map->gid] = $map->dn;
