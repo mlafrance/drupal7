@@ -39,7 +39,7 @@ function casmmsync_menu() {
  */
 function casmmsync_user_login(&$edit, $account) {
   // For cas logins, set the user properties based on the CAS attributes.
-  if (class_exists('phpCAS') && phpCAS::isSessionAuthenticated()) {
+  if (!empty($edit['cas_user']['attributes']['MemberOf'])) {
     // Get a list of the user's existing groups
     $existing_cas_groups = array();
     $select = db_select('casmmsync_group_map', 'm');
@@ -53,10 +53,10 @@ function casmmsync_user_login(&$edit, $account) {
     }
 
     // Get a list of the new groups
-    $new_cas_group_dns = casmmsync_get_group_ids(cas_phpcas_attributes());
+    $new_cas_group_dns = casmmsync_get_group_ids($edit['cas_user']['attributes']);
     // If we have an empty list, just stop in case there was an error in the response.
     if (empty($new_cas_group_dns)) {
-      watchdog('casmmsync', "On login skipping groups due to empty list of group dns. @attributes", array('@attributes' => print_r(cas_phpcas_attributes(), TRUE)), WATCHDOG_NOTICE, l(t('edit'), 'user/' . $account->uid . '/edit'));
+      watchdog('casmmsync', "On login skipping groups due to empty list of group dns. @attributes", array('@attributes' => print_r($edit['cas_user']['attributes'], TRUE)), WATCHDOG_NOTICE, l(t('edit'), 'user/' . $account->uid . '/edit'));
       return;
     }
 
