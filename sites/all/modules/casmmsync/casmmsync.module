@@ -714,19 +714,25 @@ function _casmmsync_record_mapping($group_id, $group_mmtid) {
     watchdog('casmmsync', "Can't record group mapping, no group_mmtid passed. group_id = '@group_id', group_mmtid = '@mmtid'.", array('@group_id' => $group_id, '@mmtid' => $group_mmtid), WATCHDOG_ERROR);
     return;
   }
-
+  
   $num_affected = db_update('casmmsync_group_map')
     ->fields(array('sync_keep' => 1))
     ->condition('group_id', $group_id)
     ->execute();
   if (!$num_affected) {
-    db_insert('casmmsync_group_map')
-      ->fields(array(
-        'group_id' => $group_id,
-        'mmtid' => $group_mmtid,
-        'sync_keep' => 1,
-      ))
-      ->execute();
+    try {
+      db_insert('casmmsync_group_map')
+        ->fields(array(
+          'group_id' => $group_id,
+          'mmtid' => $group_mmtid,
+          'sync_keep' => 1,
+        ))
+        ->execute();
+    } catch (PDOException $e) {
+      // ignore duplicate key exceptions
+      if ($e->getCode() != 23000)
+        throw $e;
+    }
   }
 }
 
