@@ -280,12 +280,17 @@ function casmmsync_update_group($group_dn) {
     $user_element = $xpath->query("//cas:entry[cas:user = '" . $web_id . "']")->item(0);
     $attributes = _casmmsync_get_attributes($xpath, $user_element);
     $uid = _casmmsync_sync_user($web_id, $attributes);
-    // @todo  May need to suppress duplicate-key errors here.
-    db_insert('mm_group')
-      ->fields(array(
-        'gid' => $group_mmtid,
-        'uid' => $uid,
-      ))->execute();
+    try {
+      db_insert('mm_group')
+        ->fields(array(
+          'gid' => $group_mmtid,
+          'uid' => $uid,
+        ))->execute();
+    } catch (PDOException $e) {
+      // Ignore duplicate-key exceptions if users are already members in the group.
+      if ($e->getCode() != 23000)
+        throw $e;
+    }
   }
 
   foreach ($removed_members as $web_id) {
@@ -647,13 +652,18 @@ function _casmmsync_sync_groups($groups) {
 
     // Add new members
     foreach ($members as $member_id) {
-      // @todo we may need error suppression here.
-      db_insert('mm_group')
-        ->fields(array(
-          'gid' => $group_mmtid,
-          'uid' => $member_id,
-        ))
-        ->execute();
+      try {
+        db_insert('mm_group')
+          ->fields(array(
+            'gid' => $group_mmtid,
+            'uid' => $member_id,
+          ))
+          ->execute();
+      } catch (PDOException $e) {
+        // Ignore duplicate-key exceptions if users are already members in the group.
+        if ($e->getCode() != 23000)
+          throw $e;
+      }
     }
 
     // Delete missing members
