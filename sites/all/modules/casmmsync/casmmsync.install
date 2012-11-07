@@ -1,0 +1,66 @@
+<?php
+/**
+ * @file
+ *
+ * Installer for CAS-MM-sync
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function casmmsync_schema() {
+  $schema['casmmsync_group_map'] = array(
+    'description' => 'Mapping between CAS group ids and MM TIDs.',
+    'fields' => array(
+      'group_id' => array(
+        'description' => 'The group id from CAS.',
+        'type' => 'varchar',
+        'length' => 200,
+        'not null' => TRUE,
+      ),
+      'mmtid' => array(
+        'description' => 'The MM TID that maps to this group.',
+        'type' => 'int',
+        'length' => 10,
+        'not null' => TRUE,
+      ),
+      'sync_keep' => array(
+        'description' => 'The MM TID that maps to this group.',
+        'type' => 'int',
+        'length' => 1,
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+    ),
+    'primary key' => array('group_id'),
+    'unique keys' => array('mmtid_unique' => array('mmtid')),
+    'indexes' => array('mmtid' => array('mmtid')),
+  );
+
+  return $schema;
+}
+
+/**
+ * Update variables to their new names
+ */
+function casmmsync_update_6001() {
+  $vars = array(
+    'cassmmsync_path' => 'casmmsync_path',
+    'cassmmsync_adminkey' => 'casmmsync_adminkey',
+    'cassmmsync_maxexectime' => 'casmmsync_maxexectime',
+    'cassmmsync_update_passkey' => 'casmmsync_update_passkey',
+  );
+  foreach ($vars as $old => $new) {
+    if (!variable_get($new, FALSE) && variable_get($old, FALSE)) {
+      variable_set($new, variable_get($old, FALSE));
+      variable_del($old);
+    }
+  }
+}
+
+/**
+ * Update groups to be usable as well as read-only
+ */
+function casmmsync_update_6002() {
+  $results = db_query("UPDATE {mm_tree} SET default_mode='ru' WHERE mmtid IN (SELECT mmtid FROM  {casmmsync_group_map})");
+}
