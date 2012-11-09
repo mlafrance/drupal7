@@ -10,7 +10,7 @@
  * Show graphs of resource utilization.
  *
  * @ingroup forms
- * @see system_settings_form().
+ * @see system_settings_form()
  */
 function course_hub_stats_resource_stats() {
   drupal_add_css(drupal_get_path('module', 'course_hub') . '/stats.css', 'module', 'all', FALSE);
@@ -87,7 +87,7 @@ function course_hub_stats_resource_stats() {
  * Show lists of resource nodes
  *
  * @ingroup forms
- * @see system_settings_form().
+ * @see system_settings_form()
  */
 function course_hub_stats_resource_list($mmtid, $resource_type) {
   $path = course_hub_get_path($mmtid);
@@ -191,7 +191,7 @@ function course_hub_stats_resource_list_public($mmtid) {
  * Show lists of course hub sites
  *
  * @ingroup forms
- * @see system_settings_form().
+ * @see system_settings_form()
  */
 function course_hub_stats_resource_sites($mmtid, $resource_type) {
   $path = course_hub_get_path($mmtid);
@@ -227,7 +227,7 @@ function course_hub_stats_resource_sites($mmtid, $resource_type) {
  * Show lists of course hub sites
  *
  * @ingroup forms
- * @see system_settings_form().
+ * @see system_settings_form()
  */
 function course_hub_stats_resource_instructors($mmtid, $resource_type) {
   $path = course_hub_get_path($mmtid);

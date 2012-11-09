@@ -8,7 +8,7 @@
  * Form builder. Configure Course Hub Resources
  *
  * @ingroup forms
- * @see system_settings_form().
+ * @see system_settings_form()
  */
 function course_hub_admin_overview() {
   $item = menu_get_item('admin/course_hub');
@@ -23,7 +23,7 @@ function course_hub_admin_overview() {
  * List sites in use
  *
  * @ingroup forms
- * @see system_settings_form().
+ * @see system_settings_form()
  */
 function course_hub_admin_sites_in_use() {
   $header = array('Term', 'Title', 'Num Updates', 'Instructors', 'Latest Update');
