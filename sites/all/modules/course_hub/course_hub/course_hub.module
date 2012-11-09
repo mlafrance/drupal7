@@ -342,6 +342,7 @@ function course_hub_menu() {
     'page callback' => 'course_hub_admin_overview',
     'access arguments' => array('view coursehub statistics'),
     'type' => MENU_NORMAL_ITEM,
+    'file' => 'course_hub.admin.inc',
   );
   $items['admin/course_hub/stats'] = array(
     'title' => 'Statistics',
