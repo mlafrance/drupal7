@@ -127,7 +127,7 @@ function course_hub_get_path($tid = NULL) {
   else
     $path = 'mm/' . $tid;
   $options = array();
-  custom_url_rewrite_outbound($path, $options, $path);
+  drupal_alter('url_outbound', $path, $options, $path);
   return $path;
 }
 
@@ -140,7 +140,7 @@ function course_hub_get_path($tid = NULL) {
  *      The page tid or NULL if not found.
  */
 function course_hub_tid_from_path($path) {
-  custom_url_rewrite_inbound($result, $path, NULL);
+  monster_menus_url_inbound_alter($result, $path, NULL);
   if (!preg_match('/^mm\/([0-9]+)$/', $result, $matches))
     return NULL;
   return intval($matches[1]);
