@@ -157,9 +157,7 @@ function course_hub_preprocess_page(&$vars) {
     $vars['styles'] .= '<style>div#tabs-wrapper, ul.menu li.hidden-entry { display: none; }</style>';
   }
 
-  /*********************************************************
-   * Set the content for the home-page
-   *********************************************************/
+  // Set the content for the home-page
   if (!$vars['is_front'])
     return;
 
