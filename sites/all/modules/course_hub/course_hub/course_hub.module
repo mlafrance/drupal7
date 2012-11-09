@@ -459,10 +459,15 @@ function course_hub_is_authenticated() {
 }
 
 /**
- * Implements hook_perm().
+ * Implements hook_permission().
  */
-function course_hub_perm() {
-  return array('view coursehub statistics');
+function course_hub_permission() {
+  return array(
+    'view coursehub statistics' => array(
+      'title' => t('View Course Hub Statistics'),
+      'description' => t('This permission allows users to view a link to statistics related to the Course Hub as well as several statistics screens that provide usage information across all Course Hub sites.'),
+    ),
+  );
 }
 
 /**
