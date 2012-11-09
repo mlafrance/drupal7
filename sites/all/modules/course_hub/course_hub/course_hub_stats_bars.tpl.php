@@ -1,3 +1,11 @@
+<?php
+/**
+ * @file
+ * Course Hub Statistics bars.
+ *
+ * Renders the graph bars for each resource type.
+ */
+?>
 <div class='course_hub_stats_bar course_hub_stats_bar_total'>
 	<div class='course_hub_stats_bar_label'><a href="<?php print $stats['resource_list_url']; ?>">Total Resources:</a></div>
 	<div class='course_hub_stats_bar_ammount'><?php print $stats['num_resources']; ?></div>

@@ -1,3 +1,12 @@
+<?php
+/**
+ * @file
+ * Course Hub Roster view
+ *
+ * Provides a means for viewing the class roster. Available only to instructors.
+ */
+?>
+
 <div class='roster'>
 	<h1><?php echo $short_name; ?> Class Roster</h1>
 	<div><em>Visible to instructors only</em></div>
