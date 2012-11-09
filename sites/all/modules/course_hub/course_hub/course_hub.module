@@ -1,7 +1,5 @@
 <?php
 
-require_once dirname(__FILE__) . '/course_hub.admin.inc';
-
 /**
  * Answer the id of the course site's root page.
  *

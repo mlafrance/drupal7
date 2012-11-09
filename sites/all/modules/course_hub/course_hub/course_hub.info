@@ -3,6 +3,11 @@ description = "Provides common functions and admin screens for the Course Hub sy
 package = Course Hub Resources
 core = 7.x
 
+files[] = course_hub.module
+files[] = course_hub.admin.inc
+files[] = course_hub_stats.inc
+files[] = course_hub_roster.inc
+
 dependencies[] = "monster_menus"
 dependencies[] = "views"
 dependencies[] = "monster_menus_views"
