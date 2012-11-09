@@ -64,7 +64,7 @@ function course_hub_stats_resource_stats() {
       $name = t('Any/All Resources');
     }
     else {
-      $name = node_get_name($type);
+      $name = node_type_get_name($type);
       if ($type == 'media')
         $name = 'Syllabus Upload';
     }
@@ -91,7 +91,7 @@ function course_hub_stats_resource_stats() {
  */
 function course_hub_stats_resource_list($mmtid, $resource_type) {
   $path = course_hub_get_path($mmtid);
-  drupal_set_title(t('%type Resources under @path', array('%type' => node_get_name($resource_type), '@path' => $path)), PASS_THROUGH);
+  drupal_set_title(t('%type Resources under @path', array('%type' => node_type_get_name($resource_type), '@path' => $path)), PASS_THROUGH);
 
   $stats = course_hub_stats_get_resource_stats($resource_type, $mmtid);
   $header = array(
@@ -195,7 +195,7 @@ function course_hub_stats_resource_list_public($mmtid) {
  */
 function course_hub_stats_resource_sites($mmtid, $resource_type) {
   $path = course_hub_get_path($mmtid);
-  drupal_set_title(t('Sites with %type Resources under @path', array('%type' => node_get_name($resource_type), '@path' => $path)), PASS_THROUGH);
+  drupal_set_title(t('Sites with %type Resources under @path', array('%type' => node_type_get_name($resource_type), '@path' => $path)), PASS_THROUGH);
 
   $stats = course_hub_stats_get_resource_stats($resource_type, $mmtid);
   $header = array(
@@ -231,7 +231,7 @@ function course_hub_stats_resource_sites($mmtid, $resource_type) {
  */
 function course_hub_stats_resource_instructors($mmtid, $resource_type) {
   $path = course_hub_get_path($mmtid);
-  drupal_set_title(t('Instructors using %type Resources under @path', array('%type' => node_get_name($resource_type), '@path' => $path)), PASS_THROUGH);
+  drupal_set_title(t('Instructors using %type Resources under @path', array('%type' => node_type_get_name($resource_type), '@path' => $path)), PASS_THROUGH);
 
   $stats = course_hub_stats_get_resource_stats($resource_type, $mmtid);
   $header = array(
@@ -287,7 +287,7 @@ function course_hub_stats_resource_instructors($mmtid, $resource_type) {
   array_multisort($names, $rows);
   $not_using = theme('table', $header, $rows);
 
-  return $using . "\n<h2>" . t('Instructors NOT using %type Resources under @path', array('%type' => node_get_name($resource_type), '@path' => $path)) . "</h2> \n" . $not_using;
+  return $using . "\n<h2>" . t('Instructors NOT using %type Resources under @path', array('%type' => node_type_get_name($resource_type), '@path' => $path)) . "</h2> \n" . $not_using;
 }
 
 /**
