@@ -231,42 +231,39 @@ function course_hub_set_node_form_visibility($parentPagePath, &$form_state) {
 }
 
 /**
- * Implements hook_block().
+ * Implements hook_block_info().
  */
-function course_hub_block($op = 'list', $delta = 0, $edit = array()) {
-  // Handle our block
-  if ($op == 'list') {
-    $blocks[1] = array(
-      'info' => t('Course Hub Nav Spacer'),
-    );
-    $blocks[2] = array(
-      'info' => t('Roster Link'),
-      'cache' => BLOCK_NO_CACHE,
-      'visibility' => 2,
-      'pages' => '<?php return course_hub_roster_visible(); ?>',
-    );
-    return $blocks;
+function course_hub_block_info() {
+  $blocks['nav_spacer'] = array(
+    'info' => t('Course Hub Nav Spacer'),
+    'cache' => DRUPAL_CACHE_GLOBAL,
+  );
+  $blocks['roster_link'] = array(
+    'info' => t('Roster Link'),
+    'cache' => DRUPAL_CACHE_PER_USER | DRUPAL_CACHE_PER_PAGE,
+    'visibility' => BLOCK_VISIBILITY_PHP,
+    'pages' => '<?php return course_hub_roster_visible(); ?>',
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function course_hub_block_view($delta = '') {
+  switch ($delta) {
+    case 'nav_spacer':
+      return array(
+        'subject' => '<none>',
+        'content' => "<div class='hub_nav_spacer'> &nbsp; </div>",
+      );
+    case 'roster_link':
+      return array(
+        'subject' => '<none>',
+        'content' => course_hub_get_roster_link(),
+      );
   }
-  elseif ($op == 'configure' && $delta == 0) {
-    // no options for now.
-  }
-  elseif ($op == 'save' && $delta == 0) {
-    // no options for now.
-  }
-  elseif ($op == 'view') {
-    switch ($delta) {
-      case 1:
-        return array(
-          'subject' => '<none>',
-          'content' => "<div class='hub_nav_spacer'> &nbsp; </div>",
-        );
-      case 2:
-        return array(
-          'subject' => '<none>',
-          'content' => course_hub_get_roster_link(),
-        );
-    }
-  }
+  return array();
 }
 
 /**
