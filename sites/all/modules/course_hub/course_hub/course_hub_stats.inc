@@ -169,7 +169,7 @@ function course_hub_stats_resource_list_public($mmtid) {
     $sites = array();
     foreach ($resources as $nid => $site) {
       try {
-        $response = drupal_http_request($site, array(), 'HEAD');
+        $response = drupal_http_request($site, array('method' => 'HEAD'));
         if ($response->code == '200') {
           $course = course_hub_get_course_site_metadata(course_hub_get_course_site_tid_for_nid($nid));
           if (!empty($course)
