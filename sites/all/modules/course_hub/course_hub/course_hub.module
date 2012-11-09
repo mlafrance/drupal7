@@ -326,7 +326,7 @@ function course_hub_get_roster_link() {
 }
 
 /**
- * Implements hook_menu()
+ * Implements hook_menu().
  */
 function course_hub_menu() {
   $items['browse'] = array(
@@ -428,7 +428,7 @@ function course_hub_menu() {
 }
 
 /**
- * Implementation of hook_theme()
+ * Implements of hook_theme().
  */
 function course_hub_theme($existing, $type, $theme, $path) {
   return array(
@@ -459,7 +459,7 @@ function course_hub_is_authenticated() {
 }
 
 /**
- * Implements hook_perm()
+ * Implements hook_perm().
  */
 function course_hub_perm() {
   return array('view coursehub statistics');
