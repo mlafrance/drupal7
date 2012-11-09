@@ -55,7 +55,7 @@ function course_hub_stats_resource_stats() {
 
   // Loop through once and build our stats.
   foreach ($resource_types as $type) {
-   $stats[$type] = course_hub_stats_get_resource_stats($type, $current_page);
+    $stats[$type] = course_hub_stats_get_resource_stats($type, $current_page);
   }
   course_hub_stats_normalize_stats($stats);
   // Loop through a second time and build the graphs
@@ -588,9 +588,9 @@ function course_hub_stats_get_resource_stats_for_all($mmtid) {
 
   // Loop through once and build our stats.
   foreach ($resource_types as $type) {
-   $type_stats = course_hub_stats_get_resource_stats($type, $mmtid);
-   $all_stats['resource_nids'] = array_merge($all_stats['resource_nids'], $type_stats['resource_nids']);
-   $all_stats['site_mmtids'] = array_merge($all_stats['site_mmtids'], $type_stats['site_mmtids']);
+    $type_stats = course_hub_stats_get_resource_stats($type, $mmtid);
+    $all_stats['resource_nids'] = array_merge($all_stats['resource_nids'], $type_stats['resource_nids']);
+    $all_stats['site_mmtids'] = array_merge($all_stats['site_mmtids'], $type_stats['site_mmtids']);
   }
   $all_stats['resource_nids'] = array_unique($all_stats['resource_nids']);
   $all_stats['num_resources'] = count($all_stats['resource_nids']);
