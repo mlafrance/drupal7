@@ -408,6 +408,7 @@ function course_hub_menu() {
     'access arguments' => array('view coursehub statistics'),
     'type' => MENU_LOCAL_TASK,
     'weight' => 2,
+    'file' => 'course_hub.admin.inc',
   );
   $items['mm/%mm_mmtid/roster'] = array(
     'title' => 'Roster',

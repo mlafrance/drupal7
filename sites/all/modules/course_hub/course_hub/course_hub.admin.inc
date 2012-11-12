@@ -90,7 +90,7 @@ ORDER BY
   term_id DESC,
   name ASC
   ");
-  while ($site = db_fetch_object($sites_results)) {
+  while ($site = $sites_results->fetchObject()) {
     $row = array($site->term_label);
     $row[] = "<a href='" . url('mm/' . $site->mmtid) . "' target='_blank'>" . $site->name . "</a>";
     $row[] = $site->num_updates;

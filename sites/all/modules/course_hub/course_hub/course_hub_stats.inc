@@ -146,18 +146,24 @@ function course_hub_stats_resource_list_public($mmtid) {
     foreach ($resource_types as $resource_type) {
       switch ($resource_type) {
         case 'wordpress_resource':
-          $q = "
-            SELECT DISTINCT(field_wp_sitename_value) AS site, node.nid AS nid
-            FROM content_type_wordpress_resource wp
-            LEFT JOIN node node ON wp.nid = node.nid
-            LEFT JOIN mm_recycle mm_recycle ON node.nid = mm_recycle.id AND mm_recycle.type = 'node'
-            LEFT JOIN mm_node2tree mm_node2tree ON node.nid = mm_node2tree.nid
-            LEFT JOIN mm_tree mm_tree ON mm_node2tree.mmtid = mm_tree.mmtid
-            LEFT JOIN mm_tree_parents mm_tree_parents ON mm_tree.mmtid = mm_tree_parents.mmtid
-            WHERE ((mm_recycle.id IS NULL) AND (node.type = '%s'))
-              AND ((mm_tree.mmtid = %d) OR (mm_tree.parent = %d) OR (mm_tree_parents.parent = %d))";
-          $r = db_query($q, $resource_type, $mmtid, $mmtid, $mmtid);
-          while ($row = db_fetch_object($r)) {
+          $select = db_query('field_data_field_wp_sitename', 'w');
+          $select->addJoin('LEFT OUTER', 'node', 'n', 'w.entity_id = n.nid');
+          $select->addJoin('LEFT OUTER', 'mm_recycle', 'r', 'n.nid = r.id AND r.type = :type', array(':type' => 'node'));
+          $select->addJoin('LEFT OUTER', 'mm_node2tree', 'n2t', "n.nid = n2t.nid");
+          $select->addJoin('LEFT OUTER', 'mm_tree', 't', "n2t.mmtid = t.mmtid");
+          $select->addJoin('LEFT OUTER', 'mm_tree_parents', 'p', "t.mmtid = p.mmtid");
+          $select->addField('w', 'field_wp_sitename_value', 'site');
+          $select->addField('n', 'nid');
+          $select->distinct();
+          $select->isNull('r.id');
+          $select->condition('n.type', $resource_type);
+          $select->condition(db_or()
+            ->condition('t.mmtid', $mmtid)
+            ->condition('t.parent', $mmtid)
+            ->condition('p.parent', $mmtid)
+          );
+          $results = $select->execute();
+          while ($row = $results->fetchObject()) {
             $resources[$row->nid] = 'http://blogs.middlebury.edu/' . $row->site . '/';
           }
           break;
@@ -333,37 +339,33 @@ function course_hub_stats_get_resource_stats($resource_type, $mmtid) {
     return course_hub_stats_get_resource_stats_for_all($mmtid);
 
   // Total number of nodes
-  $q = "
-    SELECT DISTINCT(node.nid) AS nid
-    FROM node node
-    LEFT JOIN mm_recycle mm_recycle ON node.nid = mm_recycle.id AND mm_recycle.type = 'node'
-    LEFT JOIN mm_node2tree mm_node2tree ON node.nid = mm_node2tree.nid
-    LEFT JOIN mm_tree mm_tree ON mm_node2tree.mmtid = mm_tree.mmtid
-    LEFT JOIN mm_tree_parents mm_tree_parents ON mm_tree.mmtid = mm_tree_parents.mmtid
-    WHERE ((mm_recycle.id IS NULL) AND (node.type = '%s'))
-      AND ((mm_tree.mmtid = %d) OR (mm_tree.parent = %d) OR (mm_tree_parents.parent = %d))";
-  $r = db_query($q, $resource_type, $mmtid, $mmtid, $mmtid);
-  $nids = array();
-  while ($nid = db_result($r)) {
-    $nids[] = $nid;
-  }
-
+  $select = db_select('node', 'n');
+  $select->addJoin('LEFT OUTER', 'mm_recycle', 'r', "n.nid = r.id AND r.type = :type", array(':type' => 'node'));
+  $select->addJoin('LEFT OUTER', 'mm_node2tree', 'n2t', "n.nid = n2t.nid");
+  $select->addJoin('LEFT OUTER', 'mm_tree', 't', "n2t.mmtid = t.mmtid");
+  $select->addJoin('LEFT OUTER', 'mm_tree_parents', 'p', "t.mmtid = p.mmtid");
+  $select->addField('n', 'nid');
+  $select->distinct();
+  $select->isNull('r.id');
+  $select->condition('n.type', $resource_type);
+  $select->condition(db_or()
+    ->condition('t.mmtid', $mmtid)
+    ->condition('t.parent', $mmtid)
+    ->condition('p.parent', $mmtid)
+  );
+  $nids = $select->execute()->fetchCol();
+  
   // Unique sites
   if (count($nids)) {
-    $q = "
-      SELECT DISTINCT(f.mmtid) AS mmtid
-      FROM
-        mm_node2tree n2t
-        LEFT JOIN mm_tree t ON n2t.mmtid = t.mmtid
-        LEFT JOIN mm_tree_parents p ON t.mmtid = p.mmtid
-        LEFT JOIN mm_tree_flags f ON (p.parent = f.mmtid)
-      WHERE n2t.nid IN (" . db_placeholders($nids) . ")
-        AND f.flag = 'coursehub_site'";
-    $r = db_query($q, $nids);
-    $mmtids = array();
-    while ($site_mmtid = db_result($r)) {
-      $mmtids[] = $site_mmtid;
-    }
+    $select = db_select('mm_node2tree', 'n2t');
+    $select->addJoin('LEFT OUTER', 'mm_tree', 't', "n2t.mmtid = t.mmtid");
+    $select->addJoin('LEFT OUTER', 'mm_tree_parents', 'p', "t.mmtid = p.mmtid");
+    $select->addJoin('LEFT OUTER', 'mm_tree_flags', 'f', "p.parent = f.mmtid");
+    $select->addField('f', 'mmtid');
+    $select->distinct();
+    $select->condition('n2t.nid', $nids, 'IN');
+    $select->condition('f.flag', 'coursehub_site');
+    $mmtids = $select->execute()->fetchCol();
   }
   else {
     $mmtids = array();
@@ -372,20 +374,14 @@ function course_hub_stats_get_resource_stats($resource_type, $mmtid) {
   // Unique instructors
   $instructor_uids = array();
   if (count($mmtids)) {
-    $q = "
-      SELECT
-        DISTINCT g.uid AS uid
-      FROM
-        {mm_node2tree} n2t
-        INNER JOIN {content_type_course_metadata} m ON n2t.nid = m.nid
-        INNER JOIN {casmmsync_group_map} gm ON m.field_instructors_dn_value = gm.group_id
-        INNER JOIN {mm_group} g ON gm.mmtid = g.gid
-      WHERE
-        n2t.mmtid IN (" . db_placeholders($mmtids) . ")";
-    $r = db_query($q, $mmtids);
-    while ($row = db_fetch_array($r)) {
-      $instructor_uids[] = $row['uid'];
-    }
+    $select = db_select('mm_node2tree', 'n2t');
+    $select->addJoin('INNER', 'field_data_field_instructors_dn', 'i', "n2t.nid = i.entity_id");
+    $select->addJoin('INNER', 'casmmsync_group_map', 'm', "i.field_instructors_dn_value = m.group_id");
+    $select->addJoin('INNER', 'mm_group', 'g', "m.mmtid = g.gid");
+    $select->addField('g', 'uid');
+    $select->distinct();
+    $select->condition('n2t.mmtid', $mmtids, 'IN');
+    $instructor_uids = $select->execute()->fetchCol();
   }
   $num_instructors = count($instructor_uids);
   $total_instructors = course_hub_stats_total_instructors_in_cat($mmtid);
@@ -397,21 +393,14 @@ function course_hub_stats_get_resource_stats($resource_type, $mmtid) {
   // Unique Students
   $student_uids = array();
   if (count($mmtids)) {
-    $q = "
-      SELECT
-        DISTINCT g.uid AS uid,
-        '" . $resource_type . "' as resource_type
-      FROM
-        {mm_node2tree} n2t
-        INNER JOIN {content_type_course_metadata} m ON n2t.nid = m.nid
-        INNER JOIN {casmmsync_group_map} gm ON m.field_students_dn_value = gm.group_id
-        INNER JOIN {mm_group} g ON gm.mmtid = g.gid
-      WHERE
-        n2t.mmtid IN (" . db_placeholders($mmtids) . ")";
-    $r = db_query($q, $mmtids);
-    while ($row = db_fetch_array($r)) {
-      $student_uids[] = $row['uid'];
-    }
+    $select = db_select('mm_node2tree', 'n2t');
+    $select->addJoin('INNER', 'field_data_field_students_dn', 's', "n2t.nid = s.entity_id");
+    $select->addJoin('INNER', 'casmmsync_group_map', 'm', "s.field_students_dn_value = m.group_id");
+    $select->addJoin('INNER', 'mm_group', 'g', "m.mmtid = g.gid");
+    $select->addField('g', 'uid');
+    $select->distinct();
+    $select->condition('n2t.mmtid', $mmtids, 'IN');
+    $student_uids = $select->execute()->fetchCol();
   }
   $num_students = count($student_uids);
   $total_students = course_hub_stats_total_students_in_cat($mmtid);
@@ -455,19 +444,18 @@ function course_hub_stats_total_sites_in_cat($mmtid) {
 
   if (!isset($counts[$mmtid])) {
     // Total number of sites in this category.
-    $q = "
-      SELECT
-        COUNT(DISTINCT(f.mmtid)) AS num_sites
-      FROM
-        {mm_tree_flags} f
-        INNER JOIN {mm_tree} t ON (t.mmtid = f.mmtid)
-        LEFT JOIN {mm_tree_parents} p ON t.mmtid = p.mmtid
-      WHERE
-        f.flag = 'coursehub_site'
-        AND (t.mmtid = %d OR t.parent = %d OR p.parent = %d)
-    ";
-    $r = db_query($q, $mmtid, $mmtid, $mmtid);
-    $counts[$mmtid] = intval(db_result($r));
+    $select = db_select('mm_tree_flags', 'f');
+    $select->addJoin('INNER', 'mm_tree', 't', 't.mmtid = f.mmtid');
+    $select->addJoin('LEFT OUTER', 'mm_tree_parents', 'p', 't.mmtid = p.mmtid');
+    $select->addField('f', 'mmtid');
+    $select->distinct();
+    $select->condition('f.flag', 'coursehub_site');
+    $select->condition(db_or()
+      ->condition('t.mmtid', $mmtid)
+      ->condition('t.parent', $mmtid)
+      ->condition('p.parent', $mmtid)
+    );
+    $counts[$mmtid] = intval($select->countQuery()->execute()->fetchField());
   }
   return $counts[$mmtid];
 }
@@ -483,23 +471,22 @@ function course_hub_stats_total_instructors_in_cat($mmtid) {
 
   if (!isset($counts[$mmtid])) {
     // Total number of sites in this category.
-    $q = "
-      SELECT
-        COUNT(DISTINCT(g.uid)) AS num_instructors
-      FROM
-        {mm_tree_flags} f
-        INNER JOIN {mm_tree} t ON (t.mmtid = f.mmtid)
-        LEFT JOIN {mm_tree_parents} p ON t.mmtid = p.mmtid
-        INNER JOIN {mm_node2tree} n2t ON n2t.mmtid = f.mmtid
-        INNER JOIN {content_type_course_metadata} m ON n2t.nid = m.nid
-        INNER JOIN {casmmsync_group_map} gm ON m.field_instructors_dn_value = gm.group_id
-        INNER JOIN {mm_group} g ON gm.mmtid = g.gid
-      WHERE
-        f.flag = 'coursehub_site'
-        AND (t.mmtid = %d OR t.parent = %d OR p.parent = %d)
-    ";
-    $r = db_query($q, $mmtid, $mmtid, $mmtid);
-    $counts[$mmtid] = intval(db_result($r));
+    $select = db_select('mm_tree_flags', 'f');
+    $select->addJoin('INNER', 'mm_tree', 't', 't.mmtid = f.mmtid');
+    $select->addJoin('LEFT OUTER', 'mm_tree_parents', 'p', 't.mmtid = p.mmtid');
+    $select->addJoin('INNER', 'mm_node2tree', 'n2t', "f.mmtid = n2t.mmtid");
+    $select->addJoin('INNER', 'field_data_field_instructors_dn', 'i', "n2t.nid = i.entity_id");
+    $select->addJoin('INNER', 'casmmsync_group_map', 'm', "i.field_instructors_dn_value = m.group_id");
+    $select->addJoin('INNER', 'mm_group', 'g', "m.mmtid = g.gid");
+    $select->addField('g', 'uid');
+    $select->distinct();
+    $select->condition('f.flag', 'coursehub_site');
+    $select->condition(db_or()
+      ->condition('t.mmtid', $mmtid)
+      ->condition('t.parent', $mmtid)
+      ->condition('p.parent', $mmtid)
+    );
+    $counts[$mmtid] = intval($select->countQuery()->execute()->fetchField());
   }
   return $counts[$mmtid];
 }
@@ -515,24 +502,22 @@ function course_hub_stats_instructors_in_cat($mmtid) {
 
   if (!isset($uids[$mmtid])) {
     // Total number of sites in this category.
-    $q = "
-      SELECT
-        DISTINCT(g.uid) AS uid
-      FROM
-        {mm_tree_flags} f
-        INNER JOIN {mm_tree} t ON (t.mmtid = f.mmtid)
-        LEFT JOIN {mm_tree_parents} p ON t.mmtid = p.mmtid
-        INNER JOIN {mm_node2tree} n2t ON n2t.mmtid = f.mmtid
-        INNER JOIN {content_type_course_metadata} m ON n2t.nid = m.nid
-        INNER JOIN {casmmsync_group_map} gm ON m.field_instructors_dn_value = gm.group_id
-        INNER JOIN {mm_group} g ON gm.mmtid = g.gid
-      WHERE
-        f.flag = 'coursehub_site'
-        AND (t.mmtid = %d OR t.parent = %d OR p.parent = %d)
-    ";
-    $r = db_query($q, $mmtid, $mmtid, $mmtid);
-    while ($row = db_fetch_array($r))
-      $uids[$mmtid][] = $row['uid'];
+    $select = db_select('mm_tree_flags', 'f');
+    $select->addJoin('INNER', 'mm_tree', 't', 't.mmtid = f.mmtid');
+    $select->addJoin('LEFT OUTER', 'mm_tree_parents', 'p', 't.mmtid = p.mmtid');
+    $select->addJoin('INNER', 'mm_node2tree', 'n2t', "f.mmtid = n2t.mmtid");
+    $select->addJoin('INNER', 'field_data_field_instructors_dn', 'i', "n2t.nid = i.entity_id");
+    $select->addJoin('INNER', 'casmmsync_group_map', 'm', "i.field_instructors_dn_value = m.group_id");
+    $select->addJoin('INNER', 'mm_group', 'g', "m.mmtid = g.gid");
+    $select->addField('g', 'uid');
+    $select->distinct();
+    $select->condition('f.flag', 'coursehub_site');
+    $select->condition(db_or()
+      ->condition('t.mmtid', $mmtid)
+      ->condition('t.parent', $mmtid)
+      ->condition('p.parent', $mmtid)
+    );
+    $uids[$mmtid] = $select->execute()->fetchCol();
   }
   return $uids[$mmtid];
 }
@@ -548,23 +533,22 @@ function course_hub_stats_total_students_in_cat($mmtid) {
 
   if (!isset($counts[$mmtid])) {
     // Total number of sites in this category.
-    $q = "
-      SELECT
-        COUNT(DISTINCT(g.uid)) AS num_students
-      FROM
-        {mm_tree_flags} f
-        INNER JOIN {mm_tree} t ON (t.mmtid = f.mmtid)
-        LEFT JOIN {mm_tree_parents} p ON t.mmtid = p.mmtid
-        INNER JOIN {mm_node2tree} n2t ON n2t.mmtid = f.mmtid
-        INNER JOIN {content_type_course_metadata} m ON n2t.nid = m.nid
-        INNER JOIN {casmmsync_group_map} gm ON m.field_students_dn_value = gm.group_id
-        INNER JOIN {mm_group} g ON gm.mmtid = g.gid
-      WHERE
-        f.flag = 'coursehub_site'
-        AND (t.mmtid = %d OR t.parent = %d OR p.parent = %d)
-    ";
-    $r = db_query($q, $mmtid, $mmtid, $mmtid);
-    $counts[$mmtid] = intval(db_result($r));
+    $select = db_select('mm_tree_flags', 'f');
+    $select->addJoin('INNER', 'mm_tree', 't', 't.mmtid = f.mmtid');
+    $select->addJoin('LEFT OUTER', 'mm_tree_parents', 'p', 't.mmtid = p.mmtid');
+    $select->addJoin('INNER', 'mm_node2tree', 'n2t', "f.mmtid = n2t.mmtid");
+    $select->addJoin('INNER', 'field_data_field_students_dn', 's', "n2t.nid = s.entity_id");
+    $select->addJoin('INNER', 'casmmsync_group_map', 'm', "s.field_students_dn_value = m.group_id");
+    $select->addJoin('INNER', 'mm_group', 'g', "m.mmtid = g.gid");
+    $select->addField('g', 'uid');
+    $select->distinct();
+    $select->condition('f.flag', 'coursehub_site');
+    $select->condition(db_or()
+      ->condition('t.mmtid', $mmtid)
+      ->condition('t.parent', $mmtid)
+      ->condition('p.parent', $mmtid)
+    );
+    $counts[$mmtid] = intval($select->countQuery()->execute()->fetchField());
   }
   return $counts[$mmtid];
 }
@@ -607,20 +591,14 @@ function course_hub_stats_get_resource_stats_for_all($mmtid) {
   // Unique instructors
   $instructor_uids = array();
   if (count($all_stats['site_mmtids'])) {
-    $q = "
-      SELECT
-        DISTINCT g.uid AS uid
-      FROM
-        {mm_node2tree} n2t
-        INNER JOIN {content_type_course_metadata} m ON n2t.nid = m.nid
-        INNER JOIN {casmmsync_group_map} gm ON m.field_instructors_dn_value = gm.group_id
-        INNER JOIN {mm_group} g ON gm.mmtid = g.gid
-      WHERE
-        n2t.mmtid IN (" . db_placeholders($all_stats['site_mmtids']) . ")";
-    $r = db_query($q, $all_stats['site_mmtids']);
-    while ($row = db_fetch_array($r)) {
-      $instructor_uids[] = $row['uid'];
-    }
+    $select = db_select('mm_node2tree', 'n2t');
+    $select->addJoin('INNER', 'field_data_field_instructors_dn', 'i', "n2t.nid = i.entity_id");
+    $select->addJoin('INNER', 'casmmsync_group_map', 'm', "i.field_instructors_dn_value = m.group_id");
+    $select->addJoin('INNER', 'mm_group', 'g', "m.mmtid = g.gid");
+    $select->addField('g', 'uid');
+    $select->distinct();
+    $select->condition('n2t.mmtid', $all_stats['site_mmtids'], 'IN');
+    $instructor_uids = $select->execute()->fetchCol();
   }
   $all_stats['num_instructors'] = $num_instructors = count($instructor_uids);
   $all_stats['instructor_uids'] = $instructor_uids;
@@ -633,20 +611,14 @@ function course_hub_stats_get_resource_stats_for_all($mmtid) {
   // Unique Students
   $student_uids = array();
   if (count($all_stats['site_mmtids'])) {
-    $q = "
-      SELECT
-        DISTINCT g.uid AS uid
-      FROM
-        {mm_node2tree} n2t
-        INNER JOIN {content_type_course_metadata} m ON n2t.nid = m.nid
-        INNER JOIN {casmmsync_group_map} gm ON m.field_students_dn_value = gm.group_id
-        INNER JOIN {mm_group} g ON gm.mmtid = g.gid
-      WHERE
-        n2t.mmtid IN (" . db_placeholders($all_stats['site_mmtids']) . ")";
-    $r = db_query($q, $all_stats['site_mmtids']);
-    while ($row = db_fetch_array($r)) {
-      $student_uids[] = $row['uid'];
-    }
+    $select = db_select('mm_node2tree', 'n2t');
+    $select->addJoin('INNER', 'field_data_field_students_dn', 's', "n2t.nid = s.entity_id");
+    $select->addJoin('INNER', 'casmmsync_group_map', 'm', "s.field_students_dn_value = m.group_id");
+    $select->addJoin('INNER', 'mm_group', 'g', "m.mmtid = g.gid");
+    $select->addField('g', 'uid');
+    $select->distinct();
+    $select->condition('n2t.mmtid', $all_stats['site_mmtids'], 'IN');
+    $student_uids = $select->execute()->fetchCol();
   }
   $all_stats['num_students'] = $num_students = count($student_uids);
   $all_stats['student_uids'] = $student_uids;
