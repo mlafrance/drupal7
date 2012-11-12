@@ -213,25 +213,6 @@ function hub_resources_hub_get_content_types() {
 }
 
 /*********************************************************
- * Hook definitions
- *********************************************************/
-
-/**
- * Hook hook_hub_resource_visibility().
- *
- * A hook that fires when the visibility of a resources has been changed.
- *
- * @param object $resourceNode
- *      The resource node that was updated.
- * @param string $visibility
- *      The new visibility value for the node.
- * @return void
- */
-function hook_hub_resource_visibility($resourceNode, $visibility) {
-  // hook definition, no implementation.
-}
-
-/*********************************************************
  * Supporting functions
  *********************************************************/
 
