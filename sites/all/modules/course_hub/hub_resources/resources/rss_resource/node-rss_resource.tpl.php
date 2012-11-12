@@ -1,3 +1,11 @@
+<?php
+/**
+ * @file
+ * Course Hub Resource - RSS
+ *
+ * Renders a resource node.
+ */
+?>
 <div class="rss_resource">
   <h2>RSS Feed: <?php if ($site_url): print "<a href=\"$site_url\">"; endif; print $title; if ($site_url): print "</a>"; endif; ?></h2>
 

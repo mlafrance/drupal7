@@ -1,3 +1,11 @@
+<?php
+/**
+ * @file
+ * Course Hub Resource - Moodle
+ *
+ * Renders a resource node.
+ */
+?>
 <div class="moodle_resource">
   <h2><?php if ($moodle_url): print "<a href=\"$moodle_url\">"; endif; print $title; if ($moodle_url): print "</a>"; endif; ?></h2>
 

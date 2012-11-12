@@ -1,3 +1,11 @@
+<?php
+/**
+ * @file
+ * Course Hub Resource - ERES
+ *
+ * Renders a resource node.
+ */
+?>
 <div class="eres_resource">
   <h2><?php if ($eres_url): print "<a href=\"$eres_url\">"; endif; print $title; if ($eres_url): print "</a>"; endif; ?></h2>
 

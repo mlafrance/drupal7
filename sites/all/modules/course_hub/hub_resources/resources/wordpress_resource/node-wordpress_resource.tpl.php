@@ -1,3 +1,11 @@
+<?php
+/**
+ * @file
+ * Course Hub Resource - WordPress
+ *
+ * Renders a resource node.
+ */
+?>
 <div class="wordpress_resource">
   <h2>WordPress: <?php if ($wp_site_url): print "<a href=\"$wp_site_url\">"; endif; print $title; if ($wp_site_url): print "</a>"; endif; ?></h2>
 

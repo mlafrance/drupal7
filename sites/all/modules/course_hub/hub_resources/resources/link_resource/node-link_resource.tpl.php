@@ -1,3 +1,11 @@
+<?php
+/**
+ * @file
+ * Course Hub Resource - Link
+ *
+ * Renders a resource node.
+ */
+?>
 <div class="link_resource">
   <h2>Link: <?php if ($url): print "<a href=\"$url\">"; endif; print $title; if ($url): print "</a>"; endif; ?></h2>
 
