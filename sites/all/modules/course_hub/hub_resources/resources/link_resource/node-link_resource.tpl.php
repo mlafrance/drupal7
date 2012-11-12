@@ -1,5 +1,5 @@
 <div class="link_resource">
-  <h2>Link: <?php if ($url) { print "<a href=\"$url\">"; } print $title; if ($url) { print "</a>"; } ?></h2>
+  <h2>Link: <?php if ($url): print "<a href=\"$url\">"; endif; print $title; if ($url): print "</a>"; endif; ?></h2>
 
   <div class="url">
   <?php if ($url): ?>

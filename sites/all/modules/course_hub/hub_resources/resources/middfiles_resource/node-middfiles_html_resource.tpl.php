@@ -1,5 +1,5 @@
 <div class="middfiles_resource">
-  <h2><?php if ($middfiles_url) { print "<a href=\"$middfiles_url\">"; } print $title; if ($middfiles_url) { print "</a>"; } ?></h2>
+  <h2><?php if ($middfiles_url): print "<a href=\"$middfiles_url\">"; endif; print $title; if ($middfiles_url): print "</a>"; endif; ?></h2>
 
   <?php print $content;?>
 

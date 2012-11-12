@@ -1,5 +1,5 @@
 <div class="moodle_resource">
-  <h2><?php if ($moodle_url) { print "<a href=\"$moodle_url\">"; } print $title; if ($moodle_url) { print "</a>"; } ?></h2>
+  <h2><?php if ($moodle_url): print "<a href=\"$moodle_url\">"; endif; print $title; if ($moodle_url): print "</a>"; endif; ?></h2>
 
   <?php if ($moodle_url): ?>
   <div class="url"><a href="<?php print $moodle_url; ?>"><?php print $moodle_url; ?></a></div>

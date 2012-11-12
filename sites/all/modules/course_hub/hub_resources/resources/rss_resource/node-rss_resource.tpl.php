@@ -1,5 +1,5 @@
 <div class="rss_resource">
-  <h2>RSS Feed: <?php if ($site_url) { print "<a href=\"$site_url\">"; } print $title; if ($site_url) { print "</a>"; } ?></h2>
+  <h2>RSS Feed: <?php if ($site_url): print "<a href=\"$site_url\">"; endif; print $title; if ($site_url): print "</a>"; endif; ?></h2>
 
   <div class="url">Feed URL: <a href="<?php print $feed_url; ?>"><?php print $feed_url; ?></a></div>
 
