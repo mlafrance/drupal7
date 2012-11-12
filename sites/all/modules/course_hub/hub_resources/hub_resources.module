@@ -212,10 +212,6 @@ function hub_resources_hub_get_content_types() {
   return module_invoke_all('hub_get_resource_types');
 }
 
-/*********************************************************
- * Supporting functions
- *********************************************************/
-
 /**
  * Execute an XML remote procedural call. This is private function; call xmlrpc()
  * in common.inc instead of this function.
