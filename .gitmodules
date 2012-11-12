@@ -58,3 +58,6 @@
 [submodule "sites/all/modules/token"]
 	path = sites/all/modules/token
 	url = http://git.drupal.org/project/token.git
+[submodule "sites/all/modules/cck"]
+	path = sites/all/modules/cck
+	url = http://git.drupal.org/project/cck.git
