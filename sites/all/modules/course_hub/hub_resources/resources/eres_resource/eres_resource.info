@@ -4,4 +4,3 @@ package = Course Hub Resources
 core = 7.x
 dependencies[] = "hub_resources"
 dependencies[] = "auto_nodetitle"
-dependencies[] = "content"
