@@ -3,3 +3,4 @@ description = "Moodle Resources allow creation and enrollment provisioning of Mo
 package = Course Hub Resources
 core = 7.x
 dependencies[] = "hub_resources"
+files[] = "MoodleResource_SoapClient.inc"

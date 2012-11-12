@@ -1,7 +1,5 @@
 <?php
 
-require_once dirname(__FILE__) . '/moodle_resource.admin.inc';
-
 /**
  * Implements hook_perm()
  */
