@@ -180,15 +180,19 @@ function hub_resources_node_presave(&$node) {
   // Ensure that the groups that have 'w' permission can edit the node, but not
   // groups with 'u' permission as mm_content_get_default_node_perms() specifies.
   // Since we are hiding the permissions form, just blow away any manually set permissions.
-  $grouplist = array();
-  $result =
-    db_query('SELECT DISTINCT t2.mmtid, t2.name FROM {mm_tree} t ' .
-             'INNER JOIN {mm_tree_access} a ON a.mmtid = t.mmtid ' .
-             'LEFT JOIN {mm_tree} t2 ON a.gid = t2.mmtid ' .
-             "WHERE t2.mmtid >= 0 AND (a.mode = 'w') " .
-               'AND a.mmtid = %d ORDER BY t2.name', $node->mm_catlist_restricted[0]);
+  $select = db_select('mm_tree', 't');
+  $select->addJoin('INNER', 'mm_tree_access', 'a', 'a.mmtid = t.mmtid');
+  $select->addJoin('OUTER LEFT', 'mm_tree', 'g', 'a.gid = g.mmtid');
+  $select->condition('g.mmtid', 0, '>=');
+  $select->condition('a.mode', 'w');
+  $select->condition('a.mmtid', $node->mm_catlist_restricted[0]);
+  $select->orderBy('g.name');
+  $select->fields('g', array('mmtid', 'name'));
+  $select->distinct();
+  $result = $select->execute();
+
   $node->all_values_group = '';
-  while ($r = db_fetch_object($result)) {
+  while ($r = $result->fetchObject()) {
     $node->all_values_group .= 'w' . $r->mmtid;
   }
 
