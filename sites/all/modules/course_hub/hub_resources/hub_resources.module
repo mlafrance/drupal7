@@ -1,55 +1,44 @@
 <?php
 
 /**
- * Implements hook_block().
+ * Implements hook_block_info().
  */
-function hub_resources_block($op = 'list', $delta = 0, $edit = array()) {
-  if ($op == 'list') {
-    $blocks[0] = array(
-      'info' => t('Resources Controls'),
-      'weight' => 0,
-      'status' => 1,
-      'region' => 'content_top',
-      'cache' => BLOCK_NO_CACHE,
-      'visibility' => 2,
-      'pages' => '<?php return hub_resources_controls_visible(); ?>',
-    );
-    $blocks[1] = array(
-      'info' => t('Resource Link Sidebar'),
-      'weight' => 0,
-      'status' => 1,
-      'region' => 'right',
-      'cache' => BLOCK_NO_CACHE,
-      'visibility' => 2,
-    );
+function hub_resources_block_info() {
+  $blocks['resource_controls'] = array(
+    'info' => t('Resources Controls'),
+    'cache' => DRUPAL_CACHE_PER_USER | DRUPAL_CACHE_PER_PAGE,
+    'visibility' => BLOCK_VISIBILITY_PHP,
+    'pages' => '<?php return hub_resources_controls_visible(); ?>',
+  );
+  $blocks['resource_link_sidebar'] = array(
+    'info' => t('Resource Link Sidebar'),
+    'cache' => DRUPAL_CACHE_PER_USER | DRUPAL_CACHE_PER_PAGE,
+    'visibility' => BLOCK_VISIBILITY_PHP,
+  );
+  return $blocks;
+}
 
-    return $blocks;
+/**
+ * Implements hook_block_view().
+ */
+function hub_resources_block_view($delta = '') {
+  switch ($delta) {
+    case 'resource_controls':
+      // Your module will need to define this function to render the block.
+      return array(
+        'subject' => t('Resources'),
+        'content' => hub_resources_get_controls(),
+      );
+      break;
+    case 'resource_link_sidebar':
+      // Your module will need to define this function to render the block.
+      return array(
+        'subject' => '<none>',
+        'content' => hub_resources_get_link_sidebar(),
+      );
+      break;
   }
-  elseif ($op == 'configure' && $delta == 0) {
-    // no options for now.
-  }
-  elseif ($op == 'save' && $delta == 0) {
-    // no options for now.
-  }
-  elseif ($op == 'view') {
-    switch ($delta) {
-      case 0:
-        // Your module will need to define this function to render the block.
-        $block = array(
-          'subject' => t('Resources'),
-          'content' => hub_resources_get_controls(),
-        );
-        break;
-      case 1:
-        // Your module will need to define this function to render the block.
-        $block = array(
-          'subject' => '<none>',
-          'content' => hub_resources_get_link_sidebar(),
-        );
-        break;
-    }
-    return $block;
-  }
+  return array();
 }
 
 /**
