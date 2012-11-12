@@ -28,7 +28,7 @@ function wordpress_resource_menu() {
  * Form builder. Configure Course Hub Updates
  *
  * @ingroup forms
- * @see system_settings_form().
+ * @see system_settings_form()
  */
 function wordpress_resource_admin_settings() {
   $form['settings'] = array(

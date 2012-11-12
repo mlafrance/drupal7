@@ -9,7 +9,7 @@
  * Form builder. Configure Middfiles resource
  *
  * @ingroup forms
- * @see system_settings_form().
+ * @see system_settings_form()
  */
 function middfiles_resource_admin_settings() {
   $form['settings'] = array(
