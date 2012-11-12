@@ -78,7 +78,10 @@ function course_hub_stats_resource_stats() {
     $rows[] = array($name, theme('course_hub_stats_bars', $stats[$type]));
   }
 
-  print theme('table', $header, $rows);
+  print theme('table', array(
+    'header' => $header,
+    'rows' => $rows,
+  ));
 
   return ob_get_clean();
 }
@@ -129,7 +132,10 @@ function course_hub_stats_resource_list($mmtid, $resource_type) {
     $rows[] = $row;
   }
   array_multisort($paths, $rows);
-  return theme('table', $header, $rows);
+  return theme('table', array(
+    'header' => $header,
+    'rows' => $rows,
+  ));
 }
 
 /**
@@ -226,7 +232,10 @@ function course_hub_stats_resource_sites($mmtid, $resource_type) {
     $rows[] = $row;
   }
   array_multisort($paths, $rows);
-  return theme('table', $header, $rows);
+  return theme('table', array(
+    'header' => $header,
+    'rows' => $rows,
+  ));
 }
 
 /**
@@ -268,7 +277,10 @@ function course_hub_stats_resource_instructors($mmtid, $resource_type) {
     $rows[] = $row;
   }
   array_multisort($names, $rows);
-  $using = theme('table', $header, $rows);
+  $using = theme('table', array(
+    'header' => $header,
+    'rows' => $rows,
+  ));
 
   $all_instructors = course_hub_stats_instructors_in_cat($mmtid);
   $rows = array();
@@ -291,7 +303,10 @@ function course_hub_stats_resource_instructors($mmtid, $resource_type) {
     }
   }
   array_multisort($names, $rows);
-  $not_using = theme('table', $header, $rows);
+  $not_using = theme('table', array(
+    'header' => $header,
+    'rows' => $rows,
+  ));
 
   return $using . "\n<h2>" . t('Instructors NOT using %type Resources under @path', array('%type' => node_type_get_name($resource_type), '@path' => $path)) . "</h2> \n" . $not_using;
 }

@@ -103,5 +103,8 @@ ORDER BY
     $rows[] = $row;
   }
 
-  return theme('table', $header, $rows);
+  return theme('table', array(
+    'header' => $header,
+    'rows' => $rows,
+  ));
 }
