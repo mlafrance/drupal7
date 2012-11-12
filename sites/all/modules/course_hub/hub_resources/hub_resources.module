@@ -220,7 +220,7 @@ function hub_resources_hub_get_content_types() {
  *   A $xmlrpc_message object if the call succeeded; FALSE if the call failed
  */
 function hub_phpcas_xmlrpc() {
-  require_once './includes/xmlrpc.inc';
+  require_once DRUPAL_ROOT . '/includes/xmlrpc.inc';
   cas_phpcas_init();
   if (!phpCAS::isAuthenticated()) {
     drupal_set_message(t('You are not authenticated via CAS. Cannot fetch site information.', array()), 'error');
