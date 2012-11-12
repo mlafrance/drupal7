@@ -89,7 +89,7 @@ function hub_resources_preprocess_views_view_row_node__course_site_links(&$vars)
 }
 
 /**
- * Implementation of hook_theme().
+ * Implements hook_theme().
  */
 function hub_resources_theme($existing) {
   return array(
@@ -104,7 +104,7 @@ function hub_resources_theme($existing) {
 
 
 /**
- * Implementation of template_preprocess_page()
+ * Implements template_preprocess_page().
  *
  * Remove the Monster Menus and Drupal editing controls for non admins to simplify
  * the editing interface.
@@ -130,7 +130,7 @@ function hub_resources_get_num_resources() {
 }
 
 /**
- * Implementation of hook_form_alter().
+ * Implements hook_form_alter().
  *
  * Remove the Monster Menus and Drupal editing controls for non admins to simplify
  * the editing interface.
@@ -154,7 +154,7 @@ function hub_resources_form_alter(&$form, &$form_state, $form_id) {
 }
 
 /**
- * Implementation of hook_form_submit()
+ * Implements hook_form_submit().
  *
  * Add/Remove the resource from one of our 'visibility' pages to grant institution
  * or public visibility
@@ -170,7 +170,7 @@ function hub_resources_node_form_submit(&$form, &$form_state) {
 }
 
 /**
- * Implementation of hook_nodeapi()
+ * Implements hook_nodeapi().
  */
 function hub_resources_nodeapi(&$node, $op, $a3, $a4) {
   $contentTypes = module_invoke_all('hub_get_content_types');
@@ -201,7 +201,7 @@ function hub_resources_nodeapi(&$node, $op, $a3, $a4) {
 }
 
 /**
- * Implementation of hook hub_get_content_types().
+ * Implements hook_hub_get_content_types().
  *
  * This returns an array of content types of resources and other course-hub content
  *
