@@ -5,23 +5,17 @@
  */
 
 /**
- * Implementation of hook_install().
+ * Implements hook_install().
  */
 function hub_resources_install() {
   // Set our weight so that our hooks run after monster menus.
-  $weight = db_result(db_query("SELECT weight FROM {system} WHERE name = 'monster_menus' AND type='module'"));
-  db_query("UPDATE {system} SET weight = %d WHERE name = 'hub_resources' AND type='module'", $weight + 1);
-}
-
-/**
- * Implementation of hook_update_N().
- */
-function hub_resources_update_6100(&$sandbox) {
-  $ret = array();
-
-  // Set our weight so that our hooks run after monster menus.
-  $weight = db_result(db_query("SELECT weight FROM {system} WHERE name = 'monster_menus' AND type='module'"));
-  $ret[] = update_sql("UPDATE {system} SET weight = " . ($weight + 1) . " WHERE name = 'hub_resources' AND type='module'");
-
-  return $ret;
+  $weight = db_select('system', 's')
+    ->fields('s', array('weight'))
+    ->condition('s.name', 'monster_menus')
+    ->execute()->fetchCol();
+  db_update('system')
+    ->fields(array('weight' => $weight + 1))
+    ->condition('name', 'hub_resources')
+    ->condition('type', 'module')
+    ->execute();
 }
