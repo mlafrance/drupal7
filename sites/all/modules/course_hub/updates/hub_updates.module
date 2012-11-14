@@ -551,11 +551,7 @@ function hub_updates_form_alter(&$form, &$form_state, $form_id) {
  * Implementation of hook_theme_registry_alter()
  */
 function hub_updates_theme_registry_alter(&$theme_registry) {
-  $path = drupal_get_path('module', 'hub_updates');
-  if (!in_array($path, $theme_registry['node']['theme paths']))
-    array_unshift($theme_registry['node']['theme paths'], $path);
-  if (!in_array($path, $theme_registry['block']['theme paths']))
-    array_unshift($theme_registry['block']['theme paths'], $path);
+  _course_hub_register_theme_paths($theme_registry, drupal_get_path('module', 'hub_updates'), array('node', 'block'));
 }
 
 /**
