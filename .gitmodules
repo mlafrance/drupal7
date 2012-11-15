@@ -61,6 +61,9 @@
 [submodule "sites/all/modules/cck"]
 	path = sites/all/modules/cck
 	url = http://git.drupal.org/project/cck.git
+[submodule "sites/all/modules/entity"]
+	path = sites/all/modules/entity
+	url = http://git.drupal.org/project/entity.git
 [submodule "sites/all/modules/nodeporter"]
 	path = sites/all/modules/nodeporter
 	url = http://git.drupal.org/sandbox/adamfranco/1475756.git
