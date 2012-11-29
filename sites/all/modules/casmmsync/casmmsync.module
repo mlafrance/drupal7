@@ -506,20 +506,28 @@ function _casmmsync_sync_user($web_id, $attributes) {
     // Clean up extra variables before saving.
     unset($edit['cas_user']);
 
-    // Save the user account and log the user in.
-    $user = user_save($account, $edit);
+    // Save the user account if there are differences and log the user in.
+    $changed = false;
+    foreach ($edit as $key => $value) {
+      if ($account->$key != $value) {
+        $changed = true;
+        break;
+      }
+    }
+    if ($changed) {
+      $account = user_save($account, $edit);
 //     user_authenticate_finalize($edit); // Not needed in CAS-MM-Sync since we aren't actually logging in.
-
+    }
 
     // Profile fields CAS-MM-Sync
     foreach (_casmmsync_get_profile_field_map() as $profile_field => $attribute_name) {
-      if (isset($attributes[$attribute_name]) && _casmmsync_get_profile_field_value($user->uid, $profile_field) != $attributes[$attribute_name])
-        _casmmsync_set_profile_field_value($user->uid, $profile_field, $attributes[$attribute_name]);
+      if (isset($attributes[$attribute_name]) && _casmmsync_get_profile_field_value($account->uid, $profile_field, $profile_field_values) != $attributes[$attribute_name])
+        _casmmsync_set_profile_field_value($account->uid, $profile_field, $attributes[$attribute_name]);
     }
 
     // if there was a problem saving the user
-    if (!is_object($user)) {
-      watchdog("casmmsync", 'Error saving user: %n (CAS id=@webid)', array('%n' => $attributes['DisplayName'], '@webid' => $web_id), WATCHDOG_WARNING, l(t("edit user"), "admin/user/edit/$uid"));
+    if (!is_object($account)) {
+      watchdog("casmmsync", 'Error saving user: %n (CAS id=@webid)', array('%n' => $attributes['DisplayName'], '@webid' => $webId), WATCHDOG_WARNING, l(t("edit user"), "admin/user/edit/$uid"));
       return FALSE;
     }
   }
@@ -528,7 +536,7 @@ function _casmmsync_sync_user($web_id, $attributes) {
     return FALSE;
   }
 
-  return $user->uid;
+  return $account->uid;
 }
 
 /**
