@@ -520,8 +520,9 @@ function _casmmsync_sync_user($web_id, $attributes) {
     }
 
     // Profile fields CAS-MM-Sync
+    $profile_field_values = _casmmsync_get_profile_field_values($account->uid);
     foreach (_casmmsync_get_profile_field_map() as $profile_field => $attribute_name) {
-      if (isset($attributes[$attribute_name]) && _casmmsync_get_profile_field_value($account->uid, $profile_field, $profile_field_values) != $attributes[$attribute_name])
+      if (isset($attributes[$attribute_name]) && _casmmsync_get_profile_field_value_from_array($account->uid, $profile_field, $profile_field_values) != $attributes[$attribute_name])
         _casmmsync_set_profile_field_value($account->uid, $profile_field, $attributes[$attribute_name]);
     }
 
@@ -980,6 +981,27 @@ function _casmmsync_get_profile_field_fid($name) {
     ->condition('name', $name)
     ->execute()
     ->fetchField();
+}
+
+/*
+ * Get the profile field values for the given user.
+ */
+function _casmmsync_get_profile_field_values($uid) {
+  $values = array();
+  $result = db_query("SELECT fid, value FROM {profile_values} WHERE uid=%d", $uid);
+  while ($r = db_fetch_object($result))
+    $values[$r->fid] = $r->value;
+  return $values;
+}
+
+/**
+ * Answer a given field value from an array of profile fields.
+ */
+function _casmmsync_get_profile_field_value_from_array($uid, $field, $values) {
+ if (!is_numeric($field)) {
+    $field = _casmmsync_get_profile_field_fid($field);
+  }
+  return $values[$field];
 }
 
 /*
