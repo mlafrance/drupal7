@@ -976,11 +976,14 @@ function _casmmsync_int_from_bytestring($byteString) {
  * Get the profile field id for the given field name.
  */
 function _casmmsync_get_profile_field_fid($name) {
-  return db_select('profile_fields', 'f')
-    ->fields('f', array('fid'))
-    ->condition('name', $name)
-    ->execute()
-    ->fetchField();
+  static $fids = array();
+  if (!isset($fids[$name]))
+    $fids[$name] = db_select('profile_fields', 'f')
+      ->fields('f', array('fid'))
+      ->condition('name', $name)
+      ->execute()
+      ->fetchField();
+  return $fids[$name];
 }
 
 /*
