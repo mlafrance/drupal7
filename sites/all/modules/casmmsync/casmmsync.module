@@ -649,12 +649,7 @@ function _casmmsync_sync_groups($groups) {
     flush();
   }
 
-  // Clear the sync status of all groups. We will mark keepers in the sync process
-  // and later delete any not still in the AD.
-  db_update('casmmsync_group_map')
-    ->fields(array('sync_keep' => 0))
-    ->execute();
-
+  // Optimization:
   // Load all groups into memory to save on unneeded inserts
   $existing_groups = array();
   $r = db_select('mm_group', 'g')
@@ -667,9 +662,35 @@ function _casmmsync_sync_groups($groups) {
     $existing_groups[$m->gid][] = $m->uid;
   }
 
+  // Optimization:
+  // Load the full group map into memory to save on a select for every group.
+  $group_map = array();
+  $query = db_select('casmmsync_group_map', 'm');
+  $query->leftJoin('mm_tree', 't', 'm.mmtid = t.mmtid');
+  $query->fields('m', array('mmtid', 'group_id'));
+  $query->addField('t', 'mmtid', 'group_exists');
+  $r = $query->execute();
+  foreach ($r as $m) {
+    if (!$m->group_exists) {
+      db_delete('casmmsync_group_map')->condition('mmtid', $m->mmtid)->execute();
+      print "\n<br/>The MM Group has gone away, deleting mapping for ".$m->mmtid." <=> ".$m->group_id."<br/>";
+    } else {
+      $group_map[$m->group_id] = $m->mmtid;
+    }
+  }
+
   $synced = 0;
   foreach ($groups as $group_id => $members) {
-    $group_mmtid = casmmsync_get_or_create_group_by_dn($group_id);
+    // Optimization:
+    // Check the group_map in memory rather than issuing a SELECT for every group.
+    if (isset($group_map[$group_id])) {
+      $group_mmtid = $group_map[$group_id];
+      // Remove the group from the map. Any remaining groups must have been removed
+      // from the directory and should be deleted.
+      unset($group_map[$group_id]);
+    } else {
+      $group_mmtid = casmmsync_get_or_create_group_by_dn($group_id);
+    }
 
     // Add new members
     foreach ($members as $member_id) {
@@ -718,7 +739,7 @@ function _casmmsync_sync_groups($groups) {
     $synced++;
   }
 
-  _casmmsync_clear_old_groups();
+  _casmmsync_clear_old_groups($group_map);
 
   // Set all of the synced groups to be selectable (while keeping their containers read-only).
   db_update('mm_tree')
@@ -755,24 +776,17 @@ function _casmmsync_record_mapping($group_id, $group_mmtid) {
     return;
   }
 
-  $num_affected = db_update('casmmsync_group_map')
-    ->fields(array('sync_keep' => 1))
-    ->condition('group_id', $group_id)
-    ->execute();
-  if (!$num_affected) {
-    try {
-      db_insert('casmmsync_group_map')
-        ->fields(array(
-          'group_id' => $group_id,
-          'mmtid' => $group_mmtid,
-          'sync_keep' => 1,
-        ))
-        ->execute();
-    } catch (PDOException $e) {
-      // ignore duplicate key exceptions
-      if ($e->getCode() != 23000)
-        throw $e;
-    }
+  try {
+    db_insert('casmmsync_group_map')
+      ->fields(array(
+        'group_id' => $group_id,
+        'mmtid' => $group_mmtid,
+      ))
+      ->execute();
+  } catch (PDOException $e) {
+    // ignore duplicate key exceptions
+    if ($e->getCode() != 23000)
+      throw $e;
   }
 }
 
@@ -781,7 +795,7 @@ function _casmmsync_record_mapping($group_id, $group_mmtid) {
  *
  * @return void
  */
-function _casmmsync_clear_old_groups() {
+function _casmmsync_clear_old_groups($groups = array()) {
    // Debugging status output
   if (variable_get('casmmsync_show_debug', FALSE)) {
     print "\n<h3>Deleting missing groups</h3>\n";
@@ -791,11 +805,7 @@ function _casmmsync_clear_old_groups() {
   }
   $deleted = 0;
 
-  $results = db_select('casmmsync_group_map', 'm')
-    ->fields('m', array('group_id', 'mmtid'))
-    ->condition('sync_keep', 0)
-    ->execute();
-  while ($data = $results->fetchObject()) {
+  foreach ($groups as $group_id => $mmtid) {
     _casmmsync_delete_group($data->group_id, $data->mmtid);
 
     // Debugging status output
