@@ -655,34 +655,55 @@ function _casmmsync_sync_groups($groups) {
     ->fields(array('sync_keep' => 0))
     ->execute();
 
+  // Load all groups into memory to save on unneeded inserts
+  $existing_groups = array();
+  $r = db_select('mm_group', 'g')
+        ->fields('g', array('gid', 'uid'))
+        ->orderBy('gid')
+        ->execute();
+  foreach ($r as $m) {
+    if (!isset($existing_groups[$m->gid]))
+      $existing_groups[$m->gid] = array();
+    $existing_groups[$m->gid][] = $m->uid;
+  }
+
   $synced = 0;
   foreach ($groups as $group_id => $members) {
     $group_mmtid = casmmsync_get_or_create_group_by_dn($group_id);
 
     // Add new members
     foreach ($members as $member_id) {
-      try {
-        db_insert('mm_group')
-          ->fields(array(
-            'gid' => $group_mmtid,
-            'uid' => $member_id,
-          ))
-          ->execute();
-      } catch (PDOException $e) {
-        // Ignore duplicate-key exceptions if users are already members in the group.
-        if ($e->getCode() != 23000)
-          throw $e;
+      // Check to see if the user is already in the group and insert them if not
+      if (!isset($existing_groups[$group_mmtid]) || !in_array($memberId, $existing_groups[$group_mmtid])) {
+        try {
+          db_insert('mm_group')
+            ->fields(array(
+              'gid' => $group_mmtid,
+              'uid' => $member_id,
+            ))
+            ->execute();
+        } catch (PDOException $e) {
+          // Ignore duplicate-key exceptions if users are already members in the group.
+          if ($e->getCode() != 23000)
+            throw $e;
+        }
       }
     }
 
     // Delete missing members
-    db_delete('mm_group')
-      ->condition('gid', $group_mmtid)
-      ->condition('uid', $members, 'NOT IN')
-      ->execute();
+    $removed_members = array_diff($existing_groups[$group_mmtid], $members);
+    if (count($removed_members)) {
+      db_delete('mm_group')
+        ->condition('gid', $group_mmtid)
+        ->condition('uid', $removed_members, 'IN')
+        ->execute();
+      $member_deletes++;
+    }
 
     // Wipe out the member array to free memory.
     $groups[$group_id] = NULL;
+    $existing_groups[$group_mmtid] = null;
+    unset($existing_groups[$group_mmtid]);
 
     // Debugging status output
     if (variable_get('casmmsync_show_debug', FALSE) &&  $synced && $synced % 10 == 0) {
