@@ -360,7 +360,7 @@ function _casmmsync_sync_users() {
       $attributes = _casmmsync_get_attributes($xpath, $user_element);
 
       $uid = _casmmsync_sync_user($web_id, $attributes);
-      if ($uid !== FALSE) {
+      if ($uid !== FALSE && !is_null($uid)) {
         $synced++;
 
         // Add our groups to the sync list
@@ -445,7 +445,7 @@ function _casmmsync_sync_user($web_id, $attributes) {
     if ($cas_force_login) {
       drupal_set_message(t('The user account %name is not available on this site.', array('%name' => $cas_name)), 'error');
     }
-    return;
+    return FALSE;
   }
 
   // Proceed with the login process, using the altered CAS username.
@@ -467,7 +467,7 @@ function _casmmsync_sync_user($web_id, $attributes) {
       watchdog('cas', $blocked, array('%cas_name' => $cas_name), WATCHDOG_WARNING);
       drupal_set_message(t($blocked, array('%cas_name' => $cas_name)), 'error');
     }
-    return;
+    return FALSE;
   }
 
   $account = cas_user_load_by_name($cas_name);
@@ -482,7 +482,7 @@ function _casmmsync_sync_user($web_id, $attributes) {
       if ($cas_force_login) {
         drupal_set_message(t('A new account could not be created for %cas_name. The username is already in use on this site.', array('%cas_name' => $cas_name)), 'error');
       }
-      return;
+      return FALSE;
     }
     // CAS-MM-Sync addition
     watchdog("casmmsync", 'new user: %n (CAS id=@webid)', array('%n' => $attributes['DisplayName'], '@webid' => $web_id), WATCHDOG_NOTICE, l(t("edit user"), "admin/user/edit/$account->uid"));
