@@ -397,7 +397,6 @@ function _casmmsync_sync_users() {
       // might have changed.
       $uid = _casmmsync_get_uid_if_unchanged($webId, $attributes);
       if ($uid === FALSE || is_null($uid)) {
-        print "\n<br/>User is changed ".$webId."<br/>";
         $uid = _casmmsync_sync_user($webId, $attributes);
       }
 
