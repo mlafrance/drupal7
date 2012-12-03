@@ -336,6 +336,30 @@ function _casmmsync_sync_users() {
 
   // Debugging status output
   if (variable_get('casmmsync_show_debug', FALSE)) {
+    // Print out style sheets to make the query listing readable if we are using the
+    // devel module.
+    if (module_exists('devel') && variable_get('dev_query', FALSE)) {
+      print "
+<html>
+  <head>
+    <title>CAS-MM Sync user and group sync.</title>
+    <style type='text/css'>
+      .clear-block:after {
+          clear: both;
+          content: ".";
+          display: block;
+          height: 0;
+          visibility: hidden;
+      }
+      ";
+      include(drupal_get_path('module', 'devel') .'/devel.css');
+      print "
+    </style>
+  </head>
+  <body>
+";
+    }
+
     print "\n<h2>Syncronizing Users</h2>\n";
     while (ob_get_level())
       ob_end_flush();
