@@ -336,6 +336,8 @@ function _casmmsync_sync_users() {
 
   // Debugging status output
   if (variable_get('casmmsync_show_debug', FALSE)) {
+    $start = microtime(true);
+
     // Print out style sheets to make the query listing readable if we are using the
     // devel module.
     if (module_exists('devel') && variable_get('dev_query', FALSE)) {
@@ -360,7 +362,7 @@ function _casmmsync_sync_users() {
 ";
     }
 
-    print "\n<h2>Syncronizing Users</h2>\n";
+    print "\n<h2>Synchronizing Users</h2>\n";
     while (ob_get_level())
       ob_end_flush();
     flush();
@@ -433,7 +435,8 @@ function _casmmsync_sync_users() {
 
   // Debugging status output
   if (variable_get('casmmsync_show_debug', FALSE)) {
-    print "\n<h2>User Synchronization Complete</h2>\n";
+    $end = microtime(true);
+    print "\n<br/>User synchronization completed in ".round($end - $start)."s";
     while (ob_get_level())
       ob_end_flush();
     flush();
@@ -448,7 +451,7 @@ function _casmmsync_sync_users() {
 }
 
 /**
- * Syncronize or create a user.
+ * Synchronize or create a user.
  * This function is based on the implementation of cas_login_check() and makes use
  * of functions in the cas_module in order to allow the settings of that module to
  * consistantly define user attributes.
@@ -719,7 +722,7 @@ function casmmsync_get_group_by_dn($group_id) {
 }
 
 /**
- * Syncronize groups from a list of groups
+ * Synchronize groups from a list of groups
  *
  * @param array $groups Keys are group-ids, values are an array of members.
  * @return void
@@ -727,7 +730,7 @@ function casmmsync_get_group_by_dn($group_id) {
 function _casmmsync_sync_groups($groups) {
   // Debugging status output
   if (variable_get('casmmsync_show_debug', FALSE)) {
-    print "\n<h2>Syncronizing Groups</h2>\n";
+    print "\n<h2>Synchronizing ".count($groups)." Groups</h2>\n";
     while (ob_get_level())
       ob_end_flush();
     flush();
@@ -764,6 +767,11 @@ function _casmmsync_sync_groups($groups) {
   }
 
   $synced = 0;
+  $sync_marker = ceil(count($groups) / 100);
+  $start = microtime(true);
+  $member_inserts = 0;
+  $member_deletes = 0;  
+
   foreach ($groups as $group_id => $members) {
     // Optimization:
     // Check the group_map in memory rather than issuing a SELECT for every group.
@@ -781,6 +789,7 @@ function _casmmsync_sync_groups($groups) {
       // Check to see if the user is already in the group and insert them if not
       if (!isset($existing_groups[$group_mmtid]) || !in_array($memberId, $existing_groups[$group_mmtid])) {
         try {
+          $member_inserts++;
           db_insert('mm_group')
             ->fields(array(
               'gid' => $group_mmtid,
@@ -811,9 +820,7 @@ function _casmmsync_sync_groups($groups) {
     unset($existing_groups[$group_mmtid]);
 
     // Debugging status output
-    if (variable_get('casmmsync_show_debug', FALSE) &&  $synced && $synced % 10 == 0) {
-      if ($synced && $synced % 1000 == 0)
-        print "\n<br/>";
+    if (variable_get('casmmsync_show_debug', FALSE) &&  $synced && $synced % $sync_marker == 0) {
       print '.';
       while (ob_get_level())
         ob_end_flush();
@@ -821,6 +828,10 @@ function _casmmsync_sync_groups($groups) {
     }
 
     $synced++;
+  }
+
+  if (variable_get('casmmsync_show_debug', FALSE)) {  
+    print "\n<br/>Group synchronization completed in ".round(microtime(true) - $start).'s.  Member inserts: '.$member_inserts.', Member deletes: '.$member_deletes;
   }
 
   _casmmsync_clear_old_groups($group_map);
@@ -882,20 +893,19 @@ function _casmmsync_record_mapping($group_id, $group_mmtid) {
 function _casmmsync_clear_old_groups($groups = array()) {
    // Debugging status output
   if (variable_get('casmmsync_show_debug', FALSE)) {
-    print "\n<h3>Deleting missing groups</h3>\n";
+    print "\n<h3>Deleting ".count($groups)." missing groups</h3>\n";
     while (ob_get_level())
       ob_end_flush();
     flush();
   }
+  $deleted_marker = ceil(count($groups) / 100);
   $deleted = 0;
 
   foreach ($groups as $group_id => $mmtid) {
     _casmmsync_delete_group($data->group_id, $data->mmtid);
 
     // Debugging status output
-    if (variable_get('casmmsync_show_debug', FALSE) &&  $deleted && $deleted % 10 == 0) {
-      if ($deleted && $deleted % 1000 == 0)
-        print "\n<br/>";
+    if (variable_get('casmmsync_show_debug', FALSE) &&  $deleted && $deleted % $deleted_marker == 0) {
       print '.';
       while (ob_get_level())
         ob_end_flush();
