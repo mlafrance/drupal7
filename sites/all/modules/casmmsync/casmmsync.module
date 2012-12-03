@@ -359,7 +359,16 @@ function _casmmsync_sync_users() {
 
       $attributes = _casmmsync_get_attributes($xpath, $user_element);
 
-      $uid = _casmmsync_sync_user($web_id, $attributes);
+      // Optimization:
+      // Do a quick check of the user data via custom queries and only
+      // go through the whole user_load() process if it looks like things
+      // might have changed.
+      $uid = _casmmsync_get_uid_if_unchanged($webId, $attributes);
+      if ($uid === FALSE || is_null($uid)) {
+        print "\n<br/>User is changed ".$webId."<br/>";
+        $uid = _casmmsync_sync_user($webId, $attributes);
+      }
+
       if ($uid !== FALSE && !is_null($uid)) {
         $synced++;
 
@@ -538,6 +547,49 @@ function _casmmsync_sync_user($web_id, $attributes) {
   }
 
   return $account->uid;
+}
+
+ /**
+ * Check to see if the user account has changed and return the user's id if not.
+ *
+ * @return
+ *    The uid or FALSE if changed
+ */
+function _casmmsync_get_uid_if_unchanged($webId, $attributes = array()) {
+  static $all_users;
+  if (!isset($all_users)) {
+    $all_users = array();
+    $query = db_select('users', 'u');
+    $query->addField('u', 'uid');
+    $query->addField('u', 'init');
+    $query->addField('u', 'data', 'user_data');
+    $query->orderBy('u.uid');
+    $result = $query->execute();
+    $current_uid = 0;
+    foreach ($result as $r) {
+      $user = new stdclass();
+      $user->uid = $r->uid;
+      $user->data = unserialize($r->user_data);
+      $all_users[$r->init] = $user;
+    }
+  }
+  if (!isset($all_users[$webId]))
+    return FALSE;
+  $user = $all_users[$webId];
+  if (!is_array($user->data['casmmsync_attributes']))
+    return FALSE;
+
+  // Unset the group membership since we will be checking that separately.
+  unset($user->data['casmmsync_attributes']['MemberOf']);
+  unset($attributes['MemberOf']);
+  // If the attributes stored with the user are the same as the attributes they have now
+  // we'll considder them the same. Note that this does not take into account in-drupal
+  // modifications to profile fields, but these will be reset whent the user logs in directly
+  // to the site.
+  if ($user->data['casmmsync_attributes'] == $attributes)
+    return $user->uid;
+  else
+    return false;
 }
 
 /**
