@@ -415,6 +415,9 @@ function _casmmsync_sync_users() {
     flush();
   }
 
+  // Clear out the user data to make room for group data.
+  _casmmsync_get_uid_if_unchanged('', array(), true);
+
   watchdog('casmmsync', 'CAS-MM User-Sync completed. @synced users synced. @failed users skipped.', array('@synced' => $synced, '@failed' => $failed));
 
   return $groups;
@@ -555,8 +558,13 @@ function _casmmsync_sync_user($web_id, $attributes) {
  * @return
  *    The uid or FALSE if changed
  */
-function _casmmsync_get_uid_if_unchanged($webId, $attributes = array()) {
+function _casmmsync_get_uid_if_unchanged($webId, $attributes = array(), $clear_data = FALSE) {
   static $all_users;
+  if ($clear_data) {
+    $all_users = null;
+    unset($all_users);
+    return FALSE;
+  }
   if (!isset($all_users)) {
     $all_users = array();
     $query = db_select('users', 'u');
