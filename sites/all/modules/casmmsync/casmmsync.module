@@ -804,14 +804,16 @@ function _casmmsync_sync_groups($groups) {
       }
     }
 
-    // Delete missing members
-    $removed_members = array_diff($existing_groups[$group_mmtid], $members);
-    if (count($removed_members)) {
-      db_delete('mm_group')
-        ->condition('gid', $group_mmtid)
-        ->condition('uid', $removed_members, 'IN')
-        ->execute();
-      $member_deletes++;
+    // Delete missing members for existing groups
+    if (isset($existing_groups[$group_mmtid])) {
+      $removed_members = array_diff($existing_groups[$group_mmtid], $members);
+      if (count($removed_members)) {
+        db_delete('mm_group')
+          ->condition('gid', $group_mmtid)
+          ->condition('uid', $removed_members, 'IN')
+          ->execute();
+        $member_deletes++;
+      }
     }
 
     // Wipe out the member array to free memory.
