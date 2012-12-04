@@ -324,6 +324,7 @@ function casmmsync_update_group($group_dn) {
 function _casmmsync_sync_users() {
   $synced = 0;
   $failed = 0;
+  $with_changes = 0;
   $groups = array();
 
   $params = array(
@@ -397,6 +398,7 @@ function _casmmsync_sync_users() {
       // might have changed.
       $uid = _casmmsync_get_uid_if_unchanged($webId, $attributes);
       if ($uid === FALSE || is_null($uid)) {
+        $with_changes++;
         $uid = _casmmsync_sync_user($webId, $attributes);
       }
 
@@ -441,10 +443,11 @@ function _casmmsync_sync_users() {
   // Debugging status output
   if (variable_get('casmmsync_show_debug', FALSE)) {
     $end = microtime(true);
-    print "\n<br/>User synchronization completed in ".round($end - $start)."s";
+    print "\n<br/>User synchronization completed in ".round($end - $start)."s.";
     if (variable_get('dev_query', 0)) {
-      print ', Queries: '.(count($queries) - $start_queries);
+      print ' Queries: '.(count($queries) - $start_queries).'.';
     }
+    print " ".$with_changes." users had changes.";
     while (ob_get_level())
       ob_end_flush();
     flush();
