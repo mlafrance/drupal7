@@ -447,7 +447,7 @@ function _casmmsync_sync_users() {
     if (variable_get('dev_query', 0)) {
       print ' Queries: '.(count($queries) - $start_queries).'.';
     }
-    print " ".$with_changes." users had changes.";
+    print " ".$with_changes." users were new or had changes.";
     while (ob_get_level())
       ob_end_flush();
     flush();
@@ -456,7 +456,7 @@ function _casmmsync_sync_users() {
   // Clear out the user data to make room for group data.
   _casmmsync_get_uid_if_unchanged('', array(), true);
 
-  watchdog('casmmsync', 'CAS-MM User-Sync completed. @synced users synced. @failed users skipped.', array('@synced' => $synced, '@failed' => $failed));
+  watchdog('casmmsync', 'CAS-MM User-Sync completed. @synced users synced. @failed users skipped. @with_changes users were new or had changes.', array('@synced' => $synced, '@failed' => $failed, '@with_changes' => $with_changes));
 
   return $groups;
 }
@@ -532,6 +532,8 @@ function _casmmsync_sync_user($web_id, $attributes) {
       if ($cas_force_login) {
         drupal_set_message(t('A new account could not be created for %cas_name. The username is already in use on this site.', array('%cas_name' => $cas_name)), 'error');
       }
+
+      drupal_set_message(t('Error creating a new account for %cas_name. The username is already in use on this site.', array('%cas_name' => $cas_name)), 'error');
       return FALSE;
     }
     // CAS-MM-Sync addition
