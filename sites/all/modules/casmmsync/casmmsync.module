@@ -336,9 +336,8 @@ function _casmmsync_sync_users() {
   $base = variable_get('casmmsync_path', '');
 
   // Debugging status output
+  $start = microtime(true);
   if (variable_get('casmmsync_show_debug', FALSE)) {
-    $start = microtime(true);
-
     // count the number of queries if the devel module is enabled and harvesting query data.
     if (variable_get('dev_query', 0)) {
       global $queries;
@@ -441,9 +440,9 @@ function _casmmsync_sync_users() {
   }
 
   // Debugging status output
+  $time = round(microtime(true) - $start);
   if (variable_get('casmmsync_show_debug', FALSE)) {
-    $end = microtime(true);
-    print "\n<br/>User synchronization completed in ".round($end - $start)."s.";
+    print "\n<br/>User synchronization completed in ".$time."s.";
     if (variable_get('dev_query', 0)) {
       print ' Queries: '.(count($queries) - $start_queries).'.';
     }
@@ -456,7 +455,7 @@ function _casmmsync_sync_users() {
   // Clear out the user data to make room for group data.
   _casmmsync_get_uid_if_unchanged('', array(), true);
 
-  watchdog('casmmsync', 'CAS-MM User-Sync completed. @synced users synced. @failed users skipped. @with_changes users were new or had changes.', array('@synced' => $synced, '@failed' => $failed, '@with_changes' => $with_changes));
+  watchdog('casmmsync', 'CAS-MM User-Sync completed in @time s. @synced users synced. @failed users skipped. @with_changes users were new or had changes.', array('@time' => $time, '@synced' => $synced, '@failed' => $failed, '@with_changes' => $with_changes));
 
   return $groups;
 }
@@ -741,6 +740,8 @@ function casmmsync_get_group_by_dn($group_id) {
  * @return void
  */
 function _casmmsync_sync_groups($groups) {
+  $start = microtime(true);
+
   // Debugging status output
   if (variable_get('casmmsync_show_debug', FALSE)) {
     if (variable_get('dev_query', 0)) {
@@ -785,7 +786,6 @@ function _casmmsync_sync_groups($groups) {
 
   $synced = 0;
   $sync_marker = ceil(count($groups) / 100);
-  $start = microtime(true);
   $member_inserts = 0;
   $member_deletes = 0;
 
@@ -849,8 +849,9 @@ function _casmmsync_sync_groups($groups) {
     $synced++;
   }
 
-  if (variable_get('casmmsync_show_debug', FALSE)) {  
-    print "\n<br/>Group synchronization completed in ".round(microtime(true) - $start).'s.  Member inserts: '.$member_inserts.', Member deletes: '.$member_deletes;
+  $time = round(microtime(true) - $start);
+  if (variable_get('casmmsync_show_debug', FALSE)) {
+    print "\n<br/>Group synchronization completed in ".$time.'s.  Member inserts: '.$member_inserts.', Member deletes: '.$member_deletes;
     if (variable_get('dev_query', 0))
       print ', Queries: '.(count($queries) - $start_queries);
   }
@@ -871,7 +872,7 @@ function _casmmsync_sync_groups($groups) {
     flush();
   }
 
-  watchdog('casmmsync', 'CAS-MM Group-Sync completed. @synced groups synced.', array('@synced' => $synced));
+  watchdog('casmmsync', 'CAS-MM Group-Sync completed in @time s. @synced groups synced. Member inserts: @inserts, Member deletes: @deletes', array('@time' => $time, '@synced' => $synced, '@inserts' => $member_inserts, '@deletes' => $member_deletes));
 }
 
 /**
