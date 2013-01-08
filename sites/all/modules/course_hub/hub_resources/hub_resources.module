@@ -181,8 +181,8 @@ function hub_resources_node_presave($node) {
   // groups with 'u' permission as mm_content_get_default_node_perms() specifies.
   // Since we are hiding the permissions form, just blow away any manually set permissions.
   $select = db_select('mm_tree', 't');
-  $select->addJoin('INNER', 'mm_tree_access', 'a', 'a.mmtid = t.mmtid');
-  $select->addJoin('OUTER LEFT', 'mm_tree', 'g', 'a.gid = g.mmtid');
+  $select->join('mm_tree_access', 'a', 'a.mmtid = t.mmtid');
+  $select->leftJoin('mm_tree', 'g', 'a.gid = g.mmtid');
   $select->condition('g.mmtid', 0, '>=');
   $select->condition('a.mode', 'w');
   $select->condition('a.mmtid', $node->mm_catlist_restricted[0]);
