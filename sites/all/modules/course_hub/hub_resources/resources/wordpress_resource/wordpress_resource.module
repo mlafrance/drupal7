@@ -37,7 +37,8 @@ function wordpress_resource_form_wordpress_resource_node_form_alter(&$form, $for
  * @return void
  */
 function wordpress_resource_sitename_validate($form, &$form_state) {
-  $sitename = $form_state['values']['field_wp_sitename'][0]['value'];
+  $lang = $form['field_wp_sitename']['#language'];
+  $sitename = $form_state['values']['field_wp_sitename'][$lang][0]['value'];
 
   // Creating a new site
   if ($form_state['values']['create'] == 'new') {
@@ -54,7 +55,8 @@ function wordpress_resource_sitename_validate($form, &$form_state) {
         return;
       }
 
-      $visibility = $form_state['values']['field_hub_perms'][0]['value'];
+      $lang = $form['field_hub_perms']['#language'];
+      $visibility = $form_state['values']['field_hub_perms'][$lang][0]['value'];
       if ($visibility == 'class') {
         $public = -2;
       }

@@ -163,7 +163,8 @@ function hub_resources_node_form_submit(&$form, &$form_state) {
   course_hub_set_node_form_visibility('resources', $form, $form_state);
 
   $originalVisibility = $form['#node']->field_hub_perms[0]['value'];
-  $visibility = $form_state['values']['field_hub_perms'][0]['value'];
+  $lang = $form['field_hub_perms']['#language'];
+  $visibility = $form_state['values']['field_hub_perms'][$lang][0]['value'];
   if ($originalVisibility != $visibility) {
     module_invoke_all('hub_resource_visibility', $form['#node'], $visibility);
   }

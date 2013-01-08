@@ -12,17 +12,21 @@ function rss_resource_form_rss_resource_node_form_alter(&$form, $form_state) {
  * Validation callback to use for validating URLs.
  */
 function rss_resource_site_url_validate($form, &$form_state) {
-  $url = $form_state['values']['field_site_url'][0]['value'];
+  $lang = $form['field_site_url']['#language'];
+  $url = $form_state['values']['field_site_url'][$lang][0]['value'];
   if (strlen($url) && !link_resource_validate_url($url)) {
     form_set_error('field_site_url', 'Invalid URL.');
   }
   else {
     // Fetch the value from the feed.
-    $feedUrl = $form_state['values']['field_url'][0]['value'];
+    $lang = $form['field_url']['#language'];
+    $feedUrl = $form_state['values']['field_url'][$lang][0]['value'];
     try {
       $feed = rss_resource_fetch_feed($feedUrl);
-      if ($feed->get_link() && link_resource_validate_url($feed->get_link()))
-      $form_state['values']['field_site_url'][0]['value'] = $feed->get_link();
+      if ($feed->get_link() && link_resource_validate_url($feed->get_link())) {
+        $lang = $form['field_site_url']['#language'];
+        $form_state['values']['field_site_url'][$lang][0]['value'] = $feed->get_link();
+      }
     } catch (Exception $e) {
     }
   }
@@ -32,7 +36,8 @@ function rss_resource_site_url_validate($form, &$form_state) {
  * Validation callback to use for validating that a feed exists.
  */
 function rss_resource_feed_validate($form, &$form_state) {
-  $feedUrl = $form_state['values']['field_url'][0]['value'];
+  $lang = $form['field_url']['#language'];
+  $feedUrl = $form_state['values']['field_url'][$lang][0]['value'];
 
   try {
     $feed = rss_resource_fetch_feed($feedUrl);
