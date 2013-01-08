@@ -17,7 +17,7 @@ function moodle_resource_preprocess_node(&$vars) {
     } catch (UnexpectedValueException $e) {
     }
     if (node_access('update', $vars['node'])) {
-      $vars['sync_state'] = $vars['node']->field_sync_state[0]['value'];
+      $vars['sync_state'] = entity_metadata_wrapper('node', $vars['node'])->field_sync_state->value();
     }
   }
 }

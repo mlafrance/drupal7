@@ -408,10 +408,9 @@ function hub_updates_hub_get_resource_updates($resourceNode) {
   $update['guid'] = 'hub_resource_created-' . $resourceNode->nid;
   $update['title'] = t('Resource added: !title', array('!title' => $resourceNode->title));
 
-  if (isset($resourceNode->field_hub_perms[0]['value']))
-    $update['visibility'] = $resourceNode->field_hub_perms[0]['value'];
-  else
-    $update['visibility'] = 'class';
+  $visibility = entity_metadata_wrapper('node', $resourceNode)->field_hub_perms->value();
+  if (empty($visibility))
+    $visibility = 'class';
 
   if (intval($resourceNode->created))
     $update['timestamp'] = date('c', intval($resourceNode->created));
@@ -478,7 +477,8 @@ function hub_updates_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
       $updateNIDs = hub_updates_update_nids_for_resource($node->nid);
       foreach ($updateNIDs as $updateNID) {
         $updateNode = node_load($updateNID);
-        if (preg_match('/^(' . implode('|', $contentTypes) . '|syllabus)_(added|created|updated)-.+/', $updateNode->field_guid[0]['value'])) {
+        $update_guid = entity_metadata_wrapper('node', $updateNode)->field_guid->value();
+        if (preg_match('/^(' . implode('|', $contentTypes) . '|syllabus)_(added|created|updated)-.+/', $update_guid)) {
           node_delete($updateNID);
         }
       }
@@ -581,14 +581,15 @@ function hub_updates_preprocess_node(&$vars) {
   // values for theming update nodes
   if (!empty($vars['node']) && $vars['node']->type == 'hub_update') {
     // If the update has a URL, we'll use it for our link.
-    if ($vars['node']->field_url[0]['value'])
-      $vars['url'] = $vars['node']->field_url[0]['value'];
+    $url = entity_metadata_wrapper('node', $vars['node'])->field_url->value();
+    if ($url)
+      $vars['url'] = $url;
     // If we have content, make a link to the update node.
     elseif (strlen(trim($vars['node']->body)))
       $vars['url'] = url(course_hub_get_path() . '/node/' . $vars['node']->nid);
-
-    $vars['source_title'] = $vars['node']->field_source_title[0]['safe'];
-    $vars['source_url'] = $vars['node']->field_source_url[0]['safe'];
+    
+    $vars['source_title'] = entity_metadata_wrapper('node', $vars['node'])->field_source_title->value(array('sanitize' => TRUE));
+    $vars['source_url'] = entity_metadata_wrapper('node', $vars['node'])->field_source_url->value(array('sanitize' => TRUE));
 
     $stripped = strip_tags($vars['node']->body, '<p><br><a><b><i><em><strong><span><ul><ol><li><dl><dt><dd>');
     $vars['teaser'] = htmlstring_trim($stripped, 40, $trimmed);

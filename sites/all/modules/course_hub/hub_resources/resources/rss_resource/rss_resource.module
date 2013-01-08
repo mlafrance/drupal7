@@ -52,8 +52,8 @@ function rss_resource_feed_validate($form, &$form_state) {
  */
 function rss_resource_preprocess_node(&$vars) {
   if (!empty($vars['node']) && $vars['node']->type == 'rss_resource') {
-    $vars['feed_url'] = $vars['node']->field_url[0]['safe'];
-    $vars['site_url'] = $vars['node']->field_site_url[0]['safe'];
+    $vars['feed_url'] = entity_metadata_wrapper('node', $vars['node'])->field_url->value(array('sanitize' => TRUE));
+    $vars['site_url'] = entity_metadata_wrapper('node', $vars['node'])->field_site_url->value(array('sanitize' => TRUE));
   }
 }
 
@@ -83,8 +83,11 @@ function rss_resource_hub_get_resource_types() {
  *    An array of url strings.
  */
 function rss_resource_hub_get_resource_url($resourceNode) {
-  if ($resourceNode->type == 'rss_resource' && isset($resourceNode->field_site_url[0]['value']))
-    return array($resourceNode->field_site_url[0]['value']);
+  if ($resourceNode->type == 'rss_resource') {
+    $site_url = entity_metadata_wrapper('node', $vars['node'])->field_site_url->value();
+    if (!empty($site_url))
+      return array($site_url);
+  }
 }
 
 /**
@@ -112,10 +115,11 @@ function rss_resource_hub_get_resource_updates($resourceNode) {
   if ($resourceNode->type != 'rss_resource')
     return array();
 
-  if (!$resourceNode->field_url[0]['value'])
+  $feed_url = entity_metadata_wrapper('node', $vars['node'])->field_url->value();
+  if (empty($feed_url))
     return array();
 
-  return rss_resource_fetch_updates($resourceNode->field_url[0]['value'], $resourceNode);
+  return rss_resource_fetch_updates($feed_url, $resourceNode);
 }
 
 /**
@@ -143,10 +147,9 @@ function rss_resource_hub_get_resource_updates($resourceNode) {
 function rss_resource_fetch_updates($feedUrl, $resourceNode) {
   try {
     $feed = rss_resource_fetch_feed($feedUrl);
-
-    if (isset($resourceNode->field_hub_perms[0]['value']))
-      $visibility = $resourceNode->field_hub_perms[0]['value'];
-    else
+    
+    $visibility = entity_metadata_wrapper('node', $resourceNode)->field_hub_perms->value();
+    if (empty($visibility))
       $visibility = 'class';
 
     return rss_resource_updates_from_feed($feed, $visibility, $resourceNode->nid);

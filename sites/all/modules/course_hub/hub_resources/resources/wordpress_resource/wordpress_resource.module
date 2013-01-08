@@ -6,8 +6,11 @@ require_once dirname(__FILE__) . '/wordpress_resource.admin.inc';
  * Implementation of hook_preprocess_node().
  */
 function wordpress_resource_preprocess_node(&$vars) {
-  if (!empty($vars['node']) && $vars['node']->type == 'wordpress_resource' && $vars['node']->field_wp_sitename[0]['value']) {
-    $vars['wp_site_url'] = wordpress_resource_get_url($vars['node']->field_wp_sitename[0]['value']);
+  if (!empty($vars['node']) && $vars['node']->type == 'wordpress_resource') {
+    $wp_sitename = entity_metadata_wrapper('node', $vars['node'])->field_wp_sitename->value();
+    if (!empty($wp_sitename) {
+      $vars['wp_site_url'] = wordpress_resource_get_url($wp_sitename);
+    }
   }
 }
 
@@ -131,8 +134,10 @@ function wordpress_resource_hub_get_resource_types() {
  *    An array of url strings.
  */
 function wordpress_resource_hub_get_resource_url($resourceNode, $path = '', $authenticated = FALSE) {
-  if ($resourceNode->type == 'wordpress_resource')
-    return wordpress_resource_get_url($resourceNode->field_wp_sitename[0]['value'], $path, $authenticated);
+  if ($resourceNode->type == 'wordpress_resource') {
+    $wp_sitename = entity_metadata_wrapper('node', $resourceNode)->field_wp_sitename->value();
+    return wordpress_resource_get_url($wp_sitename, $path, $authenticated);
+  }
 }
 
 /**
@@ -218,7 +223,8 @@ function wordpress_resource_hub_get_resource_updates($resourceNode) {
   if ($resourceNode->type != 'wordpress_resource')
     return array();
 
-  if (!$resourceNode->field_wp_sitename[0]['value'])
+  $wp_sitename = entity_metadata_wrapper('node', $resourceNode)->field_wp_sitename->value();
+  if (empty($wp_sitename))
     return array();
 
   $postUpdates = rss_resource_fetch_updates(wordpress_resource_hub_get_resource_url($resourceNode, 'feed/', TRUE), $resourceNode);

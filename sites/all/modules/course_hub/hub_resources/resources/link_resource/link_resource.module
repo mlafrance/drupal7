@@ -6,7 +6,7 @@
 function link_resource_preprocess_node(&$vars) {
   if (!empty($vars['node']) && $vars['node']->type == 'link_resource') {
     try {
-      $vars['url'] = $vars['node']->field_url[0]['safe'];
+      $vars['url'] = entity_metadata_wrapper('node', $vars['node'])->field_url->value(array('sanitize' => TRUE));
     } catch (UnexpectedValueException $e) {
     }
   }
@@ -78,5 +78,5 @@ function link_resource_hub_get_resource_types() {
  */
 function link_resource_hub_get_resource_url($resourceNode) {
   if ($resourceNode->type == 'link_resource')
-    return array($resourceNode->field_url[0]['value']);
+    return array(entity_metadata_wrapper('node', $resourceNode)->field_url->value());
 }
