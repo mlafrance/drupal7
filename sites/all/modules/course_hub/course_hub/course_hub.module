@@ -207,12 +207,15 @@ function course_hub_get_visibility_page($parentPageTID, $visibility) {
  *
  * @param string $parentPagePath
  *      The path, of the parent page. E.g. 'resources' or 'syllabus'.
+ * @param array $form
  * @param ref array $form_state
  *      The form state that will be modified to set the proper visibility page.
  * @return void
  */
-function course_hub_set_node_form_visibility($parentPagePath, &$form_state) {
-  $visibility = $form_state['values']['field_hub_perms'][0]['value'];
+function course_hub_set_node_form_visibility($parentPagePath, $form, &$form_state) {
+  $lang = $form['field_hub_perms']['#language'];
+  $visibility = $form_state['values']['field_hub_perms'][$lang][0]['value'];
+    
   $classPageTID = course_hub_get_course_site_tid($parentPagePath . '/class');
   $visibilityPage = course_hub_get_visibility_page(course_hub_get_course_site_tid($parentPagePath), $visibility);
 

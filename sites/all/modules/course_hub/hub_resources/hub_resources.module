@@ -160,7 +160,7 @@ function hub_resources_form_alter(&$form, &$form_state, $form_id) {
  * or public visibility
  */
 function hub_resources_node_form_submit(&$form, &$form_state) {
-  course_hub_set_node_form_visibility('resources', $form_state);
+  course_hub_set_node_form_visibility('resources', $form, $form_state);
 
   $originalVisibility = $form['#node']->field_hub_perms[0]['value'];
   $visibility = $form_state['values']['field_hub_perms'][0]['value'];

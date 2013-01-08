@@ -165,7 +165,7 @@ function syllabus_node_form_submit($form, &$form_state) {
   $form_state['values']['title'] = 'Syllabus';
 
   // Set the page view permissions based on the form setting.
-  course_hub_set_node_form_visibility('syllabus', $form_state);
+  course_hub_set_node_form_visibility('syllabus', $form, $form_state);
 
 }
 
