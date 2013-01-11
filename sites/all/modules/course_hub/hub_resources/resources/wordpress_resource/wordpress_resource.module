@@ -8,7 +8,7 @@ require_once dirname(__FILE__) . '/wordpress_resource.admin.inc';
 function wordpress_resource_preprocess_node(&$vars) {
   if (!empty($vars['node']) && $vars['node']->type == 'wordpress_resource') {
     $wp_sitename = entity_metadata_wrapper('node', $vars['node'])->field_wp_sitename->value();
-    if (!empty($wp_sitename) {
+    if (!empty($wp_sitename)) {
       $vars['wp_site_url'] = wordpress_resource_get_url($wp_sitename);
     }
   }
