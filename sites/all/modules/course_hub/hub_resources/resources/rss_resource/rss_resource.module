@@ -173,6 +173,10 @@ function rss_resource_fetch_feed($url) {
   $feed = new SimplePie();
   $feed->set_feed_url($url);
   $feed->handle_content_type();
+  $cache_path = conf_path().'/files/rss_resource_cache';
+  if (!is_dir($cache_path))
+    mkdir($cache_path);
+  $feed->set_cache_location($cache_path);
   if (!$feed->init()) {
     throw new Exception(t('Could not fetch feed from \'@url\'. @error', array('@url' => $url, '@error' => $feed->error())), 404);
   }
