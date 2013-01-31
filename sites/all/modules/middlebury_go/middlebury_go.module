@@ -241,3 +241,13 @@ function middlebury_go_pdo() {
   $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
   return $pdo;
 }
+
+/**
+ * Implements hook_coder_review_ignore().
+ */
+function middlebury_go_coder_review_ignore() {
+  return array(
+    'path' => drupal_get_path('module', 'middlebury_go'),
+    'line prefix' => drupal_get_path('module', 'middlebury_go'),
+  );
+}
