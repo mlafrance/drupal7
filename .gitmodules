@@ -3,7 +3,7 @@
 	url = git://github.com/middlebury/drupal.git
 [submodule "sites/all/modules/monster_menus"]
 	path = sites/all/modules/monster_menus
-	url = git://github.com/middlebury/monster_menus.git
+	url = http://git.drupal.org/project/monster_menus.git
 [submodule "sites/all/modules/devel"]
 	path = sites/all/modules/devel
 	url = http://git.drupal.org/project/devel.git
@@ -64,6 +64,9 @@
 [submodule "sites/all/modules/entity"]
 	path = sites/all/modules/entity
 	url = http://git.drupal.org/project/entity.git
+[submodule "sites/all/modules/git_deploy"]
+	path = sites/all/modules/git_deploy
+	url = http://git.drupal.org/project/git_deploy.git
 [submodule "sites/all/modules/nodeporter"]
 	path = sites/all/modules/nodeporter
 	url = http://git.drupal.org/sandbox/adamfranco/1475756.git
