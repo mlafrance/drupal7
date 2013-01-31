@@ -12,7 +12,7 @@
         url = http://git.drupal.org/project/devel_themer.git
 [submodule "sites/all/modules/coder"]
 	path = sites/all/modules/coder
-	url = http://git.drupal.org/project/coder.git
+	url = https://github.com/middlebury/drupal-coder.git
 [submodule "sites/all/modules/date"]
 	path = sites/all/modules/date
 	url = http://git.drupal.org/project/date.git
