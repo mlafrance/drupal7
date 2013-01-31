@@ -34,5 +34,5 @@ function middlebury_go_install() {
     }
   }
 
-  return t('Renamed variables and paths to migrate go module to middlebury_go module.');
+  return st('Renamed variables and paths to migrate go module to middlebury_go module.');
 }
