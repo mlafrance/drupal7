@@ -67,3 +67,6 @@
 [submodule "sites/all/modules/git_deploy"]
 	path = sites/all/modules/git_deploy
 	url = http://git.drupal.org/project/git_deploy.git
+[submodule "sites/all/libraries/colorbox"]
+	path = sites/all/libraries/colorbox
+	url = https://github.com/jackmoore/colorbox.git
