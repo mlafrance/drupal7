@@ -66,7 +66,7 @@
 	url = http://git.drupal.org/project/entity.git
 [submodule "sites/all/modules/git_deploy"]
 	path = sites/all/modules/git_deploy
-	url = http://git.drupal.org/project/git_deploy.git
+	url = git://github.com/middlebury/drupal-webform.git
 [submodule "sites/all/libraries/colorbox"]
 	path = sites/all/libraries/colorbox
 	url = https://github.com/jackmoore/colorbox.git
