@@ -190,7 +190,7 @@ function middlebury_alert_message() {
  */
 function middlebury_alert_background() {
   $level = drupal_strtolower(variable_get('middlebury_alert_level', 'Notice'));
-  return variable_get('middlebury_alert_'. $level .'_bg', '#BEDA90');
+  return variable_get('middlebury_alert_' . $level . '_bg', '#BEDA90');
 }
 
 /**
