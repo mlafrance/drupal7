@@ -168,7 +168,7 @@ function middlebury_alert_message() {
       $link = $alert->get_permalink();
 
       $title = $title;
-      
+
       $matches = array();
       if (preg_match('/\[(NOTICE|WARNING|EMERGENCY)\]\s?/i', $title, $matches)) {
         variable_set('middlebury_alert_level', ucfirst($matches[1]));
