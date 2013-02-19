@@ -125,7 +125,7 @@ function middlebury_alert_admin_settings_submit(&$form_id, &$form_values) {
   curl_setopt($ch, CURLOPT_POSTFIELDS, $fields_string);
   $body = curl_exec($ch);
   curl_close($ch);
-  
+
   global $user;
   $variables = array(
     '%user' => $user->name,
