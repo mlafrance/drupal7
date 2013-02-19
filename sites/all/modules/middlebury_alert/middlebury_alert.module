@@ -163,7 +163,7 @@ function middlebury_alert_message() {
     $feed->handle_content_type();
     if (!$feed->error()) {
       $alert = $feed->get_item();
-      
+
       $title = $alert->get_title();
       $link = $alert->get_permalink();
       
