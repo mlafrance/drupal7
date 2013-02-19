@@ -1,0 +1,5 @@
+name = Midd Alert
+description = Provides emergency alerts for Middlebury
+core = 7.x
+package = Middlebury
+files[] = middlebury_alert.module
