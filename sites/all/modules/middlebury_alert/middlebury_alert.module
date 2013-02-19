@@ -10,7 +10,7 @@
  */
 function middlebury_alert_menu() {
   $items['admin/settings/middlebury_alert'] = array(
-    'title' => t('Middlebury Alert Settings'),
+    'title' => 'Middlebury Alert Settings',
     'description' => 'Configure settings for the Middlebury Alert system.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('middlebury_alert_admin_settings'),
