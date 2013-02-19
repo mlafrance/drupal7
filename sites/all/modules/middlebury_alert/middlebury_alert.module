@@ -22,8 +22,8 @@ function middlebury_alert_menu() {
 
 /**
  * Provide settings page.
- * 
- * @retur array
+ *
+ * @return array
  */
 function middlebury_alert_admin_settings() {
   $form['middlebury_alert_power'] = array(
