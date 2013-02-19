@@ -172,7 +172,7 @@ function middlebury_alert_message() {
       $matches = array();
       if (preg_match('/\[(NOTICE|WARNING|EMERGENCY)\]\s?/i', $title, $matches)) {
         variable_set('middlebury_alert_level', drupal_ucfirst($matches[1]));
-        
+
         $title = str_replace($matches[0], '', $title);
       }
       
