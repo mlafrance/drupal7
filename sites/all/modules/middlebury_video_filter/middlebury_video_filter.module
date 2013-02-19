@@ -126,7 +126,7 @@ function theme_middlebury_video_filter_flash($video, $params) {
       }
 
       if (isset($video['loop']) && !empty($video['loop'])) {
-        $output .= ' loop="' . $video['loop'] . '"';
+        $output .= ' loop="' . $video['loop'] . '" onended="this.play();"';
       }
 
       $output .= '>';
