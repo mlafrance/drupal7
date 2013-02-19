@@ -141,7 +141,7 @@ function middlebury_alert_admin_settings_submit(&$form_id, &$form_values) {
 /**
  * Implements hook_permission().
  */
-function middlebury_alert_perm() {
+function middlebury_alert_permission() {
   return array('administer middlebury_alert');
 }
 
