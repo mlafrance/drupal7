@@ -199,6 +199,6 @@ function middlebury_alert_background() {
  * @return string
  */
 function middlebury_alert_text() {
-  $level = strtolower(variable_get('middlebury_alert_level', 'Notice'));
+  $level = drupal_strtolower(variable_get('middlebury_alert_level', 'Notice'));
   return variable_get('middlebury_alert_'. $level .'_text', '#003468');
 }
