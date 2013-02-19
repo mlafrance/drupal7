@@ -1,0 +1,162 @@
+<?php
+
+define('MIDDLEBURY_MOBILE_DETECTION_API', 'https://modolabs-device.appspot.com/api/');
+define('MIDDLEBURY_MOBILE_DETECTION_VERSION', 2);
+define('MIDDLEBURY_MOBILE_DETECTION_URL', 'http://m.middlebury.edu');
+define('MIDDLEBURY_MOBILE_DETECTION_TYPE', 'server_side');
+define('MIDDLEBURY_MOBILE_DETECTION_REDIRECT_ENABLED', 0);
+
+/**
+ * Implementation of hook_init().
+ */
+function middlebury_mobile_detection_init() {
+  if (drupal_is_front_page() && variable_get('middlebury_mobile_detection_redirect_enabled', MIDDLEBURY_MOBILE_DEtECTION_REDIRECT_ENABLED)) {
+    switch (variable_get('middlebury_mobile_detection_type', MIDDLEBURY_MOBILE_DETECTION_TYPE)) {
+      case 'js_dialog':
+        middlebury_mobile_detection_js_dialog();
+        break;
+      default:
+        middlebury_mobile_detection_server_side();
+    }
+  }
+}
+
+/**
+ * Perform a server-side redirect if needed.
+ */
+function middlebury_mobile_detection_server_side () {
+  if (isset($_SERVER['HTTP_USER_AGENT'])) {
+    $device = middlebury_mobile_detection_detect($_SERVER['HTTP_USER_AGENT']);
+    if (!empty($device->redirect_to_mobile) && $device->redirect_to_mobile) {
+      header('Location:'. variable_get('middlebury_mobile_detection_url', MIDDLEBURY_MOBILE_DETECTION_URL), TRUE, 302);
+    }
+  }
+}
+
+/**
+ * Fetch info about the given user-agent.
+ * 
+ * @param string $user_agent
+ * @return mixed An object or FALSE on error
+ */
+function middlebury_mobile_detection_detect ($user_agent) {
+  $query = http_build_query(array(
+    'user-agent' => $user_agent,
+    'version' => variable_get('middlebury_mobile_detection_version', MIDDLEBURY_MOBILE_DETECTION_VERSION),
+  ));
+  $url = variable_get('middlebury_mobile_detection_api', MIDDLEBURY_MOBILE_DETECTION_API);
+  $json = file_get_contents($url .'?'. $query);
+  if ($json !== FALSE) {
+    $device = json_decode($json);
+    if (!empty($device->platform) && $device->platform != 'computer') {
+      $device->redirect_to_mobile = TRUE;
+    } else {
+      $device->redirect_to_mobile = FALSE;
+    }
+    return $device;
+  }
+  return FALSE;
+}
+
+/**
+ * Setup/display the javascript dialog if needed.
+ */
+function middlebury_mobile_detection_js_dialog () {
+  drupal_add_js(array('middlebury_mobile_detection' => array(
+      'callback' => url('middlebury_mobile_detection/detect.json'),
+      'url' => variable_get('middlebury_mobile_detection_url', MIDDLEBURY_MOBILE_DETECTION_URL),
+    )),
+    'setting');
+  drupal_add_js(drupal_get_path('module', 'middlebury_mobile_detection') . '/middlebury_mobile_detection.js', 'module', 'footer');
+  drupal_add_css(drupal_get_path('module', 'middlebury_mobile_detection') . '/middlebury_mobile_detection.css', 'module');
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function middlebury_mobile_detection_menu() {
+  $items['admin/settings/middlebury_mobile_detection'] = array(
+    'title' => t('Middlebury Mobile Detection Settings'),
+    'description' => 'Configure settings for the Middlebury Mobile Detection module.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('middlebury_mobile_detection_settings'),
+    'access arguments' => array('administer middlebury_mobile_detection'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['middlebury_mobile_detection/detect.json'] = array(
+    'page callback' => 'middlebury_mobile_detection_detect_json',
+    'access callback' => true,
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Detect the browser type and return results in JSON.
+ * This callback allows us to get around cross-domain limitations
+ */
+function middlebury_mobile_detection_detect_json () {
+  header('Content-type: text/json');
+  print json_encode(middlebury_mobile_detection_detect($_GET['user-agent']));
+  exit;
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function middlebury_mobile_detection_perm() {
+  return array('administer middlebury_mobile_detection');
+}
+
+/**
+ * Settings page for this module.
+ */
+function middlebury_mobile_detection_settings() {
+  $form['middlebury_mobile_detection_redirect_enabled'] = array(
+    '#type' => 'radios',
+    '#title' => t('Enable Redirecting'),
+    '#options' => array(
+      0 => t('Disabled'),
+      1 => t('Enabled'),
+    ),
+    '#default_value' => variable_get('middlebury_mobile_detection_redirect_enabled', MIDDLEBURY_MOBILE_DETECTION_REDIRECT_ENABLED),
+    '#description' => t('Enabling redirects will present the dialog or send a 302 header (choice below) for all users with mobile devices.'),
+  );
+  
+  $form['middlebury_mobile_detection_api'] = array(
+    '#type' => 'textfield',
+    '#title' => t('URL of Mobile Detection API'),
+    '#default_value' => variable_get('middlebury_mobile_detection_api', MIDDLEBURY_MOBILE_DETECTION_API),
+    '#size' => 75,
+    '#description' => t('The module passes the user agent string to this URL and receives information about the device.'),
+  );
+
+  $form['middlebury_mobile_detection_version'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Mobile Detection API version to use'),
+    '#default_value' => variable_get('middlebury_mobile_detection_version', MIDDLEBURY_MOBILE_DETECTION_VERSION),
+    '#size' => 10,
+    '#description' => t('The integer value of the version of the Mobile Detection API'),
+  );
+  
+  $form['middlebury_mobile_detection_type'] = array(
+    '#type' => 'radios',
+    '#title' => t('Redirect type'),
+    '#options' => array(
+      'server_side' => t('Server-side 302 redirect'),
+      'js_dialog' => t('Javascript dialog with link'),
+    ),
+    '#default_value' => variable_get('middlebury_mobile_detection_type', MIDDLEBURY_MOBILE_DETECTION_TYPE),
+    '#description' => t('Choose the type of redirect strategy to use.'),
+  );
+
+  $form['middlebury_mobile_detection_url'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Mobile Website URL'),
+    '#default_value' => variable_get('middlebury_mobile_detection_url', MIDDLEBURY_MOBILE_DETECTION_URL),
+    '#size' => 75,
+    '#description' => t('If the user is on a mobile device, go to this URL'),
+  );
+
+  return system_settings_form($form);
+}
