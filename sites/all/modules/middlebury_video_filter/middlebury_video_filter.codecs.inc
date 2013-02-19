@@ -47,10 +47,10 @@ function middlebury_video_filter_middmedia($video) {
   return middlebury_video_filter_flash($video);
 }
 
-function middlebury_video_filter_codec_alter(&$codecs) {
+function middlebury_video_filter_video_filter_codec_info_alter(&$codecs) {
   if (isset($codecs['youtube'])) {
     $codecs['youtube']['regexp'] = '/youtube\.com\/watch\?v=([a-z0-9\-_]+)([^\s]*&amp;(p|list)=([a-zA-Z0-9\-_]+))?/i';
-    $codecs['youtube']['callback'] = 'middlebury_video_filter_youtube';
+    $codecs['youtube']['callback'] = $codecs['youtube']['html5_callback'] = 'middlebury_video_filter_youtube';
     $codecs['youtube']['ratio'] = 425 / 355;
   }
 }
