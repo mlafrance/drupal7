@@ -153,7 +153,7 @@ function middlebury_alert_permission() {
 function middlebury_alert_message() {
   $message = variable_get('middlebury_alert_override', '');
   $feed_url = variable_get('middlebury_alert_feed', '');
-  
+
   if ($message == '' && $feed_url != '') {
     module_load_include('inc', 'rss_page', 'simplepie');
     $feed = new SimplePie();
