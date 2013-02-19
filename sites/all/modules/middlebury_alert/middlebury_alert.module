@@ -147,7 +147,7 @@ function middlebury_alert_permission() {
 
 /**
  * Answer the current alert message.
- * 
+ *
  * @return string
  */
 function middlebury_alert_message() {
