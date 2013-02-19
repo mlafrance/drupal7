@@ -28,7 +28,7 @@ function _middlebury_external_links_process($text, $filter, $format, $langcode, 
  * Answer the replacement text in the case that the link URL refers to an external host.
  *
  * @param $matches
- *   The matches array provided by preg_replace_callback.
+ *   The matches array provided by preg_replace_callback().
  *
  * @return HTML markup for an anchor tag.
  */
