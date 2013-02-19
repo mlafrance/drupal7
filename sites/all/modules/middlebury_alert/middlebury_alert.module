@@ -166,7 +166,7 @@ function middlebury_alert_message() {
 
       $title = $alert->get_title();
       $link = $alert->get_permalink();
-      
+
       $title = $title;
       
       $matches = array();
