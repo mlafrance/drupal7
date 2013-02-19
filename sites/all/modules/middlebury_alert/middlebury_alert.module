@@ -6,7 +6,7 @@
  */
 
 /**
- * Implementation of hook_menu().
+ * Implements hook_menu().
  */
 function middlebury_alert_menu() {
   $items['admin/settings/middlebury_alert'] = array(
