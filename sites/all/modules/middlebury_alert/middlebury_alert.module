@@ -175,7 +175,7 @@ function middlebury_alert_message() {
 
         $title = str_replace($matches[0], '', $title);
       }
-      
+
       $message = '<a href="'. $link .'">'. $title .'</a>';
     }
   }
