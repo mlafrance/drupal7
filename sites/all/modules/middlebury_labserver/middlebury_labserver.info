@@ -1,0 +1,5 @@
+name = Midd Lab Server
+description = Return the number of available machines in Middlebury labs.
+core = 7.x
+package = Middlebury
+files[] = middlebury_labserver.module

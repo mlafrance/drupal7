@@ -1,0 +1,42 @@
+<?php
+
+function middlebury_labserver_filter($op, $delta = 0, $format = -1, $text = '') {
+  switch($op) {
+    case 'list':
+      return array(0 => t('Middlebury Lab Server Filter'));
+
+    case 'description':
+      return t('Returns the number of available machines in Middlebury labs.');
+
+    case 'process':
+      return preg_replace_callback('/\[labserver\s?([^\]]*)\]/', "middlebury_labserver_replace", $text);
+
+    default:
+      return $text;
+  }
+}
+
+function middlebury_labserver_replace($matches) {
+  if (!empty($matches[1]))
+    $labs = preg_split('/,/', $matches[1]);
+
+  $file = file_get_contents('http://labserver.middlebury.edu:8080/public/xml-client.jsp');
+  $file = str_replace('& ', '&amp; ', $file);
+  $xml = simplexml_load_string($file);
+
+  $available = 0;
+  if ($xml !== FALSE) {
+    foreach($xml->lab as $lab) {
+      if (!empty($labs) && !in_array((int)$lab->attributes()->id, $labs))
+        continue;
+
+      foreach($lab->client as $client) {
+        if ((string)$client->attributes()->status == 'available') {
+          $available++;
+        }
+      }
+    }
+  }
+
+  return $available;
+}
