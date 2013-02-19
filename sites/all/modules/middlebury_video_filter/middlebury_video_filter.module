@@ -38,6 +38,13 @@ function middlebury_video_filter_hulu_flash($video, $params = array()) {
 }
 
 /**
+ * Wrapper that calls the theme function.
+ */
+function middlebury_video_filter_wcaxscript($video, $params = array()) {
+  return theme('middlebury_video_filter_wcaxscript', $video, $params);
+}
+
+/**
  * Implements hook_menu().
  *
  * @return an array of menu items
@@ -196,6 +203,17 @@ function theme_middlebury_video_filter_hulu($video, $params) {
 }
 
 /**
+ * Function that outputs the <object> element.
+ *
+ * @ingroup themeable
+ */
+function theme_middlebury_video_filter_wcaxscript($video, $params) {
+  $output = '<script type="text/javascript" src="http://www.wcax.com/global/video/videoplayer.js?rnd=308437;hostDomain=www.wcax.com;playerWidth=' . $video['width'] . ';playerHeight=' . $video['height'] . ';isShowIcon=true;clipId=' . $video['clipid'] . ';flvUri=;partnerclipid=;adTag=Sport;advertisingZone=;enableAds=false;landingPage=;islandingPageoverride=false;playerType=STANDARD_EMBEDDEDscript;controlsType=overlay"></script>';
+
+  return $output;
+}
+
+/**
  * Wrapper that calls the theme function.
  */
 function middlebury_video_filter_iframe($video, $params = array()) {
@@ -231,6 +249,9 @@ function middlebury_video_filter_theme($existing, $type, $theme, $path) {
       'arguments' => array('video' => NULL, 'params' => array()),
     ),
     'middlebury_video_filter_iframe' => array(
+      'arguments' => array('video' => NULL, 'params' => array()),
+    ),
+    'middlebury_video_filter_wcaxscript' => array(
       'arguments' => array('video' => NULL, 'params' => array()),
     ),
   );

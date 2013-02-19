@@ -22,6 +22,13 @@ function middlebury_video_filter_codec_info() {
     'ratio' => 425 / 355,
   );
 
+  $codecs['wcax'] = array(
+    'name' => t('WCAX'),
+    'callback' => 'middmedia_video_filter_wcax',
+    'regexp' => '/www\.wcax\.com\/story\/([0-9]+)\/.*clipId=([0-9]+)/i',
+    'ratio' => 425 / 355,
+  );
+
   return $codecs;
 }
 
@@ -56,4 +63,10 @@ function middlebury_video_filter_youtube($video) {
   $video['source'] = 'http://www.youtube.com/embed/' . $url . '?' . ($video['autoplay'] ? '&amp;autoplay=1' : '') . ($video['related'] ? '' : '&amp;rel=0');
 
   return middlebury_video_filter_iframe($video);
+}
+
+function middlebury_video_filter_wvax($video) {
+  $video['clipid'] = $video['codec']['matches'][2];
+
+  return middmedia_video_filter_wcaxscript($video);
 }
