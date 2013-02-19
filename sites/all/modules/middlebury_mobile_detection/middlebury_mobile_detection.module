@@ -7,7 +7,7 @@ define('MIDDLEBURY_MOBILE_DETECTION_TYPE', 'server_side');
 define('MIDDLEBURY_MOBILE_DETECTION_REDIRECT_ENABLED', 0);
 
 /**
- * Implementation of hook_init().
+ * Implements hook_init().
  */
 function middlebury_mobile_detection_init() {
   if (drupal_is_front_page() && variable_get('middlebury_mobile_detection_redirect_enabled', MIDDLEBURY_MOBILE_DEtECTION_REDIRECT_ENABLED)) {
@@ -24,33 +24,34 @@ function middlebury_mobile_detection_init() {
 /**
  * Perform a server-side redirect if needed.
  */
-function middlebury_mobile_detection_server_side () {
+function middlebury_mobile_detection_server_side() {
   if (isset($_SERVER['HTTP_USER_AGENT'])) {
     $device = middlebury_mobile_detection_detect($_SERVER['HTTP_USER_AGENT']);
     if (!empty($device->redirect_to_mobile) && $device->redirect_to_mobile) {
-      header('Location:'. variable_get('middlebury_mobile_detection_url', MIDDLEBURY_MOBILE_DETECTION_URL), TRUE, 302);
+      header('Location:' . variable_get('middlebury_mobile_detection_url', MIDDLEBURY_MOBILE_DETECTION_URL), TRUE, 302);
     }
   }
 }
 
 /**
  * Fetch info about the given user-agent.
- * 
+ *
  * @param string $user_agent
  * @return mixed An object or FALSE on error
  */
-function middlebury_mobile_detection_detect ($user_agent) {
+function middlebury_mobile_detection_detect($user_agent) {
   $query = http_build_query(array(
     'user-agent' => $user_agent,
     'version' => variable_get('middlebury_mobile_detection_version', MIDDLEBURY_MOBILE_DETECTION_VERSION),
   ));
   $url = variable_get('middlebury_mobile_detection_api', MIDDLEBURY_MOBILE_DETECTION_API);
-  $json = file_get_contents($url .'?'. $query);
+  $json = file_get_contents($url . '?' . $query);
   if ($json !== FALSE) {
     $device = json_decode($json);
     if (!empty($device->platform) && $device->platform != 'computer') {
       $device->redirect_to_mobile = TRUE;
-    } else {
+    }
+    else {
       $device->redirect_to_mobile = FALSE;
     }
     return $device;
@@ -61,7 +62,7 @@ function middlebury_mobile_detection_detect ($user_agent) {
 /**
  * Setup/display the javascript dialog if needed.
  */
-function middlebury_mobile_detection_js_dialog () {
+function middlebury_mobile_detection_js_dialog() {
   drupal_add_js(array('middlebury_mobile_detection' => array(
       'callback' => url('middlebury_mobile_detection/detect.json'),
       'url' => variable_get('middlebury_mobile_detection_url', MIDDLEBURY_MOBILE_DETECTION_URL),
@@ -72,11 +73,11 @@ function middlebury_mobile_detection_js_dialog () {
 }
 
 /**
- * Implementation of hook_menu().
+ * Implements hook_menu().
  */
 function middlebury_mobile_detection_menu() {
   $items['admin/settings/middlebury_mobile_detection'] = array(
-    'title' => t('Middlebury Mobile Detection Settings'),
+    'title' => 'Middlebury Mobile Detection Settings',
     'description' => 'Configure settings for the Middlebury Mobile Detection module.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('middlebury_mobile_detection_settings'),
@@ -85,7 +86,7 @@ function middlebury_mobile_detection_menu() {
   );
   $items['middlebury_mobile_detection/detect.json'] = array(
     'page callback' => 'middlebury_mobile_detection_detect_json',
-    'access callback' => true,
+    'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
   return $items;
@@ -95,16 +96,16 @@ function middlebury_mobile_detection_menu() {
  * Detect the browser type and return results in JSON.
  * This callback allows us to get around cross-domain limitations
  */
-function middlebury_mobile_detection_detect_json () {
+function middlebury_mobile_detection_detect_json() {
   header('Content-type: text/json');
   print json_encode(middlebury_mobile_detection_detect($_GET['user-agent']));
   exit;
 }
 
 /**
- * Implementation of hook_perm().
+ * Implements hook_permission().
  */
-function middlebury_mobile_detection_perm() {
+function middlebury_mobile_detection_permission() {
   return array('administer middlebury_mobile_detection');
 }
 
@@ -122,7 +123,7 @@ function middlebury_mobile_detection_settings() {
     '#default_value' => variable_get('middlebury_mobile_detection_redirect_enabled', MIDDLEBURY_MOBILE_DETECTION_REDIRECT_ENABLED),
     '#description' => t('Enabling redirects will present the dialog or send a 302 header (choice below) for all users with mobile devices.'),
   );
-  
+
   $form['middlebury_mobile_detection_api'] = array(
     '#type' => 'textfield',
     '#title' => t('URL of Mobile Detection API'),
@@ -138,7 +139,7 @@ function middlebury_mobile_detection_settings() {
     '#size' => 10,
     '#description' => t('The integer value of the version of the Mobile Detection API'),
   );
-  
+
   $form['middlebury_mobile_detection_type'] = array(
     '#type' => 'radios',
     '#title' => t('Redirect type'),
