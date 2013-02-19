@@ -185,7 +185,7 @@ function middlebury_alert_message() {
 
 /**
  * Answer the current alert level background color.
- * 
+ *
  * @return string
  */
 function middlebury_alert_background() {
