@@ -116,7 +116,7 @@ function middlebury_alert_admin_settings_submit(&$form_id, &$form_values) {
     'PATH_REGEX' => urlencode('.*'),
   );
   $fields_string = '';
-  foreach ($fields as $k => $v) $fields_string .= $k .'='. $v .'&';
+  foreach ($fields as $k => $v) $fields_string .= $k . '=' . $v . '&';
   rtrim($fields_string, '&'); 
   
   $ch = curl_init();
