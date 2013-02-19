@@ -118,7 +118,7 @@ function middlebury_alert_admin_settings_submit(&$form_id, &$form_values) {
   $fields_string = '';
   foreach ($fields as $k => $v) $fields_string .= $k . '=' . $v . '&';
   rtrim($fields_string, '&');
-  
+
   $ch = curl_init();
   curl_setopt($ch, CURLOPT_URL, 'http://supersoaker.middlebury.edu/admin_api/purge_varnish_url_from_all.php');
   curl_setopt($ch, CURLOPT_POST,count($fields));
