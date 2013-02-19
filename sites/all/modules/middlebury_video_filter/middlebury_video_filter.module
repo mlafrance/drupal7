@@ -152,7 +152,7 @@ function theme_middlebury_video_filter_flash($video, $params) {
       $output .= '%2CvideoFile%3A%27' . $video['user'] . '/' . $video['filename'] . '%27';
     }
     else {
-      $output .= '%2CvideoFile%3A%27' . $video['extension'] . ':' . $video['user'] . '/' . $video['filename'] . '.' . $video['extension'] . '%27';
+      $output .= '%2CvideoFile%3A%27mp4:' . $video['user'] . '/' . $video['filename'] . '.mp4%27';
     }
 
     $output .= '%2CsplashImageFile%3A%27' . $video['image'] . '%27';
