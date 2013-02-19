@@ -108,7 +108,7 @@ function middlebury_alert_admin_settings() {
 }
 
 /**
- * Implementation of hook_form_submit().
+ * Implements hook_form_submit().
  */
 function middlebury_alert_admin_settings_submit(&$form_id, &$form_values) {
   $fields = array(
