@@ -179,7 +179,7 @@ function middlebury_alert_message() {
       $message = '<a href="' . $link . '">' . $title . '</a>';
     }
   }
-  
+
   return $message;
 }
 
