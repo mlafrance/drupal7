@@ -47,24 +47,6 @@ function middlebury_video_filter_middmedia($video) {
   return middlebury_video_filter_flash($video);
 }
 
-function middlebury_video_filter_video_filter_codec_info_alter(&$codecs) {
-  if (isset($codecs['youtube'])) {
-    $codecs['youtube']['regexp'] = '/youtube\.com\/watch\?v=([a-z0-9\-_]+)([^\s]*&amp;(p|list)=([a-zA-Z0-9\-_]+))?/i';
-    $codecs['youtube']['callback'] = $codecs['youtube']['html5_callback'] = 'middlebury_video_filter_youtube';
-    $codecs['youtube']['ratio'] = 425 / 355;
-  }
-}
-
-function middlebury_video_filter_youtube($video) {
-  $url = $video['codec']['matches'][1];
-
-  if (isset($video['codec']['matches'][3])) $url = 'videoseries?list=' . $video['codec']['matches'][4];
-
-  $video['source'] = 'http://www.youtube.com/embed/' . $url . ($video['autoplay'] ? '&amp;autoplay=1' : '') . ($video['related'] ? '' : '&amp;rel=0');
-
-  return middlebury_video_filter_iframe($video);
-}
-
 function middlebury_video_filter_wvax($video) {
   $video['clipid'] = $video['codec']['matches'][2];
 

@@ -214,30 +214,6 @@ function theme_middlebury_video_filter_wcaxscript($video, $params) {
 }
 
 /**
- * Wrapper that calls the theme function.
- */
-function middlebury_video_filter_iframe($video, $params = array()) {
-  return theme('middlebury_video_filter_iframe', $video, $params);
-}
-
-/**
- * Function that outputs the <object> element.
- *
- * @ingroup themeable
- */
-function theme_middlebury_video_filter_iframe($video, $params) {
-  $output = '<iframe class="youtube-player" type="text/html" width="' . $video['width'] . '" height="' . $video['height'] . '" src="' . $video['source'] . '" frameborder="0"';
-
-  if (isset($video['align']) && !empty($video['align'])) {
-    $output .= ' align="' . $video['align'] . '"';
-  }
-
-  $output .= '></iframe>';
-
-  return $output;
-}
-
-/**
  * Implements hook_theme().
  */
 function middlebury_video_filter_theme($existing, $type, $theme, $path) {
@@ -246,9 +222,6 @@ function middlebury_video_filter_theme($existing, $type, $theme, $path) {
       'arguments' => array('video' => NULL, 'params' => array()),
     ),
     'middlebury_video_filter_hulu_flash' => array(
-      'arguments' => array('video' => NULL, 'params' => array()),
-    ),
-    'middlebury_video_filter_iframe' => array(
       'arguments' => array('video' => NULL, 'params' => array()),
     ),
     'middlebury_video_filter_wcaxscript' => array(
