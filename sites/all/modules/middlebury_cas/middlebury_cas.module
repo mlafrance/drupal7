@@ -232,7 +232,7 @@ function middlebury_cas_plain_login() {
 function middlebury_cas_login_url($destination = NULL) {
   if (!$destination) {
     $dest = cas_login_destination();
-    $destination = $dest['destination'];  
+    $destination = $dest['destination'];
   }
   return base_path() . 'cas?destination=' . check_plain($destination);
 }
@@ -245,7 +245,7 @@ function middlebury_cas_login_url($destination = NULL) {
 function middlebury_cas_logout_url($destination = NULL) {
   if (!$destination) {
     $dest = cas_login_destination();
-    $destination = $dest['destination'];  
+    $destination = $dest['destination'];
   }
   return base_path() . 'caslogout?destination=' . check_plain($destination);
 }

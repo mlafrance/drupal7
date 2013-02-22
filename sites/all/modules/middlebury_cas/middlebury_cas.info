@@ -3,3 +3,4 @@ description = Custom login hook implementations for Middlebury CAS authenticatio
 core = 7.x
 dependencies[] = cas
 package = Middlebury
+files[] = middlebury_cas.module
