@@ -94,3 +94,6 @@
 [submodule "sites/all/modules/select_or_other"]
 	path = sites/all/modules/select_or_other
 	url = http://git.drupal.org/project/select_or_other.git
+[submodule "sites/all/modules/webform_validation"]
+	path = sites/all/modules/webform_validation
+	url = http://git.drupal.org/project/webform_validation.git
