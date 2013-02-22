@@ -85,3 +85,6 @@
 [submodule "sites/all/modules/config_perms"]
 	path = sites/all/modules/config_perms
 	url = http://git.drupal.org/project/config_perms.git
+[submodule "sites/all/modules/webform"]
+	path = sites/all/modules/webform
+	url = http://git.drupal.org/project/webform.git
