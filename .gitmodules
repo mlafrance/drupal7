@@ -97,3 +97,6 @@
 [submodule "sites/all/modules/webform_validation"]
 	path = sites/all/modules/webform_validation
 	url = http://git.drupal.org/project/webform_validation.git
+[submodule "sites/all/modules/transliteration"]
+	path = sites/all/modules/transliteration
+	url = http://git.drupal.org/project/transliteration.git
