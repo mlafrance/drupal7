@@ -1,0 +1,41 @@
+<?php
+
+function middlebury_subjectsplus_filter($op, $delta = 0, $format = -1, $text = '') {
+  switch($op) {
+    case 'list':
+      return array(0 => t('Middlebury Subjects Plus Filter'));
+
+    case 'description':
+      return t('Display a frame that includes a subject guide.');
+
+    case 'process':
+      return preg_replace_callback('/\[subjectsplus\s?([^\]]*)\]/', "middlebury_subjectsplus_replace", $text);
+
+    default:
+      return $text;
+  }
+}
+
+function middlebury_subjectsplus_replace($matches) {
+  if (empty($matches[1]))
+    return;
+
+  if (function_exists('middlebury_hide_sidebar'))
+    middlebury_hide_sidebar();
+
+  $guide = file_get_contents('http://sp.middlebury.edu/subjects/guide.php?subject=' . $matches[1]);
+  $parts = array();
+  preg_match("/<body[^>]*>(.*?)<div id=\"footer\">/is", $guide, $parts);
+  if (!empty($parts[1])) {
+    drupal_add_css(drupal_get_path('module', 'middlebury_subjectsplus') . '/middlebury_subjectsplus.css');
+    $guide = $parts[1] . "</font></div></div>";
+    $guide = str_replace('href="/', 'href="http://sp.middlebury.edu/', $guide);
+    $guide = str_replace('src="/', 'src="http://sp.middlebury.edu/', $guide);
+    $guide = str_replace('src="..', 'src="http://sp.middlebury.edu/', $guide);
+
+    $guide .= '<div class="clear"></div>';
+    return $guide;
+  }
+
+  return '';
+}

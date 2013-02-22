@@ -1,0 +1,466 @@
+/* CSS Document for SubjectsPlus, public display (i.e., subjects/ folder ) */
+/* Last modified: 2009-10-21 by Bryan Carson*/
+#rapper a {
+  font-family:verdana;
+  font-size:100%;
+  color:#448ccb;
+  text-decoration:none;
+  border-bottom:1px dotted #114477;
+}
+
+#rapper a:link {
+  color: #003366;
+}
+
+#rapper a:visited {
+  color: #003366;
+}
+
+#rapper a:hover {
+  font-family:verdana;
+  font-size:100%;
+  background-color:#EEFFCC;
+  border-bottom:1px solid #003366;
+  color:#003366;
+  text-decoration:none;
+  
+  }
+
+#rapper h1 {
+  font-family: Georgia, sans-serif;
+  font-size: 1.2em; 
+  letter-spacing: 1px;
+}
+
+#rapper h2 {
+  font-family: Arial, sans-serif;
+  font-size: 1.2em; 
+  letter-spacing: 1px;
+  color: #333;
+}
+
+#rapper h3 {
+  font-family: Arial, sans-serif;
+  font-size: 1.1em; 
+  letter-spacing: 1px;
+  color: #6F6F6F;
+}
+
+#rapper #header {
+  background: #ffffff;
+  padding: 0;
+  margin: 0;
+  border-bottom: 1px dotted #efefef;
+}
+
+#rapper #header img { float:none; }
+
+#rapper #header #pluslet-340 img { float:right; }
+
+#rapper #header2 {
+  display:block;
+  position: relative;
+  width:100%;
+  margin-bottom:18px;
+}
+
+#rapper #header2 h1 {
+  display:none;
+}
+
+#rapper #header2 #header-tools {
+  float:none !important;
+}
+
+/* Main-body basically constrains the content div at 70% */
+#rapper #main-body {
+  position: relative;
+  top: 0px;
+  left: 0px;
+  float: left;
+  background: transparent;
+  width: 70%;
+  font-size: 1em;
+}
+
+#rapper .pluslet_body {
+  width:auto;
+}
+
+/*  The content div contains the main white section underneath the header*/
+#rapper #content {
+  position: relative;
+  padding: 0;
+  margin-top:0;
+  background: #fff;
+  background: transparent;
+}
+
+/* Content-static is used to create divs for a canvas for static php/html pages like "pverify" (Bryan Carson 2011-09-23) */
+
+#rapper #content-static {
+  position: relative;
+  padding-left: 5px;
+  padding-right: 10px;
+  background: #ffffff;
+  padding-bottom: 3px;
+
+}
+
+#rapper #content h1 {
+  padding-top: 5px;
+  padding-bottom: 5px;
+  letter-spacing: 2px;
+}
+
+#rapper #sidebar {
+  position: relative;
+  width: 29%;
+  float: right;
+  margin: 0 0 25px 0;
+  padding: 0;
+  font-size: 90%;
+  line-height: 1.5em;
+  color: #000;
+  background: transparent;
+  
+}
+
+#rapper #sidebar p,#sidebar ul,#sidebar dl {
+  margin: 4px 10px 4px 10px;
+  padding: 0;
+  list-style: none;
+}
+
+#rapper #sidebar ul li {
+  margin: 0 0 .5em 0;
+  padding: 0 0 0 18px;
+  line-height: 1.4em;
+  background: url("http://sp.middlebury.edu/assets/images/icons/required.png") no-repeat 0 0px;
+}
+
+#rapper #sidebar h3 {
+  font: 1.2em Arial, sans-serif;
+  font-weight: 700;
+  margin: 10px 0 12px 0;
+  padding: 5px 10px 0px;
+  border: none;
+  color: #000;
+}
+
+#rapper #sidebar h4 {
+  font-size: 92%;
+  font-weight: normal;
+  margin: 0;
+}
+
+#rapper #sidebar form { width:100%; }
+#rapper #sidebar input { display:block; }
+
+#rapper .pluslet {
+  position: relative;  
+  clear: both;  
+  margin-bottom: 10px; 
+  cursor: auto;
+  z-index: 50; 
+  border: 2px solid #d1d8df;
+  padding: 0px;
+  font-size: 10pt;
+}
+
+#rapper .titlebar_text {
+
+font: 1em Arial, sans-serif;
+font-weight: 700;
+margin-bottom: 5px;
+margin-top: 3px;
+padding: 5px 10px 0px;
+border:  none;
+color: #000;
+background-color: transparent;
+
+  }
+  
+#rapper .titlebar_options { 
+
+  display: none; 
+
+}
+
+/* Next lines override the regular pluslet to create a heading */
+#rapper .plusheading { background-color: #323f3f; width: 70%; padding: 0; text-transform:uppercase;}
+#rapper div.plusheading .pluslet_body {position: relative;padding:0;}
+
+#rapper .pluslet_body {
+background-color: #ffffff;
+padding: 5px;
+text-align: left;
+overflow: auto;
+border-top: 2px solid #d1d8df;
+}
+
+#rapper div.pluslet form {
+padding-top: -10px;
+margin: 0;
+}
+
+/* subjects/databases.php */
+
+#rapper #a2z a  {
+color: #fff;
+font-size: larger;
+text-decoration: none;
+text-align:center;
+}
+
+#rapper #a2z a:link a:visited {
+color: #fff;
+}
+
+#rapper #a2z a:hover {
+color: #333;
+}
+
+#rapper .dbresults {
+clear:both;
+padding: 7px 0;
+border-bottom: 1px solid #dfdfdf;
+}
+
+#rapper .dbresults1 {
+
+float: left;
+position: relative;
+width: 10%;
+}
+
+#rapper .dbresults2 {
+float: left;
+position: relative;
+width: 87%;
+
+}
+
+/* Search boxes on subjects/index.php */
+
+#rapper .main_search_box {
+  text-align: left; 
+  margin-left: 0px;
+}
+
+/* Display for the "all items" pluslet */
+
+#rapper .leftcolheader {
+  background-color: #EFF8CE;
+  border: none;
+  color: #000000;
+  font-size: 1em;
+  padding: 2px;
+  text-align: center;
+  font-weight: 700;
+  margin-left: -5px; 
+  margin-right: -5px;
+  background-color: #dddddd; 
+}       
+    
+
+#rapper .note {
+  font-size: 9pt;
+  line-height: 12pt;
+  }
+
+/* The next three classes are used for even/odd striped tables of data/results */
+#rapper .striped_data {
+  font-size: 100%;
+  margin: 2px;
+  background-color: #ccc;
+}
+
+#rapper table td.odd {
+  background: #e0e0e0;
+}
+
+#rapper table td.even {
+  background: #ffffff;
+}
+
+#rapper table td.subhead {
+  background: #EFF8CE;
+  font-size: 12pt;
+}
+
+#rapper table p {
+  margin-bottom: 5px;
+  line-height: 1.4em;
+}
+
+/* This is for debugger results, if $debugger variable is turned on in file */
+#rapper .debugger {
+  text-align: left;
+  background: Yellow;
+  font-size: 12px;
+  margin: 15px;
+  padding: 5px;
+  border: 1px dashed #ccc;
+  overflow: auto;
+}
+
+/* For subjects/faq.php results */
+
+#rapper .faq_item {
+  background: url("http://sp.middlebury.edu/assets/images/left_top_corner.gif") no-repeat;
+}
+
+#rapper .faq_item_q { /*background: #333; color: #fff;
+  */
+  padding-left: 15px;
+  margin-bottom: 2px;
+  padding-bottom: 2px;
+  font-weight: bold;
+  padding-top: 9px;
+}
+
+#rapper .faq_item_a {
+  padding-left: 15px;
+  padding-bottom: 5px;
+}
+
+/* The next few determine how peoples' names and pix appear in staff.php & staff_details.php 
+staff_photo2 is in the sidebar of the subject results page (which requires a float)*/
+
+#rapper .staff_photo {
+  position: relative;
+  background: #efefef;
+  padding: 3px;
+  border: 1px solid #333;
+  margin-right: 20px;
+  margin-bottom: 10px;
+}
+
+#rapper .staff_photo2 {
+  position: relative;
+  float: left;
+  background: #efefef;
+  padding: 3px;
+  border: 1px solid #333;
+  margin: 0 10px 0 10px;
+}
+
+#rapper .staff_contact {
+  font-weight: 700;
+  margin-top: 0;
+  margin-bottom: 1em;
+  padding: 0;
+}
+
+#rapper span.staff_contact a:link {
+
+color: #000;
+text-decoration: underline;
+}
+#rapper span.staff_contact a:visited {
+
+color: #000;
+text-decoration: underline;
+}
+
+#rapper span.staff_contact a:hover {
+
+text-decoration: none;
+color: #cc6666;
+
+}
+
+#rapper span.staff_contact a {
+
+color: #000;
+text-decoration: underline;
+}
+
+/* This is for the search box on subjects/display.php & subjects/faq.php */
+
+#rapper .search_smaller {
+  font-size: 10px;
+  margin: 0px;
+  padding: 0px;
+}
+
+/* Used throughout for print that is um smaller  */
+#rapper .smaller { font-size: 8pt; }
+#rapper a.smaller { font-size: 8pt; }
+
+#rapper #listing a:hover {
+text-decoration: underline;
+
+} 
+
+#rapper #listing a   {
+text-decoration: none;
+}
+
+#rapper .oddrow { background-color: #e0e0e0; }
+#rapper .evenrow { }
+
+#rapper #intro_pluslet {
+
+position: relative;  clear: both; background: #fff; margin-bottom: 10px; z-index: 50; border: 1px solid #929abe;  padding: 0px;cursor: move; font-size: 10pt;
+  -moz-border-radius: 5px;
+  -khtml-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+  border-bottom-left-radius: 5px;
+
+}
+
+#rapper #navbar {
+width:100%;
+}
+
+#rapper #nav a {color: #000;
+text-decoration:none;}
+
+#rapper #nav a:link {color: #000;
+text-decoration:none;}
+
+#rapper #nav a:visited {color: #000;
+text-decoration:none;}
+
+/* Talk Back */
+
+#rapper .pluslet_error {
+  background-color: #CC0000;
+}
+
+#rapper .tb_year_head {
+  background-color: #333;
+  font-size: 16pt;
+}
+
+#rapper div.tb_year_head a {
+  color: #fff;
+}
+
+#rapper .tb_form_head {
+  background-color: #fff;
+}
+
+#rapper .tb_answer {
+margin-top: 8px;
+padding: 8px 5px;
+min-height: 70px;
+background-color: #e0e0e0;
+border-top: 1px solid #ccc;
+}
+
+#rapper .tb_staff_photo {
+  position: relative;
+  float: left;
+  background: #efefef;
+  padding: 3px;
+  border: 1px solid #333;
+  margin: 0 10px 0 0px;
+  max-width: 50px;
+
+}
