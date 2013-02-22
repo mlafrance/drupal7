@@ -82,3 +82,6 @@
 [submodule "sites/all/modules/oauth"]
 	path = sites/all/modules/oauth
 	url = http://git.drupal.org/project/oauth.git
+[submodule "sites/all/modules/config_perms"]
+	path = sites/all/modules/config_perms
+	url = http://git.drupal.org/project/config_perms.git
