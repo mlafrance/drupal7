@@ -79,3 +79,6 @@
 [submodule "sites/all/modules/flickrapi"]
 	path = sites/all/modules/flickrapi
 	url = http://git.drupal.org/project/flickrapi.git
+[submodule "sites/all/modules/oauth"]
+	path = sites/all/modules/oauth
+	url = http://git.drupal.org/project/oauth.git
