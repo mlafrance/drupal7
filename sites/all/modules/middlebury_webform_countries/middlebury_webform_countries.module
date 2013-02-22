@@ -6,7 +6,7 @@
  */
 
 /**
- * Implementation of hook_webform_select_options_info().
+ * Implements hook_webform_select_options_info().
  */
 function middlebury_webform_countries_webform_select_options_info() {
   $items = array();
