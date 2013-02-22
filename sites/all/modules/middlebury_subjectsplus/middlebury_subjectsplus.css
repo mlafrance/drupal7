@@ -464,3 +464,7 @@ border-top: 1px solid #ccc;
   max-width: 50px;
 
 }
+
+#rapper #pluslet-2 .pluslet_body { display:block !important; }
+#rapper #pluslet-2 .titlebar_text { color:transparent; line-height:0; }
+#rapper #pluslet-2 .titlebar_text:after { color:#000; line-height:1em; content:'Key to Icons'; }
