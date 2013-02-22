@@ -76,3 +76,6 @@
 [submodule "sites/all/modules/gravatar"]
 	path = sites/all/modules/gravatar
 	url = http://git.drupal.org/project/gravatar.git
+[submodule "sites/all/modules/flickrapi"]
+	path = sites/all/modules/flickrapi
+	url = http://git.drupal.org/project/flickrapi.git
