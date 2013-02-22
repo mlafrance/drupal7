@@ -1,21 +1,38 @@
 <?php
 
-function middlebury_subjectsplus_filter($op, $delta = 0, $format = -1, $text = '') {
-  switch($op) {
-    case 'list':
-      return array(0 => t('Middlebury Subjects Plus Filter'));
+/**
+ * @file
+ * Implements handlers for an input filter that returns a frame that includes a subject guide
+ */
 
-    case 'description':
-      return t('Display a frame that includes a subject guide.');
-
-    case 'process':
-      return preg_replace_callback('/\[subjectsplus\s?([^\]]*)\]/', "middlebury_subjectsplus_replace", $text);
-
-    default:
-      return $text;
-  }
+/**
+ * Implements hook_filter_info().
+ */
+function middlebury_subjectsplus_filter_info() {
+  $filters['middlebury_subjectsplus_filter'] = array(
+    'title' => t('Middlebury SubjectsPlus Filter'),
+    'description' => t('Returns a frame that includes a subject guide.'),
+    'process callback' => '_middlebury_subjectsplus_process',
+    'tips callback' => '_middlebury_subjectsplus_tips',
+  );
+  return $filters;
 }
 
+/**
+ * Implements hook_filter_FILTER_process().
+ */
+function _middlebury_subjectsplus_process($text, $filter, $format, $langcode, $cache, $cache_id) {
+  return preg_replace_callback('\[subjectsplus\s?([^\]]*)\]/', 'middlebury_subjectsplus_replace', $text);
+}
+
+/**
+ * Answer a frame that includes a subject guide.
+ *
+ * @param $matches
+ *   The matches array provided by preg_replace_callback().
+ *
+ * @return The HTML markup for a frame that includes a subject guide.
+ */
 function middlebury_subjectsplus_replace($matches) {
   if (empty($matches[1]))
     return;
@@ -38,4 +55,22 @@ function middlebury_subjectsplus_replace($matches) {
   }
 
   return '';
+}
+
+/**
+ * Implements hook_filter_FILTER_tips().
+ */
+function _middlebury_subjectsplus_tips($filter, $format, $long) {
+  if ($long) {
+    return t('
+      <p><strong>Middlebury SubjectsPlus Filter</strong></p>
+      <p>The LIS Librarians maintain subject guides in a system called "SubjectsPlus" to provide research resources to academic departments. If you would like to add one of these guides to your site, you can use the subjectsplus shortcode by including the SubjectsPlus subject code. For example, the URL of the American Studies subject guide is:</p>
+      <p><code>http://sp.middlebury.edu/subjects/guide.php?subject=amstud</code></p>
+      <p>So the correct shortcode to use to include this guide is:</p>
+      <p><code>[subjectsplus amstud]</code></p>
+    ');
+  }
+  else {
+    return t('You can insert a frame that includes a subject guide with [subjectsplus SUBJECT]');
+  }
 }
