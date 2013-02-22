@@ -1,4 +1,4 @@
-name = CAS-Midd
+name = Midd CAS
 description = Custom login hook implementations for Middlebury CAS authentication. Also includes Nicer CAS-login blocks than are provided with the CAS module.
 core = 7.x
 dependencies[] = cas

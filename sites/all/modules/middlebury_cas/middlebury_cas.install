@@ -1,0 +1,36 @@
+<?php
+
+/**
+ * @file
+ * Installation script for the Midd CAS module
+ */
+
+/**
+ * Implements hook_install().
+ */
+function middlebury_cas_install() {
+  db_update('system')
+    ->fields(
+      array(
+        'filename' => drupal_get_path('module', 'middlebury_cas') . 'middlebury_cas.module',
+      )
+    )
+    ->condition('name', 'cas_midd')
+    ->condition('type', 'module')
+    ->execute();
+
+  // Rename variables
+  $rename = array(
+    'middlebury_cas_login_text' => 'cas_midd_login_text',
+    'middlebury_cas_logout_text' => 'cas_midd_logout_text',
+  );
+
+  foreach ($rename as $new => $old) {
+    if (($val = variable_get($old, '-1234abcd-')) !== '-1234abcd-') {
+      variable_set($new, $val);
+      variable_delete($old);
+    }
+  }
+
+  return st('Renamed variables and paths to migrate cas_midd module to middlebury_cas module.');
+}
