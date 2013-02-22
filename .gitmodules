@@ -91,3 +91,6 @@
 [submodule "sites/all/modules/options_element"]
 	path = sites/all/modules/options_element
 	url = http://git.drupal.org/project/options_element
+[submodule "sites/all/modules/select_or_other"]
+	path = sites/all/modules/select_or_other
+	url = http://git.drupal.org/project/select_or_other.git
