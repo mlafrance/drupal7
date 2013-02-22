@@ -88,3 +88,6 @@
 [submodule "sites/all/modules/webform"]
 	path = sites/all/modules/webform
 	url = http://git.drupal.org/project/webform.git
+[submodule "sites/all/modules/options_element"]
+	path = sites/all/modules/options_element
+	url = http://git.drupal.org/project/options_element
