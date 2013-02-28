@@ -12,7 +12,7 @@
         url = http://git.drupal.org/project/devel_themer.git
 [submodule "sites/all/modules/coder"]
 	path = sites/all/modules/coder
-	url = http://git.drupal.org/project/coder.git
+	url = https://github.com/middlebury/drupal-coder.git
 [submodule "sites/all/modules/date"]
 	path = sites/all/modules/date
 	url = http://git.drupal.org/project/date.git
@@ -66,7 +66,40 @@
 	url = http://git.drupal.org/project/entity.git
 [submodule "sites/all/modules/git_deploy"]
 	path = sites/all/modules/git_deploy
-	url = http://git.drupal.org/project/git_deploy.git
+	url = git://github.com/middlebury/drupal-git_deploy.git
+[submodule "sites/all/libraries/colorbox"]
+	path = sites/all/libraries/colorbox
+	url = https://github.com/jackmoore/colorbox.git
+[submodule "sites/all/modules/google_analytics"]
+	path = sites/all/modules/google_analytics
+	url = http://git.drupal.org/project/google_analytics.git
+[submodule "sites/all/modules/gravatar"]
+	path = sites/all/modules/gravatar
+	url = http://git.drupal.org/project/gravatar.git
+[submodule "sites/all/modules/flickrapi"]
+	path = sites/all/modules/flickrapi
+	url = http://git.drupal.org/project/flickrapi.git
+[submodule "sites/all/modules/oauth"]
+	path = sites/all/modules/oauth
+	url = http://git.drupal.org/project/oauth.git
+[submodule "sites/all/modules/config_perms"]
+	path = sites/all/modules/config_perms
+	url = http://git.drupal.org/project/config_perms.git
+[submodule "sites/all/modules/webform"]
+	path = sites/all/modules/webform
+	url = http://git.drupal.org/project/webform.git
+[submodule "sites/all/modules/options_element"]
+	path = sites/all/modules/options_element
+	url = http://git.drupal.org/project/options_element
+[submodule "sites/all/modules/select_or_other"]
+	path = sites/all/modules/select_or_other
+	url = http://git.drupal.org/project/select_or_other.git
+[submodule "sites/all/modules/webform_validation"]
+	path = sites/all/modules/webform_validation
+	url = http://git.drupal.org/project/webform_validation.git
+[submodule "sites/all/modules/transliteration"]
+	path = sites/all/modules/transliteration
+	url = http://git.drupal.org/project/transliteration.git
 [submodule "sites/all/modules/nodeporter"]
 	path = sites/all/modules/nodeporter
 	url = http://git.drupal.org/sandbox/adamfranco/1475756.git

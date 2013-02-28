@@ -1,0 +1,6 @@
+name = Midd Webform Countries
+description = Adds a pre-built list of countries to the webform module.
+package = Middlebury
+core = 7.x
+dependencies[] = webform
+files[] = middlebury_webform_countries.module

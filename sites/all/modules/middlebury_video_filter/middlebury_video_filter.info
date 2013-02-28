@@ -3,3 +3,4 @@ description = Filter to include videos from MiddMedia using Video Filter Module
 package = Middlebury
 core = 7.x
 dependencies[] = video_filter
+files[] = middlebury_video_filter.module

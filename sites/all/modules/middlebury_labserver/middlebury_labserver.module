@@ -1,0 +1,84 @@
+<?php
+
+/**
+ * @file
+ * Implements handlers for an input filter that returns the number of available machines in Middlebury labs
+ */
+
+/**
+ * Implements hook_filter_info().
+ */
+function middlebury_labserver_filter_info() {
+  $filters['middlebury_labserver_filter'] = array(
+    'title' => t('Middlebury Lab Server Filter'),
+    'description' => t('Returns the number of available machines in Middlebury labs.'),
+    'process callback' => '_middlebury_labserver_process',
+    'tips callback' => '_middlebury_labserver_tips',
+  );
+  return $filters;
+}
+
+/**
+ * Implements hook_filter_FILTER_process().
+ */
+function _middlebury_labserver_process($text, $filter, $format, $langcode, $cache, $cache_id) {
+  return preg_replace_callback('/\[labserver\s?([^\]]*)\]/', "middlebury_labserver_replace", $text);
+}
+
+/**
+ * Answer the number of available machines in Middlebury labs.
+ *
+ * @param $matches
+ *   The matches array provided by preg_replace_callback().
+ *
+ * @return The number of available machines in Middlebury labs.
+ */
+function middlebury_labserver_replace($matches) {
+  if (!empty($matches[1]))
+    $labs = preg_split('/,/', $matches[1]);
+
+  $file = file_get_contents('http://labserver.middlebury.edu:8080/public/xml-client.jsp');
+  $file = str_replace('& ', '&amp; ', $file);
+  $xml = simplexml_load_string($file);
+
+  $available = 0;
+  if ($xml !== FALSE) {
+    foreach ($xml->lab as $lab) {
+      if (!empty($labs) && !in_array((int)$lab->attributes()->id, $labs))
+        continue;
+
+      foreach ($lab->client as $client) {
+        if ((string)$client->attributes()->status == 'available') {
+          $available++;
+        }
+      }
+    }
+  }
+
+  return $available;
+}
+
+/**
+ * Implements hook_filter_FILTER_tips().
+ */
+function _midddlebury_labserver_tips($filter, $format, $long) {
+  if ($long) {
+    return t('
+      <p><strong>Middlebury Lab Server Filter</strong></p>
+      <p>You can let people know how many machines are available in Middlebury computer labs in your department, building, or campus-wide with the following short codes in any content.</p>
+      <p>Examples:</p>
+      <dl>
+        <dt>[labserver]</dt>
+        <dd>Shows the total number of available lab machines on campus.</dd>
+        <dt>[labserver 65]</dt>
+        <dd>Shows the total number of available lab machines in lab 65, which is LIB 105.</dd>
+        <dt>[labserver 65,43,58,15,13,14]</dt>
+        <dd>Shows the total number of available lab machines in multiple labs. In this case, all of the labs in Davis Family Library.</dd>
+      </dl>
+      <p>To get the number for a lab, you can go to the <a href="http://labserver.middlebury.edu:8080/public/current_stats.jsp" target="_blank">main LabStats page</a> and click on one of the labs. The URL will contain some text like "id=65" and that is the number to use in the short code. The LabStats site also has a lot of other information about our computing labs.</p>
+    ');
+  }
+  else {
+    return t('You can insert the number of available machines in a lab with [labserver LAB_ID]');
+  }
+}

@@ -1,0 +1,6 @@
+name = Midd Module
+description = Features and functionality for the Midd themes
+core = 7.x
+package = Middlebury
+dependencies[] = monster_menus
+files[] = middlebury.module

@@ -143,12 +143,13 @@ function middlebury_go_query($query, $max = 100, $all = 0) {
   $pdo = middlebury_go_pdo();
 
   if ($inst = variable_get('middlebury_go_scope_institution', '')) {
-    $stmt = $pdo->prepare("SELECT name FROM (SELECT code.name FROM code WHERE code.unsearchable=:all AND code.name LIKE (:name1) AND code.institution=:inst1 UNION SELECT alias.name FROM alias WHERE alias.name LIKE (:name2) AND alias.institution=:inst2) as code_alias ORDER BY name ASC LIMIT " . $max);
+    $stmt = $pdo->prepare("SELECT name FROM (SELECT code.name, code.unsearchable FROM code WHERE code.name LIKE (:name1) AND code.institution=:inst1 UNION SELECT alias.name, code.unsearchable FROM alias INNER JOIN code ON code.name = alias.code WHERE alias.name LIKE (:name2) AND alias.institution=:inst2) as code_alias WHERE code_alias.unsearchable=:all ORDER BY name ASC LIMIT " . $max);
     $stmt->bindValue(":inst1", $inst);
     $stmt->bindValue(":inst2", $inst);
   }
   else {
-    $stmt = $pdo->prepare("SELECT name FROM (SELECT code.name FROM code WHERE code.unsearchable=:all AND code.name LIKE (:name1) UNION SELECT alias.name FROM alias WHERE alias.name LIKE (:name2) ) as code_alias ORDER BY name ASC LIMIT " . $max);
+    $stmt = $pdo->prepare("SELECT name FROM (SELECT code.name, code.unsearchable FROM code WHERE code.name LIKE (:name1) UNION SELECT alias.name, code.unsearchable FROM alias INNER JOIN code ON code.name = alias.code WHERE
+    alias.name LIKE (:name2)) as code_alias WHERE code_alias.unsearchable=:all ORDER BY name ASC LIMIT " . $max);
   }
   $stmt->bindValue(":name1", $query . '%');
   $stmt->bindValue(":name2", $query . '%');
@@ -240,4 +241,14 @@ function middlebury_go_pdo() {
   $pdo = new PDO(variable_get('middlebury_go_db_dsn', ''), variable_get('middlebury_go_db_user', ''), variable_get('middlebury_go_db_password', ''));
   $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
   return $pdo;
+}
+
+/**
+ * Implements hook_coder_review_ignore().
+ */
+function middlebury_go_coder_review_ignore() {
+  return array(
+    'path' => drupal_get_path('module', 'middlebury_go'),
+    'line prefix' => drupal_get_path('module', 'middlebury_go'),
+  );
 }

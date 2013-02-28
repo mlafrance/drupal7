@@ -1,0 +1,29 @@
+.mobile_detect_overlay {
+  position: absolute; 
+  left: 50%; 
+  width: 800px; 
+  margin-left: -414px; 
+  padding: 14px; 
+  z-index: 1100; 
+  border: 1px solid #fff; 
+  background-color: #C3E2F5; 
+  -moz-box-shadow: 0 0 8px #000; 
+  -webkit-box-shadow: 0 0 8px #000; 
+}
+.mobile_detect_overlay .close_overlay { 
+  top: -20px; 
+  right: -20px; 
+  -moz-border-radius: 40px; 
+  -webkit-border-radius: 40px; 
+  width: 40px; 
+  height: 40px; 
+  font-size: 36px; 
+  line-height: 30px; 
+  border: 6px solid #999;
+}
+
+.mobile_detect_overlay p {
+  font-family: Georgia, serif; 
+  font-size: 3em; 
+  color: #330;
+}

@@ -38,6 +38,13 @@ function middlebury_video_filter_hulu_flash($video, $params = array()) {
 }
 
 /**
+ * Wrapper that calls the theme function.
+ */
+function middlebury_video_filter_wcaxscript($video, $params = array()) {
+  return theme('middlebury_video_filter_wcaxscript', $video, $params);
+}
+
+/**
  * Implements hook_menu().
  *
  * @return an array of menu items
@@ -77,7 +84,7 @@ function theme_middlebury_video_filter_flash($video, $params) {
     }
 
     if (isset($video['loop']) && !empty($video['loop'])) {
-      $output .= ' loop="' . $video['loop'] . '"';
+      $output .= ' loop="' . $video['loop'] . '" onended="this.play();"';
     }
 
     $output .= '>';
@@ -119,7 +126,7 @@ function theme_middlebury_video_filter_flash($video, $params) {
       }
 
       if (isset($video['loop']) && !empty($video['loop'])) {
-        $output .= ' loop="' . $video['loop'] . '"';
+        $output .= ' loop="' . $video['loop'] . '" onended="this.play();"';
       }
 
       $output .= '>';
@@ -145,7 +152,7 @@ function theme_middlebury_video_filter_flash($video, $params) {
       $output .= '%2CvideoFile%3A%27' . $video['user'] . '/' . $video['filename'] . '%27';
     }
     else {
-      $output .= '%2CvideoFile%3A%27' . $video['extension'] . ':' . $video['user'] . '/' . $video['filename'] . '.' . $video['extension'] . '%27';
+      $output .= '%2CvideoFile%3A%27mp4:' . $video['user'] . '/' . $video['filename'] . '.mp4%27';
     }
 
     $output .= '%2CsplashImageFile%3A%27' . $video['image'] . '%27';
@@ -196,25 +203,12 @@ function theme_middlebury_video_filter_hulu($video, $params) {
 }
 
 /**
- * Wrapper that calls the theme function.
- */
-function middlebury_video_filter_iframe($video, $params = array()) {
-  return theme('middlebury_video_filter_iframe', $video, $params);
-}
-
-/**
  * Function that outputs the <object> element.
  *
  * @ingroup themeable
  */
-function theme_middlebury_video_filter_iframe($video, $params) {
-  $output = '<iframe class="youtube-player" type="text/html" width="' . $video['width'] . '" height="' . $video['height'] . '" src="' . $video['source'] . '" frameborder="0"';
-
-  if (isset($video['align']) && !empty($video['align'])) {
-    $output .= ' align="' . $video['align'] . '"';
-  }
-
-  $output .= '></iframe>';
+function theme_middlebury_video_filter_wcaxscript($video, $params) {
+  $output = '<script type="text/javascript" src="http://www.wcax.com/global/video/videoplayer.js?rnd=308437;hostDomain=www.wcax.com;playerWidth=' . $video['width'] . ';playerHeight=' . $video['height'] . ';isShowIcon=true;clipId=' . $video['clipid'] . ';flvUri=;partnerclipid=;adTag=Sport;advertisingZone=;enableAds=false;landingPage=;islandingPageoverride=false;playerType=STANDARD_EMBEDDEDscript;controlsType=overlay"></script>';
 
   return $output;
 }
@@ -230,7 +224,7 @@ function middlebury_video_filter_theme($existing, $type, $theme, $path) {
     'middlebury_video_filter_hulu_flash' => array(
       'arguments' => array('video' => NULL, 'params' => array()),
     ),
-    'middlebury_video_filter_iframe' => array(
+    'middlebury_video_filter_wcaxscript' => array(
       'arguments' => array('video' => NULL, 'params' => array()),
     ),
   );

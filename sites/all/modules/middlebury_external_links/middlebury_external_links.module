@@ -1,0 +1,42 @@
+<?php
+
+/**
+ * @file
+ * Implements handlers for an input filter that forces external links to open in a new window
+ */
+
+/**
+ * Implements hook_filter_info().
+ */
+function middlebury_external_links_filter_info() {
+  $filters['middlebury_external_links_filter'] = array(
+    'title' => t('Middlebury External Links Filter'),
+    'description' => t('Forces external links in submitted content to open in a new window.'),
+    'process callback' => '_middlebury_external_links_process',
+  );
+  return $filters;
+}
+
+/**
+ * Implements hook_filter_FILTER_process().
+ */
+function _middlebury_external_links_process($text, $filter, $format, $langcode, $cache, $cache_id) {
+  return preg_replace_callback('/<a (?:href=["\']?http:\/\/([^"\']+)[^>]+)/i', "middlebury_external_links_replace", $text);
+}
+
+/**
+ * Answer the replacement text in the case that the link URL refers to an external host.
+ *
+ * @param $matches
+ *   The matches array provided by preg_replace_callback().
+ *
+ * @return HTML markup for an anchor tag.
+ */
+function middlebury_external_links_replace($matches) {
+  if (strpos($matches[0], 'target="') !== FALSE ||
+      strpos($matches[1], $_SERVER['HTTP_HOST']) !== FALSE) {
+    return $matches[0];
+  }
+
+  return $matches[0] . ' target="_blank"';
+}
