@@ -10,7 +10,7 @@ define('MIDDLEBURY_MOBILE_DETECTION_REDIRECT_ENABLED', 0);
  * Implements hook_init().
  */
 function middlebury_mobile_detection_init() {
-  if (drupal_is_front_page() && variable_get('middlebury_mobile_detection_redirect_enabled', MIDDLEBURY_MOBILE_DEtECTION_REDIRECT_ENABLED)) {
+  if (drupal_is_front_page() && variable_get('middlebury_mobile_detection_redirect_enabled', MIDDLEBURY_MOBILE_DETECTION_REDIRECT_ENABLED)) {
     switch (variable_get('middlebury_mobile_detection_type', MIDDLEBURY_MOBILE_DETECTION_TYPE)) {
       case 'js_dialog':
         middlebury_mobile_detection_js_dialog();
