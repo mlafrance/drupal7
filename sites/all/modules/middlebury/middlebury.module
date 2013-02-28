@@ -5,182 +5,191 @@ define('MIDDLEBURY_SCOREBOARD_FEEDURL', 'http://web.middlebury.edu/database/athl
 define('MIDDLEBURY_SCOREBOARD_NAMESPACE', 'http://www.middlebury.edu/athletics');
 
 /**
- * Implementation of hook_block()
+ * Implements of hook_block_info().
  */
-function middlebury_block($op = 'list', $delta = 0, $edit = array()) {
-  switch($op) {
-    case 'list':
-      $blocks[0]['info'] = t('Midd Scoreboard');
-      $blocks[0]['cache'] = BLOCK_NO_CACHE;
-      $blocks[1]['info'] = t('Midd Webcasts');
-      $blocks[1]['cache'] = BLOCK_NO_CACHE;
-      return $blocks;
-      
-    case 'view':
-      if ($delta == 0) {
-        $GLOBALS['conf']['cache'] = FALSE;
-        
-        $chrSymbols = explode(',', MIDDLEBURY_SCOREBOARD_SYMBOLS);
-        
-        module_load_include('inc', 'rss_page', 'simplepie');
-        $date = getdate();
-        $season = '';
-        if ($date['mon'] > 5) {
-          $season = $date['year'] . '-' . ($date['year'] + 1);
-        }
-        else {
-          $season = ($date['year'] - 1) . '-' . $date['year'];
-        }
-        
-        $feed_url = MIDDLEBURY_SCOREBOARD_FEEDURL .'?active=true&season='. $season;
-        $feed = new SimplePie();
-        $feed->set_feed_url($feed_url);
-        $feed->enable_cache(false);
-        $feed->init();
-        $feed->handle_content_type();
-        $events = $feed->get_items();
+function middlebury_block_info() {
+  $blocks['scoreboard'] = array(
+    'info' => t('Midd Scoreboard'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
 
-        $records = array(); 
-        $lines = array();
-        $footnotes = array();
-        foreach($events as $ev) {      
-          $event = _middlebury_compile_event(MIDDLEBURY_SCOREBOARD_NAMESPACE, $ev);
-          $sorttitle = $event['sorttitle'];
-          if (!empty($event['record']) && empty($records[$sorttitle]))
-            $records[$sorttitle] = $event['record'];
-          if ($event['score'] == $event['time']) {
-            if (!isset($lines[$sorttitle]['next']) || $lines[$sorttitle]['next']['timestamp'] > $event['timestamp']) {    
-              $lines[$sorttitle]['next'] = $event;
-              $lines[$sorttitle]['link'] = $event['link'];
-            }
-          } else if (!isset($lines[$sorttitle]['last']) || $lines[$sorttitle]['last']['timestamp'] < $event['timestamp']) {
-            $lines[$sorttitle]['last'] = $event;
-            $lines[$sorttitle]['link'] = $event['link'];
-          }
-          
-          if (!isset($lines[$sorttitle]['title'])) $lines[$sorttitle]['title'] = $event['title'];
-        }
+  $blocks['webcasts'] = array(
+    'info' => t('Midd Webcasts'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
 
-        $block['subject'] = t('Scoreboard');
-        ob_start();
-        print '<div class="box" id="scoreboard">';
-        print '<h2 id="header_scoreboard"><img src="' . base_path() . drupal_get_path('module', 'middlebury') . '/images/scoreboard.png" width="256" height="43" alt="Scoreboard"/></h2>';
-        print '<div class="RightNavScoreboard">';
-        
-        ksort($lines);
-        foreach($lines as $sport => $event) {
-          print '<div class="RightNavScoreboardSport">';
-            print '<div class="RightNavScoreboardSportHeader">';
-              print '<div class="RightNavScoreboardHeaderLeft">';
-              print '<a href="' . $event['link'] . '">' . $event['title'] . '</a></div>';
-              if (!empty($records[$sport])):
-                print '<div class="RightNavScoreboardHeaderRight">(' . $records[$sport] . ')</div>';
-              endif;
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function middlebury_block_view($delta = '') {
+  if ($delta == 'scoreboard') {
+    $GLOBALS['conf']['cache'] = FALSE;
+
+    $chrSymbols = explode(',', MIDDLEBURY_SCOREBOARD_SYMBOLS);
+
+    module_load_include('inc', 'rss_page', 'simplepie');
+    $date = getdate();
+    $season = '';
+    if ($date['mon'] > 5) {
+      $season = $date['year'] . '-' . ($date['year'] + 1);
+    }
+    else {
+      $season = ($date['year'] - 1) . '-' . $date['year'];
+    }
+
+    $feed_url = MIDDLEBURY_SCOREBOARD_FEEDURL . '?active=true&season=' . $season;
+    $feed = new SimplePie();
+    $feed->set_feed_url($feed_url);
+    $feed->enable_cache(false);
+    $feed->init();
+    $feed->handle_content_type();
+    $events = $feed->get_items();
+
+    $records = array();
+    $lines = array();
+    $footnotes = array();
+    foreach ($events as $ev) {
+      $event = _middlebury_compile_event(MIDDLEBURY_SCOREBOARD_NAMESPACE, $ev);
+      $sorttitle = $event['sorttitle'];
+      if (!empty($event['record']) && empty($records[$sorttitle]))
+        $records[$sorttitle] = $event['record'];
+      if ($event['score'] == $event['time']) {
+        if (!isset($lines[$sorttitle]['next']) || $lines[$sorttitle]['next']['timestamp'] > $event['timestamp']) {
+          $lines[$sorttitle]['next'] = $event;
+          $lines[$sorttitle]['link'] = $event['link'];
+        }
+      }
+      elseif (!isset($lines[$sorttitle]['last']) || $lines[$sorttitle]['last']['timestamp'] < $event['timestamp']) {
+        $lines[$sorttitle]['last'] = $event;
+        $lines[$sorttitle]['link'] = $event['link'];
+      }
+
+      if (!isset($lines[$sorttitle]['title'])) $lines[$sorttitle]['title'] = $event['title'];
+    }
+
+    $block['subject'] = t('Scoreboard');
+    ob_start();
+    print '<div class="box" id="scoreboard">';
+    print '<h2 id="header_scoreboard"><img src="' . base_path() . drupal_get_path('module', 'middlebury') . '/images/scoreboard.png" width="256" height="43" alt="Scoreboard"/></h2>';
+    print '<div class="RightNavScoreboard">';
+
+    ksort($lines);
+    foreach ($lines as $sport => $event) {
+      print '<div class="RightNavScoreboardSport">';
+        print '<div class="RightNavScoreboardSportHeader">';
+          print '<div class="RightNavScoreboardHeaderLeft">';
+          print '<a href="' . $event['link'] . '">' . $event['title'] . '</a></div>';
+          if (!empty($records[$sport])):
+            print '<div class="RightNavScoreboardHeaderRight">(' . $records[$sport] . ')</div>';
+          endif;
+        print '</div>';
+        if (isset($event['last'])):
+          print '<div class="RightNavScoreBoardAltItem">';
+            print '<div class="RightNavScoreboardItemDate">' . $event['last']['date'] . '</div>';
+            print '<div class="RightNavScoreboardItemScore">';
+            print $event['last']['score'];
             print '</div>';
-            if (isset($event['last'])):
-              print '<div class="RightNavScoreBoardAltItem">';
-                print '<div class="RightNavScoreboardItemDate">' . $event['last']['date'] . '</div>';
-                print '<div class="RightNavScoreboardItemScore">';
-                print $event['last']['score'];
-                print '</div>';
-                print '<div class="RightNavScoreboardItemOpp">' . $event['last']['opponent'];
-                if ($event['last']['footnote']) {
-                  if (!array_key_exists($event['last']['footnote'], $footnotes)) {
-                    $footnotes[$event['last']['footnote']] = array_shift($chrSymbols);
-                  }
-                  print $footnotes[$event['last']['footnote']];
-                }
-                print '</div>';
-              print '</div>';
-            endif;
-            print '<div class="RightNavScoreBoardItem">';
-              print '<div class="RightNavScoreboardItemDate">' . $event['next']['date'] . '</div>';
-              print '<div class="RightNavScoreboardItemScore">' . $event['next']['time'] . '</div>';
-              print '<div class="RightNavScoreboardItemOpp">' . $event['next']['opponent'];
-              if ($event['next']['footnote']) {
-                if (!array_key_exists($event['next']['footnote'], $footnotes)) {
-                  $footnotes[$event['next']['footnote']] = array_shift($chrSymbols);
-                }
-                print $footnotes[$event['next']['footnote']];
+            print '<div class="RightNavScoreboardItemOpp">' . $event['last']['opponent'];
+            if ($event['last']['footnote']) {
+              if (!array_key_exists($event['last']['footnote'], $footnotes)) {
+                $footnotes[$event['last']['footnote']] = array_shift($chrSymbols);
               }
-              print '</div>';
+              print $footnotes[$event['last']['footnote']];
+            }
             print '</div>';
           print '</div>';
-        }
-        
-        print '</div><p>';
-        
-        foreach($footnotes as $footnote => $symbol) {
-          print $symbol . ' ' . $footnote . '<br />'; 
-        }
-        
-        print '</p><div id="scoreboard_footer">';
-          print '<a href="http://go.middlebury.edu/athletics/live">Live Coverage</a>';
-          print '<a href="'. MIDDLEBURY_SCOREBOARD_FEEDURL .'?active=true&season=' . $season . '" class="rssfeed"><img src="' . base_path() . drupal_get_path('theme', 'midd') . '/images/social/feed.png" width="24" height="24" alt="RSS Feed" /></a>';
-        print '</div>';
-        
-        print '</div>';
-              
-        $block['content'] = ob_get_clean();
-        return $block;
-      } else if ($delta == 1) {
-        module_load_include('inc', 'rss_page', 'simplepie');
-        $date = getdate();
-        $season = '';
-        if ($date['mon'] > 5) {
-          $season = $date['year'] . '-' . ($date['year'] + 1);
-        }
-        else {
-          $season = ($date['year'] - 1) . '-' . $date['year'];
-        }
-        
-        $feed_url = MIDDLEBURY_SCOREBOARD_FEEDURL .'?season='. $season;
-        $feed = new SimplePie();
-        $feed->set_feed_url($feed_url);
-        $feed->enable_cache(false);
-        $feed->init();
-        $feed->handle_content_type();
-        $events = $feed->get_items();
-  
-        $lines = array();
-        $footnotes = array();
-        foreach($events as $ev) {      
-          $event = _middlebury_compile_event(MIDDLEBURY_SCOREBOARD_NAMESPACE, $ev);
-          if (!$event['urlvideo'] && !$event['urlaudio'] && !$event['urllives']) continue;
-          if ($event['timestamp'] < strtotime('today')) continue;
-          
-          $lines[$event['timestamp'] . $event['sorttitle']] = $event;
-        }
-        ksort($lines);
-        
-        ob_start();
-        print "<table>";
-          print "<tbody>";
-            print "<tr>";
-              print "<th>Date</th>";
-              print "<th>Sport</th>";
-              print "<th>Opponent</th>";
-              print "<th>Time</th>";
-              print "<th>Stats</th>";
-              print "<th>Video</th>";
-              print "<th>Audio</th>";
-            print "</tr>";
-          foreach($lines as $timestamp => $e) {
-            print "<tr>";
-              print "<td>" . $e['date'] . "</td>";
-              print "<td>" . $e['title'] . "</td>";
-              print "<td>" . $e['opponent'] . "</td>";
-              print "<td>" . $e['time'] . "</td>";
-              print '<td align="center">' . ($e['urllives'] ? '<a href="' . $e['urllives'] . '" target="_blank"><img src="' . base_path() . drupal_get_path('module', 'middlebury') . '/images/livestats.gif" width="24" height="18" alt="Live Stats"/></a>' : '') . "</td>";
-              print '<td align="center">' . ($e['urlvideo'] ? '<a href="' . $e['urlvideo'] . '" target="_blank"><img src="' . base_path() . drupal_get_path('module', 'middlebury') . '/images/video.gif" width="24" height="10" alt="Video"/></a>' : '') . "</td>";
-              print '<td align="center">' . ($e['urlaudio'] ? '<a href="' . $e['urlaudio'] . '" target="_blank"><img src="' . base_path() . drupal_get_path('module', 'middlebury') . '/images/audio.gif" width="12" height="20" alt="Audio"/></a>' : '') . "</td>";
-            print "</tr>";
+        endif;
+        print '<div class="RightNavScoreBoardItem">';
+          print '<div class="RightNavScoreboardItemDate">' . $event['next']['date'] . '</div>';
+          print '<div class="RightNavScoreboardItemScore">' . $event['next']['time'] . '</div>';
+          print '<div class="RightNavScoreboardItemOpp">' . $event['next']['opponent'];
+          if ($event['next']['footnote']) {
+            if (!array_key_exists($event['next']['footnote'], $footnotes)) {
+              $footnotes[$event['next']['footnote']] = array_shift($chrSymbols);
+            }
+            print $footnotes[$event['next']['footnote']];
           }
-          print "</tbody>";
-        print "</table>";
-        $block['content'] = ob_get_clean();
-        return $block;
+          print '</div>';
+        print '</div>';
+      print '</div>';
+    }
+
+    print '</div><p>';
+
+    foreach ($footnotes as $footnote => $symbol) {
+      print $symbol . ' ' . $footnote . '<br />';
+    }
+
+    print '</p><div id="scoreboard_footer">';
+      print '<a href="http://go.middlebury.edu/athletics/live">Live Coverage</a>';
+      print '<a href="' . MIDDLEBURY_SCOREBOARD_FEEDURL . '?active=true&season=' . $season . '" class="rssfeed"><img src="' . base_path() . drupal_get_path('theme', 'midd') . '/images/social/feed.png" width="24" height="24" alt="RSS Feed" /></a>';
+    print '</div>';
+
+    print '</div>';
+
+    $block['content'] = ob_get_clean();
+    return $block;
+  }
+  elseif ($delta == 'webcasts') {
+    module_load_include('inc', 'rss_page', 'simplepie');
+    $date = getdate();
+    $season = '';
+    if ($date['mon'] > 5) {
+      $season = $date['year'] . '-' . ($date['year'] + 1);
+    }
+    else {
+      $season = ($date['year'] - 1) . '-' . $date['year'];
+    }
+
+    $feed_url = MIDDLEBURY_SCOREBOARD_FEEDURL . '?season=' . $season;
+    $feed = new SimplePie();
+    $feed->set_feed_url($feed_url);
+    $feed->enable_cache(false);
+    $feed->init();
+    $feed->handle_content_type();
+    $events = $feed->get_items();
+
+    $lines = array();
+    $footnotes = array();
+    foreach ($events as $ev) {
+      $event = _middlebury_compile_event(MIDDLEBURY_SCOREBOARD_NAMESPACE, $ev);
+      if (!$event['urlvideo'] && !$event['urlaudio'] && !$event['urllives']) continue;
+      if ($event['timestamp'] < strtotime('today')) continue;
+
+      $lines[$event['timestamp'] . $event['sorttitle']] = $event;
+    }
+    ksort($lines);
+
+    ob_start();
+    print "<table>";
+      print "<tbody>";
+        print "<tr>";
+          print "<th>Date</th>";
+          print "<th>Sport</th>";
+          print "<th>Opponent</th>";
+          print "<th>Time</th>";
+          print "<th>Stats</th>";
+          print "<th>Video</th>";
+          print "<th>Audio</th>";
+        print "</tr>";
+      foreach ($lines as $timestamp => $e) {
+        print "<tr>";
+          print "<td>" . $e['date'] . "</td>";
+          print "<td>" . $e['title'] . "</td>";
+          print "<td>" . $e['opponent'] . "</td>";
+          print "<td>" . $e['time'] . "</td>";
+          print '<td align="center">' . ($e['urllives'] ? '<a href="' . $e['urllives'] . '" target="_blank"><img src="' . base_path() . drupal_get_path('module', 'middlebury') . '/images/livestats.gif" width="24" height="18" alt="Live Stats"/></a>' : '') . "</td>";
+          print '<td align="center">' . ($e['urlvideo'] ? '<a href="' . $e['urlvideo'] . '" target="_blank"><img src="' . base_path() . drupal_get_path('module', 'middlebury') . '/images/video.gif" width="24" height="10" alt="Video"/></a>' : '') . "</td>";
+          print '<td align="center">' . ($e['urlaudio'] ? '<a href="' . $e['urlaudio'] . '" target="_blank"><img src="' . base_path() . drupal_get_path('module', 'middlebury') . '/images/audio.gif" width="12" height="20" alt="Audio"/></a>' : '') . "</td>";
+        print "</tr>";
       }
+      print "</tbody>";
+    print "</table>";
+    $block['content'] = ob_get_clean();
+    return $block;
   }
 }
 
@@ -198,8 +207,8 @@ function middlebury_form_alter(&$form, &$form_state) {
     global $user;
     profile_load_profile($user);
     if (!empty($user->profile_image_form_element)) {
-      foreach(array_keys($form['field_news_image']) as $key) {
-        if (substr($key, 0, 4) == '#mm_') {
+      foreach (array_keys($form['field_news_image']) as $key) {
+        if (drupal_substr($key, 0, 4) == '#mm_') {
           unset($form['field_news_image'][$key]);
         }
       }
@@ -210,14 +219,14 @@ function middlebury_form_alter(&$form, &$form_state) {
       $form['field_news_image']['#default_value'] = array(
         'nid' => !empty($form['#node']->field_news_image[0]['nid']) ? $form['#node']->field_news_image[0]['nid'] : NULL,
       );
-  
+
       $form['#submit'][] = 'middlebury_news_image_submit';
     }
   }
 
   // Profile content type edit form.
   if (!empty($form['form_id']) && $form['form_id']['#value'] == 'profile_node_form') {
-    if(!empty($form['#node']->field_user[0]['uid'])) {
+    if (!empty($form['#node']->field_user[0]['uid'])) {
       $user = user_load($form['#node']->field_user[0]['uid']);
       module_load_include('inc', 'biblio', 'includes/biblio.admin');
       _biblio_get_user_profile_form($form, $user);
@@ -270,7 +279,7 @@ function middlebury_form_mm_ui_content_edit_alter(&$form, &$form_state) {
     'maple' => 'Maple',
     'sun' => 'Sun',
   );
-   
+
   $form['settings_appearance']['color_scheme'] = array(
     '#type' => 'select',
     '#title' => t('Page Color Scheme'),
@@ -282,18 +291,18 @@ function middlebury_form_mm_ui_content_edit_alter(&$form, &$form_state) {
 }
 
 function middlebury_form_webform_components_form_alter(&$form, &$form_state) {
-  drupal_add_css(drupal_get_path('module', 'middlebury') .'/middlebury.css');
+  drupal_add_css(drupal_get_path('module', 'middlebury') . '/middlebury.css');
 }
 
 function middlebury_form_webform_emails_form_alter(&$form, &$form_state) {
-  drupal_add_css(drupal_get_path('module', 'middlebury') .'/middlebury.css');
+  drupal_add_css(drupal_get_path('module', 'middlebury') . '/middlebury.css');
 }
 
 function middlebury_form_views_exposed_form_alter(&$form, &$form_state) {
   if ($form['submit']['#id'] == 'edit-submit-cid-records' ||
       $form['submit']['#id'] == 'edit-submit-uro-records' ||
       $form['submit']['#id'] == 'edit-submit-bsnsvcs-housing') {
-    foreach($form['#info'] as $filter => $info) {
+    foreach ($form['#info'] as $filter => $info) {
       $form[$info['value']]['#options'] = array_merge(array('%' => ''), $form[$info['value']]['#options']);
     }
     $form['reset'] = array(
@@ -305,70 +314,70 @@ function middlebury_form_views_exposed_form_alter(&$form, &$form_state) {
   }
 
   if ($form['#id'] == 'views-exposed-form-millennium-new-default') {
-    foreach($form['term_node_tid_depth']['#options'] as $tid => &$options) {
+    foreach ($form['term_node_tid_depth']['#options'] as $tid => &$options) {
       if (is_object($options)) {
-        foreach($options->option as $ttid => &$title) {
+        foreach ($options->option as $ttid => &$title) {
           if ($title == 'History & Archaeology')
             $title = 'History';
         }
       }
     }
 
-    foreach($form['term_node_tid_depth_1']['#options'] as $tid => &$title) {
+    foreach ($form['term_node_tid_depth_1']['#options'] as $tid => &$title) {
       if ($title == 'Projected medium')
         $title = 'Videos';
     }
     asort($form['term_node_tid_depth_1']['#options']);
 
-    jquery_ui_add(array('ui.widget','ui.selectmenu','ui.position'));
-    drupal_add_css(drupal_get_path('module', 'jquery_ui').'/jquery.ui/themes/base/jquery.ui.selectmenu.css');
-    drupal_add_css(drupal_get_path('module', 'jquery_ui').'/jquery.ui/themes/base/jquery.ui.theme.css');
-    drupal_add_js(drupal_get_path('module', 'middlebury') .'/middlebury_library_items.js', 'module', 'footer');
-    drupal_add_css(drupal_get_path('module', 'middlebury') .'/middlebury_library_items.css');
+    jquery_ui_add(array('ui.widget', 'ui.selectmenu', 'ui.position'));
+    drupal_add_css(drupal_get_path('module', 'jquery_ui') . '/jquery.ui/themes/base/jquery.ui.selectmenu.css');
+    drupal_add_css(drupal_get_path('module', 'jquery_ui') . '/jquery.ui/themes/base/jquery.ui.theme.css');
+    drupal_add_js(drupal_get_path('module', 'middlebury') . '/middlebury_library_items.js', 'module', 'footer');
+    drupal_add_css(drupal_get_path('module', 'middlebury') . '/middlebury_library_items.css');
   }
 }
 
 function middlebury_get_color_scheme($mmtid) {
-  $result = null;
-  
-  while(is_numeric($mmtid) && $result == null && $mmtid != "1") {
+  $result = NULL;
+
+  while (is_numeric($mmtid) && $result == NULL && $mmtid != "1") {
     $data = db_fetch_object(db_query("SELECT color_scheme, parent FROM {mm_tree} WHERE mmtid = %d", $mmtid));
-    
+
     if ($data->color_scheme != '0') {
       $result = $data->color_scheme;
     }
-    
+
     $mmtid = $data->parent;
   }
-  
-  if ($result == null) $result = 'basic';
-  
+
+  if ($result == NULL) $result = 'basic';
+
   return $result;
 }
 
 /**
  * Retrieve a user's directory record.
  */
-function middlebury_get_directory ($uid) {
-  $user = user_load(array('uid' => $uid));
+function middlebury_get_directory($uid) {
+  $user = user_load($uid);
   $record = array();
 
   try {
     $company = "Middlebury";
-    $tmp = new SoapClient("http://web.middlebury.edu/database/directory/WebDirectory.asmx?WSDL", array("trace" => true));
+    $tmp = new SoapClient("http://web.middlebury.edu/database/directory/WebDirectory.asmx?WSDL", array("trace" => TRUE));
     $results = $tmp->uidSearch(array('uid' => $user->init));
 
     $xml = new SimpleXMLElement($results->uidSearchResult->any);
-  
+
     if (isset($xml->record->property)) {
-      foreach($xml->record->property as $property) {
+      foreach ($xml->record->property as $property) {
         $record[(string)$property['name']] = (string)$property['value'];
       }
     }
-  } catch(Exception $e) {
+  } catch (Exception $e) {
     // return an empty record if the lookup fails
   }
-  
+
   return $record;
 }
 
@@ -377,11 +386,11 @@ function middlebury_get_toplevel($mmtid) {
     return '';
 
   $aliases = explode('/', $_REQUEST['q']);
-  
+
   if (count($aliases) > 0) {
     return $aliases[0];
   }
-  
+
   return '';
 }
 
@@ -393,7 +402,7 @@ function middlebury_hide_sidebar() {
 }
 
 /**
- * Implementation of hook_menu().
+ * Implements hook_menu().
  */
 function middlebury_menu() {
   $items = array();
@@ -405,7 +414,7 @@ function middlebury_menu() {
     'page arguments' => array(1),
     'access callback' => 'vcard_perm_check',
   );
-  
+
   $items['middlebury_repec'] = array(
     'title' => 'middlebury_repec',
     'type' => MENU_CALLBACK,
@@ -439,14 +448,14 @@ function middlebury_news_image_submit($form_id, &$form_values) {
       'mmtid' => $mmtids[0],
       'nid' => $node->nid,
     );
-    $form_values['clicked_button']['#post']['field_news_image'] = $mmtids[0] .'/'. $node->nid .'{'. $node->title .'}';
+    $form_values['clicked_button']['#post']['field_news_image'] = $mmtids[0] . '/' . $node->nid . '{' . $node->title . '}';
   }
 }
 
 function middlebury_preprocess_node(&$vars) {
 
   // Run content-type-specific preprocess functions
-  $function = __FUNCTION__ .'_'. $vars['node']->type;
+  $function = __FUNCTION__ . '_' . $vars['node']->type;
   if (function_exists($function)) {
     $function($vars);
   }
@@ -455,13 +464,13 @@ function middlebury_preprocess_node(&$vars) {
 
 function middlebury_preprocess_node_news(&$vars) {
   $max_width = 120;
-  
+
   if (empty($vars['nid']) || arg(3) == $vars['nid']) {
     $max_width = 200;
 
-    $arg2 = arg(2); 
+    $arg2 = arg(2);
     if (arg(0) != 'newsletter' && (empty($arg2) || $arg2 != 'feed') && $vars['node']->field_url[0]['value'] && !$vars['links']) {
-      header('Location:'. $vars['node']->field_url[0]['value'], TRUE, 302);
+      header('Location:' . $vars['node']->field_url[0]['value'], TRUE, 302);
       exit();
     }
 
@@ -471,17 +480,18 @@ function middlebury_preprocess_node_news(&$vars) {
       $vars['email'] = isset($record['mail']) ? $record['mail'] : '';
       $vars['phone'] = isset($record['telephonenumber']) ? $record['telephonenumber'] : '';
     }
-    
+
     if ($vars['node']->field_altcaption[0]['value']) {
       $vars['caption'] = $vars['node']->field_altcaption[0]['value'];
     }
-    
+
     middlebury_hide_sidebar();
-  } else {
+  }
+  else {
     $vars['teaser'] = $vars['node']->field_teaser[0]['safe'];
     $vars['template_files'][] = 'node-newslist';
   }
-  
+
   if ($vars['node']->field_imageurl[0]['value']) {
     $width = $vars['node']->field_imgwidth[0]['value'];
     $height = $vars['node']->field_imgheight[0]['value'];
@@ -490,17 +500,18 @@ function middlebury_preprocess_node_news(&$vars) {
       $height = $max_width * $height / $width;
       $width = $max_width;
     }
-    
-    $vars['image'] = '<img src="'. $vars['node']->field_imageurl[0]['value'] .'" width="'. $width .'" height="'. $height .'" />';
+
+    $vars['image'] = '<img src="' . $vars['node']->field_imageurl[0]['value'] . '" width="' . $width . '" height="' . $height . '" />';
     $vars['height'] = $height + 10;
-  } else if (isset($vars['node']->field_news_image[0]['nid'])) {
-    $vars['image'] = middlebury_monster_menus_get_image($vars['node']->field_news_image[0]['nid'], $max_width, null, 'small', '', $vars);
+  }
+  elseif (isset($vars['node']->field_news_image[0]['nid'])) {
+    $vars['image'] = middlebury_monster_menus_get_image($vars['node']->field_news_image[0]['nid'], $max_width, NULL, 'small', '', $vars);
     preg_match('/height=\"([0-9\.]+)\"/', $vars['image'], $matches);
     if (isset($matches[1])) {
       $vars['height'] = $matches[1] + 10;
     }
   }
-  
+
   $vars['date'] = date('F j, Y', $vars['node']->field_altdate[0]['value'] ? strtotime($vars['node']->field_altdate[0]['value']) : (isset($vars['node']->publish_on) ? $vars['node']->publish_on : $vars['node']->revision_timestamp));
 }
 
@@ -514,35 +525,35 @@ function middlebury_preprocess_node_profile(&$vars) {
   $showDownload = TRUE;
   if (empty($record)) $showDownload = FALSE;
 
-  foreach($vars['node']->field_hidden as $hidden) {
+  foreach ($vars['node']->field_hidden as $hidden) {
     if (!is_null($hidden['value']) && isset($record[$hidden['value']])) {
       unset($record[$hidden['value']]);
     }
   }
-  
+
   if ($vars['node']->field_alttitle[0]['value']) {
     $record['title'] = $vars['node']->field_alttitle[0]['value'];
   }
-  
+
   if ($vars['node']->field_altemail[0]['value']) {
     $record['mail'] = $vars['node']->field_altemail[0]['value'];
   }
-  
+
   if ($vars['node']->field_altphone[0]['value']) {
     $record['telephonenumber'] = $vars['node']->field_altphone[0]['value'];
   }
-  
+
   if (isset($record['extensionattribute3'])) {
     preg_match('/([A-Za-z\s]+), ([A-Z]{2}) ([0-9]{5})/', $record['extensionattribute3'], $csz);
     $record['city'] = $csz[1];
     $record['state'] = $csz[2];
     $record['zip'] = $csz[3];
   }
-  
+
   $record['department'] = isset($record['department']) ? htmlentities($record['department']) : '';
-  
+
   $vars['record'] = $record;
-  
+
   $image_width = 200;
 
   if (preg_match('/athletics\/sports\/.*\/node\//', $vars['node_url']) ||
@@ -558,7 +569,8 @@ function middlebury_preprocess_node_profile(&$vars) {
         $vars['publications'] = biblio_db_search('inline', 'author', $user->biblio_contributor_id);
       }
     }
-  } else {
+  }
+  else {
     // Has video
     if (strpos($vars['content'], '<embed') !== FALSE ||
         strpos($vars['content'], '<object') !== FALSE ||
@@ -574,13 +586,15 @@ function middlebury_preprocess_node_profile(&$vars) {
     $mmtid = arg(1);
     $vars['node_url'] = url('mm/' . $mmtid . '/node/' . $vars['nid']);
   }
- 
+
   // Image
   if ($vars['node']->field_profile_photo[0]['nid']) {
-    $vars['image'] = middlebury_monster_menus_get_image($vars['node']->field_profile_photo[0]['nid'], $image_width, null, 'standard');
-  } else if (!in_array('Profile Photo', $vars['node']->field_hidden[0]) && isset($record['samaccountname'])) {
-    $vars['image'] = '<img src="http://web.middlebury.edu/database/directory/DirectoryImage.aspx?username='. $record['samaccountname'] .'" width="' . $image_width . '" height="' . $image_width . '" />';
-  } else {
+    $vars['image'] = middlebury_monster_menus_get_image($vars['node']->field_profile_photo[0]['nid'], $image_width, NULL, 'standard');
+  }
+  elseif (!in_array('Profile Photo', $vars['node']->field_hidden[0]) && isset($record['samaccountname'])) {
+    $vars['image'] = '<img src="http://web.middlebury.edu/database/directory/DirectoryImage.aspx?username=' . $record['samaccountname'] . '" width="' . $image_width . '" height="' . $image_width . '" />';
+  }
+  else {
     $vars['image'] = '<img src="http://web.middlebury.edu/database/directory/Images/directory_default.jpg" width="' . $image_width . '" height="' . $image_width . '" />';
   }
 
@@ -607,7 +621,7 @@ function middlebury_preprocess_node_profile(&$vars) {
       $vcard->organization = array('Middlebury College', $record['department']);
     if (!empty($record['telephonenumber']))
       $vcard->telephone_work = $record['telephonenumber'];
-    $vcard->URL = $base_url . base_path() . middlebury_monster_menus_get_nid_url($vars['node']->nid) .'/node/'. $vars['node']->nid;
+    $vcard->URL = $base_url . base_path() . middlebury_monster_menus_get_nid_url($vars['node']->nid) . '/node/' . $vars['node']->nid;
     if (!empty($record['extensionattribute4']))
       $vcard->adr_street = $record['extensionattribute4'];
     if (!empty($record['city']))
@@ -631,8 +645,8 @@ function middlebury_preprocess_page(&$vars) {
 function middlebury_profile_biblio_submit($form_id, &$form_values) {
   if (!empty($form_values['values']['field_user'][0]['uid'])) {
     $biblios = array();
-    foreach($form_values['values'] as $key => $value) {
-      if (substr($key, 0, 7) == 'biblio_') {
+    foreach ($form_values['values'] as $key => $value) {
+      if (drupal_substr($key, 0, 7) == 'biblio_') {
         $biblios[$key] = $value;
       }
     }
@@ -644,34 +658,35 @@ function middlebury_profile_biblio_submit($form_id, &$form_values) {
 
 /**
  * purge URLs from varnish.
- * 
+ *
  * @param string $regex.
  * @return boolean
  */
-function middlebury_purge_varnish_url ($regex) {
+function middlebury_purge_varnish_url($regex) {
   if (defined('MIDD_PURGE_VARNISH_URL') && defined('MIDD_PURGE_VARNISH_ACCESS_KEY')) {
     $data = http_build_query(array(
         'ACCESS_KEY' => MIDD_PURGE_VARNISH_ACCESS_KEY,
         'PATH_REGEX' => $regex
       ), '', '&');
     $result = drupal_http_request(
-      MIDD_PURGE_VARNISH_URL, 
+      MIDD_PURGE_VARNISH_URL,
       array('Content-Type' => 'application/x-www-form-urlencoded'),
       'POST',
       $data
     );
     if ($result->code == 200) {
       watchdog('middlebury', 'Purged varnish cache.<br/>DATA: @data<br/>Result: @output', array('@data' => $data, '@output' => $result->data));
-      return true;
-    } else {
+      return TRUE;
+    }
+    else {
       watchdog('middlebury', 'Could not purge varnish cache.', array(), WATCHDOG_WARNING);
-      return false;
+      return FALSE;
     }
   }
   // Not properly configured.
   else {
     watchdog('middlebury', 'MIDD_PURGE_VARNISH_URL and MIDD_PURGE_VARNISH_ACCESS_KEY must be set. Could not purge varnish cache.', array(), WATCHDOG_WARNING);
-    return false;
+    return FALSE;
   }
 }
 
@@ -679,7 +694,7 @@ function middlebury_purge_varnish_url ($regex) {
  * Menu callback to redirect you to a personal home page.
  */
 function middlebury_site_goto($username) {
-  $user = user_load(array('mail' => $username . '@middlebury.edu'));
+  $user = user_load_by_mail($username . '@middlebury.edu');
   if (!empty($user->user_mmtid)) {
     drupal_goto('mm/' . $user->user_mmtid);
   }
@@ -693,7 +708,7 @@ function middlebury_vcard_fetch($node) {
 
   middlebury_preprocess_node_profile($vars);
 
-  vcard_fetch($vars['vcard']);  
+  vcard_fetch($vars['vcard']);
 }
 
 /**
@@ -704,19 +719,20 @@ function middlebury_repec_rss() {
   $cache = cache_get('economics_repec');
   if (!empty($cache->data)) {
     $rss = $cache->data;
-  } else {
+  }
+  else {
     $items = array();
     $base_url = 'http://sandcat.middlebury.edu/econ/repec/mdl/mdlpap/';
     $rdfs = file_get_contents($base_url);
     $matches = array();
     preg_match_all('/<a href=\"(.*\.rdf)\">/', $rdfs, $matches);
-    
+
     if (!empty($matches[1])) {
-      foreach($matches[1] as $file) {
+      foreach ($matches[1] as $file) {
         $rdf = file_get_contents($base_url . $file);
         $time = strtotime('now');
         $args = array('category' => 'Economics');
-        
+
         // Get the title
         $title = '';
         $matches = array();
@@ -724,7 +740,7 @@ function middlebury_repec_rss() {
         if (!empty($matches[1])) {
           $title = mb_convert_encoding(trim($matches[1]), 'UTF-8');
         }
-        
+
         // Get the link
         $link = '';
         $matches = array();
@@ -733,7 +749,7 @@ function middlebury_repec_rss() {
           $link = trim($matches[1]);
           $args['guid'] = $link;
         }
-        
+
         // Get the abstract
         $description = '';
         $matches = array();
@@ -742,7 +758,7 @@ function middlebury_repec_rss() {
           $description = mb_convert_encoding(trim($matches[1]), 'UTF-8');
           $args['content:encoded'] = $description;
         }
-        
+
         // Get the publication date
         $pubdate = '';
         $matches = array();
@@ -751,20 +767,20 @@ function middlebury_repec_rss() {
           $time = strtotime(trim($matches[1]));
           $args['pubDate'] = date('r', $time);
         }
-      
+
         $item = format_rss_item($title, $link, $description, $args);
 
         // Build the author elements
         $matches = array();
         preg_match_all('/Author-Name:([^\\n]*)\\n(Author-Email:([^\\n]*)\n)?/', $rdf, $matches);
         if (!empty($matches[1])) {
-          for($i = 0; $i < count($matches[1]); $i++) {
+          for ($i = 0; $i < count($matches[1]); $i++) {
             $a = trim($matches[1][$i]);
             if (!empty($matches[3][$i])) {
-              $a = trim($matches[3][$i]) .' ('. $a .')';
+              $a = trim($matches[3][$i]) . ' (' . $a . ')';
             }
 
-            $item = str_replace('</item>', "\t<dc:creator>". mb_convert_encoding($a, 'UTF-8') ."</dc:creator>\n</item>", $item);
+            $item = str_replace('</item>', "\t<dc:creator>" . mb_convert_encoding($a, 'UTF-8') . "</dc:creator>\n</item>", $item);
           }
         }
 
@@ -781,12 +797,12 @@ function middlebury_repec_rss() {
     cache_set('economics_repec', $rss, 'cache', CACHE_PERMANENT);
   }
 
-  drupal_set_header('Content-Type: application/rss+xml; charset=utf-8');
+  drupal_add_http_header('Content-Type', 'application/rss+xml; charset=utf-8');
   print $rss;
 }
 
 /**
- * Implementation of hook_views_api().
+ * Implements hook_views_api().
  */
 function middlebury_views_api() {
   return array(
@@ -803,7 +819,7 @@ function middlebury_views_data_alter(&$data) {
 function middlebury_views_handlers() {
   return array(
     'info' => array(
-      'path' => drupal_get_path('module','middlebury'),
+      'path' => drupal_get_path('module', 'middlebury'),
     ),
     'handlers' => array(
       'middlebury_handler_field_news_image' => array(
@@ -820,31 +836,33 @@ function middlebury_views_handlers() {
 }
 
 function middlebury_views_exposed_form_submit($form_id, &$form_values) {
-  foreach($form_values['values'] as $id => $field) {
+  foreach ($form_values['values'] as $id => $field) {
     if (!is_array($field) || empty($field)) continue;
-    foreach($field as $k => $v) {
-      if($v == '%') unset($form_values['values'][$id][$k]);
+    foreach ($field as $k => $v) {
+      if ($v == '%') unset($form_values['values'][$id][$k]);
     }
   }
 }
 
-function middlebury_views_pre_execute(&$view){
+function middlebury_views_pre_execute(&$view) {
   if ($view->name == 'Health_Handbook_Tags') {
     $search = array('GROUP BY nid');
     $replace = array('');
     $view->build_info['query'] = str_replace($search,
-                                             $replace,
-                                             $view->build_info['query']);
-  } else if ($view->name == 'stories_feed') {
+                                              $replace,
+                                              $view->build_info['query']);
+  }
+  elseif ($view->name == 'stories_feed') {
     $search = array('ORDER BY');
-    $replace = array('ORDER BY CASE WHEN node.nid IN ('. variable_get('submit_story_open_story', 0) .') THEN 1 ELSE 2 END,');
+    $replace = array('ORDER BY CASE WHEN node.nid IN (' . variable_get('submit_story_open_story', 0) . ') THEN 1 ELSE 2 END,');
     $view->build_info['query'] = str_replace($search,
-                                             $replace,
-                                             $view->build_info['query']);
-  } else if ($view->name == 'CONTENTdm_Theses') {
+                                              $replace,
+                                              $view->build_info['query']);
+  }
+  elseif ($view->name == 'CONTENTdm_Theses') {
     $search = "node_data_field_dc_publisher.field_dc_publisher_value = '%s'";
     $replace = '';
-    for($i = 0; $i < count($view->args); $i++) {
+    for ($i = 0; $i < count($view->args); $i++) {
       if ($i > 0) {
         $view->build_info['query_args'][] = $view->args[$i];
         $replace .= " OR ";
@@ -853,8 +871,8 @@ function middlebury_views_pre_execute(&$view){
       $replace .= $search;
     }
     $view->build_info['query'] = str_replace($search,
-                                             $replace,
-                                             $view->build_info['query']);
+                                              $replace,
+                                              $view->build_info['query']);
   }
 }
 
@@ -866,11 +884,11 @@ function _middlebury_compile_event($namespace, $event) {
   $title = (in_array($sportName[0]['data'], $genderless) ? '' : ($gender[0]['data'] == 'M' ? 'Men\'s ' : ($gender[0]['data'] == 'W' ? 'Women\'s ' : ''))) . $sportName[0]['data'];
   $sorttitle = $sportName[0]['data'] . ' ' . $gender[0]['data'];
   $guid = $event->get_id();
-   
+
   $eventdate = $event->get_item_tags($namespace, "eventDate");
   $record = $event->get_item_tags($namespace, "record");
   $link = $event->get_item_tags($namespace, "urlsport");
-  
+
   $exhibition = $event->get_item_tags($namespace, "exhibition");
   $tournament = $event->get_item_tags($namespace, "tournament");
 
@@ -889,60 +907,65 @@ function _middlebury_compile_event($namespace, $event) {
   $urlvideo = $event->get_item_tags($namespace, "urlvideo");
   $urlaudio = $event->get_item_tags($namespace, "urlaudio");
   $urllives = $event->get_item_tags($namespace, "urllivestats");
-  
+
   $timestamp = strtotime($eventdate[0]['data']);
   $date = date('m/d', $timestamp);
   $time = date('g:i A', $timestamp) != '1:00 AM' ? date('g:i A', $timestamp) : 'TBA';
-  
+
   $footnote = '';
   if ($venueType[0]['data'] == 'Neutral' && ($location[0]['data'] != 'Neutral' || $tournament[0]['data'] == 'False')) {
     if ($tournament[0]['data'] == 'True') {
       if ($location[0]['data'] != '-') {
         $footnote = 'at ' . $location[0]['data'];
       }
-    } else if ($location[0]['data'] == 'Neutral' || $location[0]['data'] == '-') {
+    }
+    elseif ($location[0]['data'] == 'Neutral' || $location[0]['data'] == '-') {
       $footnote = $venueName[0]['data'];
-    } else if (!$venueName[0]['data']) {
+    }
+    elseif (!$venueName[0]['data']) {
       $footnote = $location[0]['data'];
-    } else {
+    }
+    else {
       $footnote = $venueName[0]['data'] . ' at ' . $location[0]['data'];
     }
   }
-  
+
   $score = '';
   if ($scoremidd[0]['data'] || $scoremidd[0]['data'] === "0") {
     $intmidd = (int)$scoremidd[0]['data'];
     $intopp = (int)$scoreopp[0]['data'];
-    
+
     if ($intmidd > $intopp) {
       $score = $intmidd . '-' . $intopp . ' W';
     }
-    else if($intmidd < $intopp) {
+    elseif ($intmidd < $intopp) {
       $score = $intopp . '-' . $intmidd . ' L';
     }
     else {
       $score = $intmidd . '-' . $intopp . ' T';
     }
   }
-  else if ($scoretext[0]['data']) {
+  elseif ($scoretext[0]['data']) {
     $score = $scoretext[0]['data'];
   }
   if ($score == '') {
     if ($urlstats[0]['data']) {
       $score = 'results';
-    } else {
+    }
+    else {
       $score = $time;
     }
   }
   if ($urlstats[0]['data']) {
     $score = '<a href="' . $urlstats[0]['data'] . '" target="_blank">' . $score . '</a>';
   }
-  
+
   $opponent = $opponent[0]['data'];
   if ($venueType[0]['data'] == 'Away') {
     $opponent = 'at ' . $opponent;
-  } else if ((isset($venueType['data']) && $venueType['data'] == 'Neutral') ||
-             (isset($tournament[0]['data']) && $tournament[0]['data'] == 'True')) {
+  }
+  elseif ((isset($venueType['data']) && $venueType['data'] == 'Neutral') ||
+          (isset($tournament[0]['data']) && $tournament[0]['data'] == 'True')) {
     $opponent = $venueName[0]['data'];
   }
   if ($urlstory[0]['data']) {
@@ -951,7 +974,7 @@ function _middlebury_compile_event($namespace, $event) {
   if ($notation[0]['data']) {
     $opponent .= ' ' . $notation[0]['data'];
   }
-  
+
   $new_event = array(
     'guid' => $guid,
     'timestamp' => $timestamp,
@@ -970,8 +993,6 @@ function _middlebury_compile_event($namespace, $event) {
     'title' => $title,
     'sorttitle' => $sorttitle,
   );
-  
+
   return $new_event;
 }
-
-?>
