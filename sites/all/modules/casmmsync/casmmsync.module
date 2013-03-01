@@ -688,7 +688,7 @@ function casmmsync_get_or_create_group_by_dn($group_id) {
   }
 
   $query = db_select('casmmsync_group_map', 'm');
-  $query->addJoin('INNER', 'mm_tree', 't', 'm.mmtid = t.mmtid');
+  $query->innerJoin('mm_tree', 't', 'm.mmtid = t.mmtid');
   $query->addField('t', 'mmtid');
   $query->condition('m.group_id', $group_id);
   $query->distinct();
@@ -1140,9 +1140,13 @@ function _casmmsync_get_profile_field_fid($name) {
  */
 function _casmmsync_get_profile_field_values($uid) {
   $values = array();
-  $result = db_query("SELECT fid, value FROM {profile_values} WHERE uid=%d", $uid);
-  while ($r = db_fetch_object($result))
+  $result = db_select('profile_value', 'v')
+    ->fields('v', array('fid', 'value'))
+    ->condition('uid', $uid)
+    ->execute();
+  foreach ($result as $r) {
     $values[$r->fid] = $r->value;
+  }
   return $values;
 }
 
