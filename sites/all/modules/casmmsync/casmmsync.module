@@ -395,10 +395,11 @@ function _casmmsync_sync_users() {
       // Do a quick check of the user data via custom queries and only
       // go through the whole user_load() process if it looks like things
       // might have changed.
-      $uid = _casmmsync_get_uid_if_unchanged($webId, $attributes);
+      $uid = _casmmsync_get_uid_if_unchanged($web_id, $attributes);
       if ($uid === FALSE || is_null($uid)) {
-        $with_changes++;
-        $uid = _casmmsync_sync_user($webId, $attributes);
+        $uid = _casmmsync_sync_user($web_id, $attributes);
+        if ($uid)
+          $with_changes++;
       }
 
       if ($uid !== FALSE && !is_null($uid)) {
@@ -579,7 +580,7 @@ function _casmmsync_sync_user($web_id, $attributes) {
 
     // if there was a problem saving the user
     if (!is_object($account)) {
-      watchdog("casmmsync", 'Error saving user: %n (CAS id=@webid)', array('%n' => $attributes['DisplayName'], '@webid' => $webId), WATCHDOG_WARNING, l(t("edit user"), "admin/user/edit/$uid"));
+      watchdog("casmmsync", 'Error saving user: %n (CAS id=@webid)', array('%n' => $attributes['DisplayName'], '@webid' => $web_id), WATCHDOG_WARNING, l(t("edit user"), "admin/user/edit/$uid"));
       return FALSE;
     }
   }
@@ -597,7 +598,7 @@ function _casmmsync_sync_user($web_id, $attributes) {
  * @return
  *    The uid or FALSE if changed
  */
-function _casmmsync_get_uid_if_unchanged($webId, $attributes = array(), $clear_data = FALSE) {
+function _casmmsync_get_uid_if_unchanged($web_id, $attributes = array(), $clear_data = FALSE) {
   static $all_users;
   if ($clear_data) {
     $all_users = null;
@@ -620,9 +621,9 @@ function _casmmsync_get_uid_if_unchanged($webId, $attributes = array(), $clear_d
       $all_users[$r->init] = $user;
     }
   }
-  if (!isset($all_users[$webId]))
+  if (!isset($all_users[$web_id]))
     return FALSE;
-  $user = $all_users[$webId];
+  $user = $all_users[$web_id];
   if (!is_array($user->data['casmmsync_attributes']))
     return FALSE;
 
