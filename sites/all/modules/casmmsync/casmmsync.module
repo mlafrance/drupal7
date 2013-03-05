@@ -543,8 +543,8 @@ function _casmmsync_sync_user($web_id, $attributes) {
   // final check to make sure we have a good user
   if ($account && $account->uid > 0) {
     // CAS-MM-Sync additions
-    $edit['casmmsync_webid'] = $web_id;
-    $edit['casmmsync_attributes'] = $attributes;
+    $edit['data']['casmmsync_webid'] = $web_id;
+    $edit['data']['casmmsync_attributes'] = $attributes;
 
     // Populate $edit with some basic properties.
     $edit['cas_user'] = $cas_user;
