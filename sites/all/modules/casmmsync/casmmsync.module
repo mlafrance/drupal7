@@ -787,10 +787,13 @@ function _casmmsync_sync_groups($groups) {
 
   $synced = 0;
   $sync_marker = ceil(count($groups) / 100);
+  $have_changes = 0;
   $member_inserts = 0;
   $member_deletes = 0;
 
   foreach ($groups as $group_id => $members) {
+    $has_changes = false;
+    
     // Optimization:
     // Check the group_map in memory rather than issuing a SELECT for every group.
     if (isset($group_map[$group_id])) {
@@ -800,6 +803,7 @@ function _casmmsync_sync_groups($groups) {
       unset($group_map[$group_id]);
     } else {
       $group_mmtid = casmmsync_get_or_create_group_by_dn($group_id);
+      $has_changes = true;
     }
 
     // Add new members
@@ -814,6 +818,7 @@ function _casmmsync_sync_groups($groups) {
               'uid' => $member_id,
             ))
             ->execute();
+          $has_changes = true;
         } catch (PDOException $e) {
           // Ignore duplicate-key exceptions if users are already members in the group.
           if ($e->getCode() != 23000)
@@ -831,6 +836,7 @@ function _casmmsync_sync_groups($groups) {
           ->condition('uid', $removed_members, 'IN')
           ->execute();
         $member_deletes++;
+        $has_changes = true;
       }
     }
 
@@ -848,11 +854,13 @@ function _casmmsync_sync_groups($groups) {
     }
 
     $synced++;
+    if ($has_changes)
+      $have_changes++;
   }
 
   $time = round(microtime(true) - $start);
   if (variable_get('casmmsync_show_debug', FALSE)) {
-    print "\n<br/>Group synchronization completed in ".$time.'s.  Member inserts: '.$member_inserts.', Member deletes: '.$member_deletes;
+    print "\n<br/>Group synchronization completed in ".$time.'s.  Groups with changes: '.$have_changes.', Member inserts: '.$member_inserts.', Member deletes: '.$member_deletes;
     if (variable_get('dev_query', 0))
       print ', Queries: '.(count($queries) - $start_queries);
   }
