@@ -805,7 +805,7 @@ function _casmmsync_sync_groups($groups) {
     // Add new members
     foreach ($members as $member_id) {
       // Check to see if the user is already in the group and insert them if not
-      if (!isset($existing_groups[$group_mmtid]) || !in_array($memberId, $existing_groups[$group_mmtid])) {
+      if (!isset($existing_groups[$group_mmtid]) || !in_array($member_id, $existing_groups[$group_mmtid])) {
         try {
           $member_inserts++;
           db_insert('mm_group')
@@ -926,7 +926,7 @@ function _casmmsync_clear_old_groups($groups = array()) {
   $deleted = 0;
 
   foreach ($groups as $group_id => $mmtid) {
-    _casmmsync_delete_group($data->group_id, $data->mmtid);
+    _casmmsync_delete_group($group_id, $mmtid);
 
     // Debugging status output
     if (variable_get('casmmsync_show_debug', FALSE) &&  $deleted && $deleted % $deleted_marker == 0) {
