@@ -324,6 +324,7 @@ function casmmsync_update_group($group_dn) {
 function _casmmsync_sync_users() {
   $synced = 0;
   $failed = 0;
+  $with_changes = 0;
   $groups = array();
 
   $params = array(
@@ -335,8 +336,39 @@ function _casmmsync_sync_users() {
   $base = variable_get('casmmsync_path', '');
 
   // Debugging status output
+  $start = microtime(true);
   if (variable_get('casmmsync_show_debug', FALSE)) {
-    print "\n<h2>Syncronizing Users</h2>\n";
+    // count the number of queries if the devel module is enabled and harvesting query data.
+    if (variable_get('dev_query', 0)) {
+      global $queries;
+      $start_queries = count($queries);
+    }
+
+    // Print out style sheets to make the query listing readable if we are using the
+    // devel module.
+    if (module_exists('devel') && variable_get('dev_query', FALSE)) {
+      print "
+<html>
+  <head>
+    <title>CAS-MM Sync user and group sync.</title>
+    <style type='text/css'>
+      .clear-block:after {
+          clear: both;
+          content: ".";
+          display: block;
+          height: 0;
+          visibility: hidden;
+      }
+      ";
+      include(drupal_get_path('module', 'devel') .'/devel.css');
+      print "
+    </style>
+  </head>
+  <body>
+";
+    }
+
+    print "\n<h2>Synchronizing Users</h2>\n";
     while (ob_get_level())
       ob_end_flush();
     flush();
@@ -359,8 +391,18 @@ function _casmmsync_sync_users() {
 
       $attributes = _casmmsync_get_attributes($xpath, $user_element);
 
-      $uid = _casmmsync_sync_user($web_id, $attributes);
-      if ($uid !== FALSE) {
+      // Optimization:
+      // Do a quick check of the user data via custom queries and only
+      // go through the whole user_load() process if it looks like things
+      // might have changed.
+      $uid = _casmmsync_get_uid_if_unchanged($web_id, $attributes);
+      if ($uid === FALSE || is_null($uid)) {
+        $uid = _casmmsync_sync_user($web_id, $attributes);
+        if ($uid)
+          $with_changes++;
+      }
+
+      if ($uid !== FALSE && !is_null($uid)) {
         $synced++;
 
         // Add our groups to the sync list
@@ -399,20 +441,28 @@ function _casmmsync_sync_users() {
   }
 
   // Debugging status output
+  $time = round(microtime(true) - $start);
   if (variable_get('casmmsync_show_debug', FALSE)) {
-    print "\n<h2>User Synchronization Complete</h2>\n";
+    print "\n<br/>User synchronization completed in ".$time."s.";
+    if (variable_get('dev_query', 0)) {
+      print ' Queries: '.(count($queries) - $start_queries).'.';
+    }
+    print " ".$with_changes." users were new or had changes.";
     while (ob_get_level())
       ob_end_flush();
     flush();
   }
 
-  watchdog('casmmsync', 'CAS-MM User-Sync completed. @synced users synced. @failed users skipped.', array('@synced' => $synced, '@failed' => $failed));
+  // Clear out the user data to make room for group data.
+  _casmmsync_get_uid_if_unchanged('', array(), true);
+
+  watchdog('casmmsync', 'CAS-MM User-Sync completed in @time s. @synced users synced. @failed users skipped. @with_changes users were new or had changes.', array('@time' => $time, '@synced' => $synced, '@failed' => $failed, '@with_changes' => $with_changes));
 
   return $groups;
 }
 
 /**
- * Syncronize or create a user.
+ * Synchronize or create a user.
  * This function is based on the implementation of cas_login_check() and makes use
  * of functions in the cas_module in order to allow the settings of that module to
  * consistantly define user attributes.
@@ -442,10 +492,10 @@ function _casmmsync_sync_user($web_id, $attributes) {
   // name.
   if (empty($cas_user['login']) || empty($cas_user['name'])) {
     // Only set a warning if we forced login.
-    if ($cas_force_login) {
+    if (!empty($cas_force_login)) {
       drupal_set_message(t('The user account %name is not available on this site.', array('%name' => $cas_name)), 'error');
     }
-    return;
+    return FALSE;
   }
 
   // Proceed with the login process, using the altered CAS username.
@@ -463,26 +513,48 @@ function _casmmsync_sync_user($web_id, $attributes) {
 
   if ($blocked) {
     // Only display error messages only if the user intended to log in.
-    if ($cas_force_login) {
+    if (!empty($cas_force_login)) {
       watchdog('cas', $blocked, array('%cas_name' => $cas_name), WATCHDOG_WARNING);
       drupal_set_message(t($blocked, array('%cas_name' => $cas_name)), 'error');
     }
-    return;
+    return FALSE;
   }
 
   $account = cas_user_load_by_name($cas_name);
 
   // Automatic user registration.
   if (!$account && $cas_user['register']) {
+    // Depending on the timing of a registration failure, it is
+    // possible that user account could have been created, but not
+    // linked to a row in the cas_user table. Check for and fix 
+    // this case.
+    $uid = db_select('users', 'u')
+      ->fields('u', array('uid'))
+      ->condition('init', $cas_name)
+      ->execute()->fetchField();
+    if ($uid) {
+      $account = user_load($uid);
+      if ($account) {
+        $edit['cas_name'] = $cas_name;
+        user_save($account, $edit);
+      }
+    }
+    
     // No account could be found and auto registration is enabled, so attempt
     // to register a new user.
-    $account = cas_user_register($cas_name);
+    if (!$account) {
+      $account = cas_user_register($cas_name);
+    }
+    
     if (!$account) {
       // The account could not be created, set a message.
-      if ($cas_force_login) {
+      if (!empty($cas_force_login)) {
         drupal_set_message(t('A new account could not be created for %cas_name. The username is already in use on this site.', array('%cas_name' => $cas_name)), 'error');
       }
-      return;
+
+      drupal_set_message(t('Error creating a new account for %cas_name. The username is already in use on this site.', array('%cas_name' => $cas_name)), 'error');
+      watchdog('casmmsync', 'Error creating a new account for %cas_name. The username is already in use on this site.', array('%cas_name' => $cas_name), 'error');
+      return FALSE;
     }
     // CAS-MM-Sync addition
     watchdog("casmmsync", 'new user: %n (CAS id=@webid)', array('%n' => $attributes['DisplayName'], '@webid' => $web_id), WATCHDOG_NOTICE, l(t("edit user"), "admin/user/edit/$account->uid"));
@@ -491,8 +563,8 @@ function _casmmsync_sync_user($web_id, $attributes) {
   // final check to make sure we have a good user
   if ($account && $account->uid > 0) {
     // CAS-MM-Sync additions
-    $edit['casmmsync_webid'] = $web_id;
-    $edit['casmmsync_attributes'] = $attributes;
+    $edit['data']['casmmsync_webid'] = $web_id;
+    $edit['data']['casmmsync_attributes'] = $attributes;
 
     // Populate $edit with some basic properties.
     $edit['cas_user'] = $cas_user;
@@ -506,19 +578,28 @@ function _casmmsync_sync_user($web_id, $attributes) {
     // Clean up extra variables before saving.
     unset($edit['cas_user']);
 
-    // Save the user account and log the user in.
-    $user = user_save($account, $edit);
+    // Save the user account if there are differences and log the user in.
+    $changed = false;
+    foreach ($edit as $key => $value) {
+      if ($account->$key != $value) {
+        $changed = true;
+        break;
+      }
+    }
+    if ($changed) {
+      $account = user_save($account, $edit);
 //     user_authenticate_finalize($edit); // Not needed in CAS-MM-Sync since we aren't actually logging in.
-
+    }
 
     // Profile fields CAS-MM-Sync
+    $profile_field_values = _casmmsync_get_profile_field_values($account->uid);
     foreach (_casmmsync_get_profile_field_map() as $profile_field => $attribute_name) {
-      if (isset($attributes[$attribute_name]) && _casmmsync_get_profile_field_value($user->uid, $profile_field) != $attributes[$attribute_name])
-        _casmmsync_set_profile_field_value($user->uid, $profile_field, $attributes[$attribute_name]);
+      if (isset($attributes[$attribute_name]) && _casmmsync_get_profile_field_value_from_array($account->uid, $profile_field, $profile_field_values) != $attributes[$attribute_name])
+        _casmmsync_set_profile_field_value($account->uid, $profile_field, $attributes[$attribute_name]);
     }
 
     // if there was a problem saving the user
-    if (!is_object($user)) {
+    if (!is_object($account)) {
       watchdog("casmmsync", 'Error saving user: %n (CAS id=@webid)', array('%n' => $attributes['DisplayName'], '@webid' => $web_id), WATCHDOG_WARNING, l(t("edit user"), "admin/user/edit/$uid"));
       return FALSE;
     }
@@ -528,7 +609,56 @@ function _casmmsync_sync_user($web_id, $attributes) {
     return FALSE;
   }
 
-  return $user->uid;
+  return $account->uid;
+}
+
+ /**
+ * Check to see if the user account has changed and return the user's id if not.
+ *
+ * @return
+ *    The uid or FALSE if changed
+ */
+function _casmmsync_get_uid_if_unchanged($web_id, $attributes = array(), $clear_data = FALSE) {
+  static $all_users;
+  if ($clear_data) {
+    $all_users = null;
+    unset($all_users);
+    return FALSE;
+  }
+  if (!isset($all_users)) {
+    $all_users = array();
+    $query = db_select('users', 'u');
+    $query->innerJoin('cas_user', 'c', 'u.uid = c.uid');
+    $query->addField('u', 'uid');
+    $query->addField('c', 'cas_name');
+    $query->addField('u', 'data', 'user_data');
+    $query->orderBy('u.uid');
+    $result = $query->execute();
+    $current_uid = 0;
+    foreach ($result as $r) {
+      $user = new stdclass();
+      $user->uid = $r->uid;
+      $user->data = unserialize($r->user_data);
+      $all_users[$r->cas_name] = $user;
+    }
+  }
+  if (!isset($all_users[$web_id]))
+    return FALSE;
+  $user = $all_users[$web_id];
+  if (!isset($user->data['casmmsync_attributes']) || !is_array($user->data['casmmsync_attributes']))
+    return FALSE;
+
+  // Unset the group membership since we will be checking that separately.
+  unset($user->data['casmmsync_attributes']['MemberOf']);
+  unset($attributes['MemberOf']);
+  // If the attributes stored with the user are the same as the attributes they have now
+  // we'll considder them the same. Note that this does not take into account in-drupal
+  // modifications to profile fields, but these will be reset whent the user logs in directly
+  // to the site.
+  if ($user->data['casmmsync_attributes'] == $attributes)
+    return $user->uid;
+  else
+    return false;
 }
 
 /**
@@ -579,7 +709,7 @@ function casmmsync_get_or_create_group_by_dn($group_id) {
   }
 
   $query = db_select('casmmsync_group_map', 'm');
-  $query->addJoin('INNER', 'mm_tree', 't', 'm.mmtid = t.mmtid');
+  $query->innerJoin('mm_tree', 't', 'm.mmtid = t.mmtid');
   $query->addField('t', 'mmtid');
   $query->condition('m.group_id', $group_id);
   $query->distinct();
@@ -626,59 +756,118 @@ function casmmsync_get_group_by_dn($group_id) {
 }
 
 /**
- * Syncronize groups from a list of groups
+ * Synchronize groups from a list of groups
  *
  * @param array $groups Keys are group-ids, values are an array of members.
  * @return void
  */
 function _casmmsync_sync_groups($groups) {
+  $start = microtime(true);
+
   // Debugging status output
   if (variable_get('casmmsync_show_debug', FALSE)) {
-    print "\n<h2>Syncronizing Groups</h2>\n";
+    if (variable_get('dev_query', 0)) {
+      global $queries;
+      $start_queries = count($queries);
+    }
+    print "\n<h2>Synchronizing ".count($groups)." Groups</h2>\n";
     while (ob_get_level())
       ob_end_flush();
     flush();
   }
 
-  // Clear the sync status of all groups. We will mark keepers in the sync process
-  // and later delete any not still in the AD.
-  db_update('casmmsync_group_map')
-    ->fields(array('sync_keep' => 0))
-    ->execute();
+  // Optimization:
+  // Load all groups into memory to save on unneeded inserts
+  $existing_groups = array();
+  $r = db_select('mm_group', 'g')
+        ->fields('g', array('gid', 'uid'))
+        ->orderBy('gid')
+        ->execute();
+  foreach ($r as $m) {
+    if (!isset($existing_groups[$m->gid]))
+      $existing_groups[$m->gid] = array();
+    $existing_groups[$m->gid][] = $m->uid;
+  }
+
+  // Optimization:
+  // Load the full group map into memory to save on a select for every group.
+  $group_map = array();
+  $query = db_select('casmmsync_group_map', 'm');
+  $query->leftJoin('mm_tree', 't', 'm.mmtid = t.mmtid');
+  $query->fields('m', array('mmtid', 'group_id'));
+  $query->addField('t', 'mmtid', 'group_exists');
+  $r = $query->execute();
+  foreach ($r as $m) {
+    if (!$m->group_exists) {
+      db_delete('casmmsync_group_map')->condition('mmtid', $m->mmtid)->execute();
+      print "\n<br/>The MM Group has gone away, deleting mapping for ".$m->mmtid." <=> ".$m->group_id."<br/>";
+    } else {
+      $group_map[$m->group_id] = $m->mmtid;
+    }
+  }
 
   $synced = 0;
+  $sync_marker = ceil(count($groups) / 100);
+  $have_changes = 0;
+  $member_inserts = 0;
+  $member_deletes = 0;
+
   foreach ($groups as $group_id => $members) {
-    $group_mmtid = casmmsync_get_or_create_group_by_dn($group_id);
+    $has_changes = false;
+    
+    // Optimization:
+    // Check the group_map in memory rather than issuing a SELECT for every group.
+    if (isset($group_map[$group_id])) {
+      $group_mmtid = $group_map[$group_id];
+      // Remove the group from the map. Any remaining groups must have been removed
+      // from the directory and should be deleted.
+      unset($group_map[$group_id]);
+    } else {
+      $group_mmtid = casmmsync_get_or_create_group_by_dn($group_id);
+      $has_changes = true;
+    }
 
     // Add new members
     foreach ($members as $member_id) {
-      try {
-        db_insert('mm_group')
-          ->fields(array(
-            'gid' => $group_mmtid,
-            'uid' => $member_id,
-          ))
-          ->execute();
-      } catch (PDOException $e) {
-        // Ignore duplicate-key exceptions if users are already members in the group.
-        if ($e->getCode() != 23000)
-          throw $e;
+      // Check to see if the user is already in the group and insert them if not
+      if (!isset($existing_groups[$group_mmtid]) || !in_array($member_id, $existing_groups[$group_mmtid])) {
+        try {
+          $member_inserts++;
+          db_insert('mm_group')
+            ->fields(array(
+              'gid' => $group_mmtid,
+              'uid' => $member_id,
+            ))
+            ->execute();
+          $has_changes = true;
+        } catch (PDOException $e) {
+          // Ignore duplicate-key exceptions if users are already members in the group.
+          if ($e->getCode() != 23000)
+            throw $e;
+        }
       }
     }
 
-    // Delete missing members
-    db_delete('mm_group')
-      ->condition('gid', $group_mmtid)
-      ->condition('uid', $members, 'NOT IN')
-      ->execute();
+    // Delete missing members for existing groups
+    if (isset($existing_groups[$group_mmtid])) {
+      $removed_members = array_diff($existing_groups[$group_mmtid], $members);
+      if (count($removed_members)) {
+        db_delete('mm_group')
+          ->condition('gid', $group_mmtid)
+          ->condition('uid', $removed_members, 'IN')
+          ->execute();
+        $member_deletes++;
+        $has_changes = true;
+      }
+    }
 
     // Wipe out the member array to free memory.
     $groups[$group_id] = NULL;
+    $existing_groups[$group_mmtid] = null;
+    unset($existing_groups[$group_mmtid]);
 
     // Debugging status output
-    if (variable_get('casmmsync_show_debug', FALSE) &&  $synced && $synced % 10 == 0) {
-      if ($synced && $synced % 1000 == 0)
-        print "\n<br/>";
+    if (variable_get('casmmsync_show_debug', FALSE) &&  $synced && $synced % $sync_marker == 0) {
       print '.';
       while (ob_get_level())
         ob_end_flush();
@@ -686,9 +875,18 @@ function _casmmsync_sync_groups($groups) {
     }
 
     $synced++;
+    if ($has_changes)
+      $have_changes++;
   }
 
-  _casmmsync_clear_old_groups();
+  $time = round(microtime(true) - $start);
+  if (variable_get('casmmsync_show_debug', FALSE)) {
+    print "\n<br/>Group synchronization completed in ".$time.'s.  Groups with changes: '.$have_changes.', Member inserts: '.$member_inserts.', Member deletes: '.$member_deletes;
+    if (variable_get('dev_query', 0))
+      print ', Queries: '.(count($queries) - $start_queries);
+  }
+
+  _casmmsync_clear_old_groups($group_map);
 
   // Set all of the synced groups to be selectable (while keeping their containers read-only).
   db_update('mm_tree')
@@ -698,13 +896,13 @@ function _casmmsync_sync_groups($groups) {
 
   // Debugging status output
   if (variable_get('casmmsync_show_debug', FALSE)) {
-    print "\n<h2>Group Synchronization Complete</h2>\n";
+    print "\n<br/>Group synchronization complete\n";
     while (ob_get_level())
       ob_end_flush();
     flush();
   }
 
-  watchdog('casmmsync', 'CAS-MM Group-Sync completed. @synced groups synced.', array('@synced' => $synced));
+  watchdog('casmmsync', 'CAS-MM Group-Sync completed in @time s. @synced groups synced. Member inserts: @inserts, Member deletes: @deletes', array('@time' => $time, '@synced' => $synced, '@inserts' => $member_inserts, '@deletes' => $member_deletes));
 }
 
 /**
@@ -725,24 +923,17 @@ function _casmmsync_record_mapping($group_id, $group_mmtid) {
     return;
   }
 
-  $num_affected = db_update('casmmsync_group_map')
-    ->fields(array('sync_keep' => 1))
-    ->condition('group_id', $group_id)
-    ->execute();
-  if (!$num_affected) {
-    try {
-      db_insert('casmmsync_group_map')
-        ->fields(array(
-          'group_id' => $group_id,
-          'mmtid' => $group_mmtid,
-          'sync_keep' => 1,
-        ))
-        ->execute();
-    } catch (PDOException $e) {
-      // ignore duplicate key exceptions
-      if ($e->getCode() != 23000)
-        throw $e;
-    }
+  try {
+    db_insert('casmmsync_group_map')
+      ->fields(array(
+        'group_id' => $group_id,
+        'mmtid' => $group_mmtid,
+      ))
+      ->execute();
+  } catch (PDOException $e) {
+    // ignore duplicate key exceptions
+    if ($e->getCode() != 23000)
+      throw $e;
   }
 }
 
@@ -751,27 +942,23 @@ function _casmmsync_record_mapping($group_id, $group_mmtid) {
  *
  * @return void
  */
-function _casmmsync_clear_old_groups() {
+function _casmmsync_clear_old_groups($groups = array()) {
    // Debugging status output
   if (variable_get('casmmsync_show_debug', FALSE)) {
-    print "\n<h3>Deleting missing groups</h3>\n";
+    print "\n<h3>Deleting ".count($groups)." missing groups</h3>\n";
     while (ob_get_level())
       ob_end_flush();
     flush();
+    $start = microtime(true);
   }
+  $deleted_marker = ceil(count($groups) / 100);
   $deleted = 0;
 
-  $results = db_select('casmmsync_group_map', 'm')
-    ->fields('m', array('group_id', 'mmtid'))
-    ->condition('sync_keep', 0)
-    ->execute();
-  while ($data = $results->fetchObject()) {
-    _casmmsync_delete_group($data->group_id, $data->mmtid);
+  foreach ($groups as $group_id => $mmtid) {
+    _casmmsync_delete_group($group_id, $mmtid);
 
     // Debugging status output
-    if (variable_get('casmmsync_show_debug', FALSE) &&  $deleted && $deleted % 10 == 0) {
-      if ($deleted && $deleted % 1000 == 0)
-        print "\n<br/>";
+    if (variable_get('casmmsync_show_debug', FALSE) &&  $deleted && $deleted % $deleted_marker == 0) {
       print '.';
       while (ob_get_level())
         ob_end_flush();
@@ -781,7 +968,7 @@ function _casmmsync_clear_old_groups() {
   }
 
   if (variable_get('casmmsync_show_debug', FALSE)) {
-    print "\n<h3>Missing groups deleted</h3>\n";
+    print "\n<br/>Missing groups deleted in ".round(microtime(true) - $start).'s';
     while (ob_get_level())
       ob_end_flush();
     flush();
@@ -804,9 +991,8 @@ function _casmmsync_delete_group($group_id, $group_mmtid) {
     return;
   }
 
-  $parent = mm_content_get_parent($group_mmtid);
-
   $group = mm_content_get($group_mmtid);
+  $parent = $group->parent;
   if ($group->name == MM_ENTRY_NAME_GROUPS || $group_mmtid < 10) {
     watchdog('casmmsync', "Deleting group @mmtid is not allowed.", array('@mmtid' => $group_mmtid), WATCHDOG_ERROR);
     return;
@@ -843,10 +1029,12 @@ function _casmmsync_prune_empty_group_containers($container_id) {
   if ($container_id == mm_content_groups_mmtid())
     return;
 
-  $tree = mm_content_get_tree($container_id);
-
   // Don't prune if not empty
-  if (is_array($tree) && count($tree) > 1)
+  $query = db_select('mm_tree', 't');
+  $query->addExpression('COUNT(mmtid)', 'num_children');
+  $query->condition('t.parent', $container_id);
+  $num_children = $query->execute()->fetchField();
+  if ($num_children)
     return;
 
   // If empty delete and prune parent recursively
@@ -967,11 +1155,39 @@ function _casmmsync_int_from_bytestring($byteString) {
  * Get the profile field id for the given field name.
  */
 function _casmmsync_get_profile_field_fid($name) {
-  return db_select('profile_fields', 'f')
-    ->fields('f', array('fid'))
-    ->condition('name', $name)
-    ->execute()
-    ->fetchField();
+  static $fids = array();
+  if (!isset($fids[$name]))
+    $fids[$name] = db_select('profile_fields', 'f')
+      ->fields('f', array('fid'))
+      ->condition('name', $name)
+      ->execute()
+      ->fetchField();
+  return $fids[$name];
+}
+
+/*
+ * Get the profile field values for the given user.
+ */
+function _casmmsync_get_profile_field_values($uid) {
+  $values = array();
+  $result = db_select('profile_value', 'v')
+    ->fields('v', array('fid', 'value'))
+    ->condition('uid', $uid)
+    ->execute();
+  foreach ($result as $r) {
+    $values[$r->fid] = $r->value;
+  }
+  return $values;
+}
+
+/**
+ * Answer a given field value from an array of profile fields.
+ */
+function _casmmsync_get_profile_field_value_from_array($uid, $field, $values) {
+ if (!is_numeric($field)) {
+    $field = _casmmsync_get_profile_field_fid($field);
+  }
+  return $values[$field];
 }
 
 /*
