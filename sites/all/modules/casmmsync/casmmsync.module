@@ -524,9 +524,28 @@ function _casmmsync_sync_user($web_id, $attributes) {
 
   // Automatic user registration.
   if (!$account && $cas_user['register']) {
+    // Depending on the timing of a registration failure, it is
+    // possible that user account could have been created, but not
+    // linked to a row in the cas_user table. Check for and fix 
+    // this case.
+    $uid = db_select('users', 'u')
+      ->fields('u', array('uid'))
+      ->condition('init', $cas_name)
+      ->execute()->fetchField();
+    if ($uid) {
+      $account = user_load($uid);
+      if ($account) {
+        $edit['cas_name'] = $cas_name;
+        user_save($account, $edit);
+      }
+    }
+    
     // No account could be found and auto registration is enabled, so attempt
     // to register a new user.
-    $account = cas_user_register($cas_name);
+    if (!$account) {
+      $account = cas_user_register($cas_name);
+    }
+    
     if (!$account) {
       // The account could not be created, set a message.
       if (!empty($cas_force_login)) {
@@ -534,6 +553,7 @@ function _casmmsync_sync_user($web_id, $attributes) {
       }
 
       drupal_set_message(t('Error creating a new account for %cas_name. The username is already in use on this site.', array('%cas_name' => $cas_name)), 'error');
+      watchdog('casmmsync', 'Error creating a new account for %cas_name. The username is already in use on this site.', array('%cas_name' => $cas_name), 'error');
       return FALSE;
     }
     // CAS-MM-Sync addition
