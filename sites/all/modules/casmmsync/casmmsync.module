@@ -492,7 +492,7 @@ function _casmmsync_sync_user($web_id, $attributes) {
   // name.
   if (empty($cas_user['login']) || empty($cas_user['name'])) {
     // Only set a warning if we forced login.
-    if ($cas_force_login) {
+    if (!empty($cas_force_login)) {
       drupal_set_message(t('The user account %name is not available on this site.', array('%name' => $cas_name)), 'error');
     }
     return FALSE;
@@ -513,7 +513,7 @@ function _casmmsync_sync_user($web_id, $attributes) {
 
   if ($blocked) {
     // Only display error messages only if the user intended to log in.
-    if ($cas_force_login) {
+    if (!empty($cas_force_login)) {
       watchdog('cas', $blocked, array('%cas_name' => $cas_name), WATCHDOG_WARNING);
       drupal_set_message(t($blocked, array('%cas_name' => $cas_name)), 'error');
     }
@@ -529,7 +529,7 @@ function _casmmsync_sync_user($web_id, $attributes) {
     $account = cas_user_register($cas_name);
     if (!$account) {
       // The account could not be created, set a message.
-      if ($cas_force_login) {
+      if (!empty($cas_force_login)) {
         drupal_set_message(t('A new account could not be created for %cas_name. The username is already in use on this site.', array('%cas_name' => $cas_name)), 'error');
       }
 
@@ -624,7 +624,7 @@ function _casmmsync_get_uid_if_unchanged($web_id, $attributes = array(), $clear_
   if (!isset($all_users[$web_id]))
     return FALSE;
   $user = $all_users[$web_id];
-  if (!is_array($user->data['casmmsync_attributes']))
+  if (!isset($user->data['casmmsync_attributes']) || !is_array($user->data['casmmsync_attributes']))
     return FALSE;
 
   // Unset the group membership since we will be checking that separately.
