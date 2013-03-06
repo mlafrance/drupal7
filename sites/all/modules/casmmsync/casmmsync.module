@@ -1009,10 +1009,9 @@ function _casmmsync_prune_empty_group_containers($container_id) {
   if ($container_id == mm_content_groups_mmtid())
     return;
 
-  $tree = mm_content_get_tree($container_id);
-
   // Don't prune if not empty
-  if (is_array($tree) && count($tree) > 1)
+  $tree = mm_content_get_tree($container_id, array(MM_GET_TREE_DEPTH => 0, MM_GET_TREE_RETURN_KID_COUNT => true));
+  if (is_array($tree) && isset($tree[0]) && $tree[0]->kids > 0)
     return;
 
   // If empty delete and prune parent recursively
