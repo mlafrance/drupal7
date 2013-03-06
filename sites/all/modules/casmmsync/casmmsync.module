@@ -970,9 +970,8 @@ function _casmmsync_delete_group($group_id, $group_mmtid) {
     return;
   }
 
-  $parent = mm_content_get_parent($group_mmtid);
-
   $group = mm_content_get($group_mmtid);
+  $parent = $group->parent;
   if ($group->name == MM_ENTRY_NAME_GROUPS || $group_mmtid < 10) {
     watchdog('casmmsync', "Deleting group @mmtid is not allowed.", array('@mmtid' => $group_mmtid), WATCHDOG_ERROR);
     return;
