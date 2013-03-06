@@ -628,8 +628,9 @@ function _casmmsync_get_uid_if_unchanged($web_id, $attributes = array(), $clear_
   if (!isset($all_users)) {
     $all_users = array();
     $query = db_select('users', 'u');
+    $query->innerJoin('cas_user', 'c', 'u.uid = c.uid');
     $query->addField('u', 'uid');
-    $query->addField('u', 'init');
+    $query->addField('c', 'cas_name');
     $query->addField('u', 'data', 'user_data');
     $query->orderBy('u.uid');
     $result = $query->execute();
@@ -638,7 +639,7 @@ function _casmmsync_get_uid_if_unchanged($web_id, $attributes = array(), $clear_
       $user = new stdclass();
       $user->uid = $r->uid;
       $user->data = unserialize($r->user_data);
-      $all_users[$r->init] = $user;
+      $all_users[$r->cas_name] = $user;
     }
   }
   if (!isset($all_users[$web_id]))
