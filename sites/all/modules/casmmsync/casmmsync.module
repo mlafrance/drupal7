@@ -354,13 +354,13 @@ function _casmmsync_sync_users() {
     <style type='text/css'>
       .clear-block:after {
           clear: both;
-          content: ".";
+          content: ;
           display: block;
           height: 0;
           visibility: hidden;
       }
       ";
-      include(drupal_get_path('module', 'devel') .'/devel.css');
+      include(drupal_get_path('module', 'devel') . '/devel.css');
       print "
     </style>
   </head>
@@ -443,18 +443,18 @@ function _casmmsync_sync_users() {
   // Debugging status output
   $time = round(microtime(true) - $start);
   if (variable_get('casmmsync_show_debug', FALSE)) {
-    print "\n<br/>User synchronization completed in ".$time."s.";
+    print "\n<br/>User synchronization completed in " . $time . "s.";
     if (variable_get('dev_query', 0)) {
-      print ' Queries: '.(count($queries) - $start_queries).'.';
+      print ' Queries: ' . (count($queries) - $start_queries) . '.';
     }
-    print " ".$with_changes." users were new or had changes.";
+    print " " . $with_changes . " users were new or had changes.";
     while (ob_get_level())
       ob_end_flush();
     flush();
   }
 
   // Clear out the user data to make room for group data.
-  _casmmsync_get_uid_if_unchanged('', array(), true);
+  _casmmsync_get_uid_if_unchanged('', array(), TRUE);
 
   watchdog('casmmsync', 'CAS-MM User-Sync completed in @time s. @synced users synced. @failed users skipped. @with_changes users were new or had changes.', array('@time' => $time, '@synced' => $synced, '@failed' => $failed, '@with_changes' => $with_changes));
 
@@ -526,7 +526,7 @@ function _casmmsync_sync_user($web_id, $attributes) {
   if (!$account && $cas_user['register']) {
     // Depending on the timing of a registration failure, it is
     // possible that user account could have been created, but not
-    // linked to a row in the cas_user table. Check for and fix 
+    // linked to a row in the cas_user table. Check for and fix
     // this case.
     $uid = db_select('users', 'u')
       ->fields('u', array('uid'))
@@ -539,13 +539,13 @@ function _casmmsync_sync_user($web_id, $attributes) {
         user_save($account, $edit);
       }
     }
-    
+
     // No account could be found and auto registration is enabled, so attempt
     // to register a new user.
     if (!$account) {
       $account = cas_user_register($cas_name);
     }
-    
+
     if (!$account) {
       // The account could not be created, set a message.
       if (!empty($cas_force_login)) {
@@ -579,10 +579,10 @@ function _casmmsync_sync_user($web_id, $attributes) {
     unset($edit['cas_user']);
 
     // Save the user account if there are differences and log the user in.
-    $changed = false;
+    $changed = FALSE;
     foreach ($edit as $key => $value) {
       if ($account->$key != $value) {
-        $changed = true;
+        $changed = TRUE;
         break;
       }
     }
@@ -621,7 +621,7 @@ function _casmmsync_sync_user($web_id, $attributes) {
 function _casmmsync_get_uid_if_unchanged($web_id, $attributes = array(), $clear_data = FALSE) {
   static $all_users;
   if ($clear_data) {
-    $all_users = null;
+    $all_users = NULL;
     unset($all_users);
     return FALSE;
   }
@@ -636,7 +636,7 @@ function _casmmsync_get_uid_if_unchanged($web_id, $attributes = array(), $clear_
     $result = $query->execute();
     $current_uid = 0;
     foreach ($result as $r) {
-      $user = new stdclass();
+      $user = new stdClass();
       $user->uid = $r->uid;
       $user->data = unserialize($r->user_data);
       $all_users[$r->cas_name] = $user;
@@ -658,7 +658,7 @@ function _casmmsync_get_uid_if_unchanged($web_id, $attributes = array(), $clear_
   if ($user->data['casmmsync_attributes'] == $attributes)
     return $user->uid;
   else
-    return false;
+    return FALSE;
 }
 
 /**
@@ -770,7 +770,7 @@ function _casmmsync_sync_groups($groups) {
       global $queries;
       $start_queries = count($queries);
     }
-    print "\n<h2>Synchronizing ".count($groups)." Groups</h2>\n";
+    print "\n<h2>Synchronizing " . count($groups) . " Groups</h2>\n";
     while (ob_get_level())
       ob_end_flush();
     flush();
@@ -800,8 +800,9 @@ function _casmmsync_sync_groups($groups) {
   foreach ($r as $m) {
     if (!$m->group_exists) {
       db_delete('casmmsync_group_map')->condition('mmtid', $m->mmtid)->execute();
-      print "\n<br/>The MM Group has gone away, deleting mapping for ".$m->mmtid." <=> ".$m->group_id."<br/>";
-    } else {
+      print "\n<br/>The MM Group has gone away, deleting mapping for " . $m->mmtid . " <=> " . $m->group_id . "<br/>";
+    }
+    else {
       $group_map[$m->group_id] = $m->mmtid;
     }
   }
@@ -813,8 +814,8 @@ function _casmmsync_sync_groups($groups) {
   $member_deletes = 0;
 
   foreach ($groups as $group_id => $members) {
-    $has_changes = false;
-    
+    $has_changes = FALSE;
+
     // Optimization:
     // Check the group_map in memory rather than issuing a SELECT for every group.
     if (isset($group_map[$group_id])) {
@@ -822,9 +823,10 @@ function _casmmsync_sync_groups($groups) {
       // Remove the group from the map. Any remaining groups must have been removed
       // from the directory and should be deleted.
       unset($group_map[$group_id]);
-    } else {
+    }
+    else {
       $group_mmtid = casmmsync_get_or_create_group_by_dn($group_id);
-      $has_changes = true;
+      $has_changes = TRUE;
     }
 
     // Add new members
@@ -839,7 +841,7 @@ function _casmmsync_sync_groups($groups) {
               'uid' => $member_id,
             ))
             ->execute();
-          $has_changes = true;
+          $has_changes = TRUE;
         } catch (PDOException $e) {
           // Ignore duplicate-key exceptions if users are already members in the group.
           if ($e->getCode() != 23000)
@@ -857,13 +859,13 @@ function _casmmsync_sync_groups($groups) {
           ->condition('uid', $removed_members, 'IN')
           ->execute();
         $member_deletes++;
-        $has_changes = true;
+        $has_changes = TRUE;
       }
     }
 
     // Wipe out the member array to free memory.
     $groups[$group_id] = NULL;
-    $existing_groups[$group_mmtid] = null;
+    $existing_groups[$group_mmtid] = NULL;
     unset($existing_groups[$group_mmtid]);
 
     // Debugging status output
@@ -879,11 +881,11 @@ function _casmmsync_sync_groups($groups) {
       $have_changes++;
   }
 
-  $time = round(microtime(true) - $start);
+  $time = round(microtime(TRUE) - $start);
   if (variable_get('casmmsync_show_debug', FALSE)) {
-    print "\n<br/>Group synchronization completed in ".$time.'s.  Groups with changes: '.$have_changes.', Member inserts: '.$member_inserts.', Member deletes: '.$member_deletes;
+    print "\n<br/>Group synchronization completed in " . $time . 's.  Groups with changes: ' . $have_changes . ', Member inserts: ' . $member_inserts . ', Member deletes: ' . $member_deletes;
     if (variable_get('dev_query', 0))
-      print ', Queries: '.(count($queries) - $start_queries);
+      print ', Queries: ' . (count($queries) - $start_queries);
   }
 
   _casmmsync_clear_old_groups($group_map);
@@ -945,11 +947,11 @@ function _casmmsync_record_mapping($group_id, $group_mmtid) {
 function _casmmsync_clear_old_groups($groups = array()) {
    // Debugging status output
   if (variable_get('casmmsync_show_debug', FALSE)) {
-    print "\n<h3>Deleting ".count($groups)." missing groups</h3>\n";
+    print "\n<h3>Deleting " . count($groups) . " missing groups</h3>\n";
     while (ob_get_level())
       ob_end_flush();
     flush();
-    $start = microtime(true);
+    $start = microtime(TRUE);
   }
   $deleted_marker = ceil(count($groups) / 100);
   $deleted = 0;
@@ -968,7 +970,7 @@ function _casmmsync_clear_old_groups($groups = array()) {
   }
 
   if (variable_get('casmmsync_show_debug', FALSE)) {
-    print "\n<br/>Missing groups deleted in ".round(microtime(true) - $start).'s';
+    print "\n<br/>Missing groups deleted in " . round(microtime(TRUE) - $start) . 's';
     while (ob_get_level())
       ob_end_flush();
     flush();
