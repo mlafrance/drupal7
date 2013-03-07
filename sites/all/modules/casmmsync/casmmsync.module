@@ -447,7 +447,7 @@ function _casmmsync_sync_users() {
     if (variable_get('dev_query', 0)) {
       print ' Queries: ' . (count($queries) - $start_queries) . '.';
     }
-    print " " . $with_changes . " users were new or had changes.";
+    print " " . $with_changes . " users were new or had changes. " . $failed . " users were skipped.";
     while (ob_get_level())
       ob_end_flush();
     flush();
@@ -491,10 +491,8 @@ function _casmmsync_sync_user($web_id, $attributes) {
   // Bail out if a module denied login access for this user or unset the user
   // name.
   if (empty($cas_user['login']) || empty($cas_user['name'])) {
-    // Only set a warning if we forced login.
-    if (!empty($cas_force_login)) {
-      drupal_set_message(t('The user account %name is not available on this site.', array('%name' => $cas_name)), 'error');
-    }
+    watchdog('casmmsync', 'Skipping sync because %name is not in one of the allowed groups.', array('%name' => $cas_name), WATCHDOG_NOTICE);
+
     return FALSE;
   }
 
