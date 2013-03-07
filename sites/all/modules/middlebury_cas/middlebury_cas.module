@@ -7,7 +7,7 @@
  */
 function middlebury_cas_cas_phpcas_alter() {
   // If we have a different URL to use for proxy-granting-ticket (PGT) storage.
-  if (variable_get("cas_fixed_callback_url", '')) {
+  if (variable_get('cas_proxy', 0) && variable_get("cas_fixed_callback_url", '')) {
     phpCAS::setFixedCallbackURL(variable_get("cas_fixed_callback_url", ''));
   }
 
