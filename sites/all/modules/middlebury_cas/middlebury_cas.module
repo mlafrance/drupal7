@@ -33,6 +33,41 @@ function middlebury_cas_cas_phpcas_alter() {
 }
 
 /**
+ * Implementation of hook_cas_user_alter()
+ *
+ * Filters users based on attributes
+ */
+function middlebury_cas_cas_user_alter(&$cas_user) {
+  // For now we will just hard-code our groups. we can make this a configurable
+  // setting if it needs to be different for different sites.
+  $allowed_groups = array(
+    'CN=institution,OU=General,OU=Groups,DC=middlebury,DC=edu',
+    'CN=Non-Institution Drupal,OU=MIDD,OU=web data,DC=middlebury,DC=edu',
+  );
+  // If the user is not in one of our allowed groups, set login to false.
+  if (empty($cas_user['attributes']['MemberOf'])) {
+    $cas_user['login'] = FALSE;
+    $cas_user['register'] = FALSE;
+    return;
+  }
+
+  $groups = $cas_user['attributes']['MemberOf'];
+  if (is_string($groups) && in_array($groups, $allowed_groups))
+    return; // They are good.
+
+  if (is_array($groups)) {
+    foreach ($groups as $group) {
+      if (in_array($group, $allowed_groups))
+        return; // They are good.
+    }
+  }
+
+  // User doesn't have the right attributes, not allowing login.
+  $cas_user['login'] = FALSE;
+  $cas_user['register'] = FALSE;
+}
+
+/**
  * Implements hook_form_alter().
  */
 function middlebury_cas_form_alter(&$form, &$form_state, $form_id) {
