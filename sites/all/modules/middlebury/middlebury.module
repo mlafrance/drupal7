@@ -430,6 +430,17 @@ function middlebury_menu() {
     'access callback' => TRUE,
   );
 
+  $items['admin/config/middlebury'] = array(
+    'title' => 'Middlebury Configuration',
+    'description' => 'Configuration settings for Middlebury modules',
+    'position' => 'right',
+    'weight' => -100,
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('administer site configuration'),
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+  );
+
   return $items;
 }
 

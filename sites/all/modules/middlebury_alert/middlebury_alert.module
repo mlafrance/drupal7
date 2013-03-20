@@ -9,7 +9,9 @@
  * Implements hook_menu().
  */
 function middlebury_alert_menu() {
-  $items['admin/settings/middlebury_alert'] = array(
+  $items = array();
+
+  $items['admin/config/middlebury/middlebury_alert'] = array(
     'title' => 'Middlebury Alert Settings',
     'description' => 'Configure settings for the Middlebury Alert system.',
     'page callback' => 'drupal_get_form',
@@ -17,6 +19,7 @@ function middlebury_alert_menu() {
     'access arguments' => array('administer middlebury_alert'),
     'type' => MENU_NORMAL_ITEM,
   );
+
   return $items;
 }
 

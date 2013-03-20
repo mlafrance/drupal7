@@ -9,19 +9,23 @@
  * Implements hook_menu().
  */
 function middlebury_go_menu() {
+  $items = array();
+
   $items['middlebury_go/search'] = array(
     'page callback' => 'middlebury_go_handle_query',
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
-  $items['admin/settings/middlebury_go'] = array(
-    'title' => 'Go Settings',
+
+  $items['admin/config/middlebury/middlebury_go'] = array(
+    'title' => 'Middlebury Go Settings',
     'description' => 'Configure settings for Go search.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('middlebury_go_admin_settings'),
     'access arguments' => array('administer go'),
     'type' => MENU_NORMAL_ITEM,
   );
+
   return $items;
 }
 
