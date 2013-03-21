@@ -100,3 +100,6 @@
 [submodule "sites/all/modules/transliteration"]
 	path = sites/all/modules/transliteration
 	url = http://git.drupal.org/project/transliteration.git
+[submodule "sites/all/modules/link"]
+	path = sites/all/modules/link
+	url = http://git.drupal.org/project/link.git
