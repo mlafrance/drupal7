@@ -1,0 +1,387 @@
+<?php
+
+/**
+ * Implements hook_node_info().
+ */
+function middlebury_google_calendar_node_info() {
+  return array(
+    'gcalendar' => array(
+      'name' => t('Google Calendar'),
+      'base' => 'middlebury_google_calendar',
+      'description' => t('Embed a Google Calendar in a content page.'),
+      'title_label' => t('Title'),
+      'locked' => TRUE,
+    ),
+  );
+}
+
+/**
+ * Implements hook_node_type_insert().
+ */
+function middlebury_google_calendar_node_type_insert($content_type) {
+  if ($content_type->type == 'gcalendar') {
+    $body_instance = node_add_body_field($content_type, t('Body'));
+
+    field_update_instance($body_instance);
+
+    $fields = array(
+      'gcalendar_gurl' => array(
+        'field_name' => 'gcalendar_gurl',
+        'type' => 'link_field',
+        'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      ),
+      'gcalendar_single' => array(
+        'field_name' => 'gcalendar_single',
+        'type' => 'list_boolean',
+        'cardinality' => 1,
+        'settings' => array(
+          'allowed_values' => array(
+            '0' => 'Show calendars separately',
+            '1' => 'Show all calendars on a single calendar',
+          ),
+        ),
+      ),
+      'gcalendar_ctitle' => array(
+        'field_name' => 'gcalendar_ctitle',
+        'type' => 'text',
+        'cardinality' => 1,
+      ),
+      'gcalendar_showtitle' => array(
+        'field_name' => 'gcalendar_showtitle',
+        'type' => 'list_boolean',
+        'cardinality' => 1,
+        'settings' => array(
+          'allowed_values' => array(
+            '0' => 'Do not show the title',
+            '1' => 'Show the title',
+          ),
+        ),
+      ),
+      'gcalendar_shownav' => array(
+        'field_name' => 'gcalendar_shownav',
+        'type' => 'list_boolean',
+        'cardinality' => 1,
+        'settings' => array(
+          'allowed_values' => array(
+            '0' => 'Do not show navigation buttons',
+            '1' => 'Show navigation buttons',
+          ),
+        ),
+      ),
+      'gcalendar_showdate' => array(
+        'field_name' => 'gcalendar_showdate',
+        'type' => 'list_boolean',
+        'cardinality' => 1,
+        'settings' => array(
+          'allowed_values' => array(
+            '0' => 'Do not show date',
+            '1' => 'Show date',
+          ),
+        ),
+      ),
+      'gcalendar_showprint' => array(
+        'field_name' => 'gcalendar_showprint',
+        'type' => 'list_boolean',
+        'cardinality' => 1,
+        'settings' => array(
+          'allowed_values' => array(
+            '0' => 'Do not show print icon',
+            '1' => 'Show print icon',
+          ),
+        ),
+      ),
+      'gcalendar_showtabs' => array(
+        'field_name' => 'gcalendar_showtabs',
+        'type' => 'list_boolean',
+        'cardinality' => 1,
+        'settings' => array(
+          'allowed_values' => array(
+            '0' => 'Do not show tabs',
+            '1' => 'Show tabs',
+          ),
+        ),
+      ),
+      'gcalendar_showcalendars' => array(
+        'field_name' => 'gcalendar_showcalendars',
+        'type' => 'list_boolean',
+        'cardinality' => 1,
+        'settings' => array(
+          'allowed_values' => array(
+            '0' => 'Do not show calendar list',
+            '1' => 'Show calendar list',
+          ),
+        ),
+      ),
+      'gcalendar_showtz' => array(
+        'field_name' => 'gcalendar_showtz',
+        'type' => 'list_boolean',
+        'cardinality' => 1,
+        'settings' => array(
+          'allowed_values' => array(
+            '0' => 'Do not show time zone',
+            '1' => 'Show time zone',
+          ),
+        ),
+      ),
+      'gcalendar_view' => array(
+        'field_name' => 'gcalendar_view',
+        'type' => 'list_text',
+        'cardinality' => 1,
+        'settings' => array(
+          'allowed_values' => array(
+            'WEEK' => 'Week',
+            'MONTH' => 'Month',
+            'AGENDA' => 'Agenda',
+          ),
+        ),
+      ),
+      'gcalendar_width' => array(
+        'field_name' => 'gcalendar_width',
+        'type' => 'text',
+        'cardinality' => 1,
+      ),
+      'gcalendar_height' => array(
+        'field_name' => 'gcalendar_height',
+        'type' => 'text',
+        'cardinality' => 1,
+      ),
+      'gcalendar_wkst' => array(
+        'field_name' => 'gcalendar_wkst',
+        'type' => 'list_integer',
+        'cardinality' => 1,
+        'settings' => array(
+          'allowed_values' => array(
+            '1' => 'Sunday',
+            '2' => 'Monday',
+            '7' => 'Saturday',
+          ),
+        ),
+      ),
+      'gcalendar_color' => array(
+        'field_name' => 'gcalendar_color',
+        'type' => 'text',
+        'cardinality' => 1,
+      ),
+      'gcalendar_bgcolor' => array(
+        'field_name' => 'gcalendar_bgcolor',
+        'type' => 'text',
+        'cardinality' => 1,
+      ),
+    );
+
+    $instances = array(
+      'gcalendar_gurl' => array(
+        'field_name' => 'gcalendar_gurl',
+        'label' => t('Google Address(es)'),
+        'entity_type' => 'node',
+        'bundle' => 'gcalendar',
+        'required' => TRUE,
+        'widget' => array(
+          'type' => 'link_field',
+        ),
+      ),
+      'gcalendar_single' => array(
+        'field_name' => 'gcalendar_single',
+        'label' => t('Combine Calendars'),
+        'entity_type' => 'node',
+        'bundle' => 'gcalendar',
+        'required' => FALSE,
+        'widget' => array(
+          'type' => 'options_onoff',
+        ),
+      ),
+      'gcalendar_ctitle' => array(
+        'field_name' => 'gcalendar_ctitle',
+        'label' => t('Calendar Title'),
+        'entity_type' => 'node',
+        'bundle' => 'gcalendar',
+        'required' => FALSE,
+        'widget' => array(
+          'type' => 'text_textfield',
+        ),
+      ),
+      'gcalendar_showtitle' => array(
+        'field_name' => 'gcalendar_showtitle',
+        'label' => t('Show Title'),
+        'entity_type' => 'node',
+        'bundle' => 'gcalendar',
+        'required' => FALSE,
+        'widget' => array(
+          'type' => 'options_onoff',
+        ),
+      ),
+      'gcalendar_shownav' => array(
+        'field_name' => 'gcalendar_shownav',
+        'label' => t('Show Navigation Buttons'),
+        'entity_type' => 'node',
+        'bundle' => 'gcalendar',
+        'required' => FALSE,
+        'widget' => array(
+          'type' => 'options_onoff',
+        ),
+      ),
+      'gcalendar_showdate' => array(
+        'field_name' => 'gcalendar_showdate',
+        'label' => t('Show Date'),
+        'entity_type' => 'node',
+        'bundle' => 'gcalendar',
+        'required' => FALSE,
+        'widget' => array(
+          'type' => 'options_onoff',
+        ),
+      ),
+      'gcalendar_showprint' => array(
+        'field_name' => 'gcalendar_showprint',
+        'label' => t('Show Print Icon'),
+        'entity_type' => 'node',
+        'bundle' => 'gcalendar',
+        'required' => FALSE,
+        'widget' => array(
+          'type' => 'options_onoff',
+        ),
+      ),
+      'gcalendar_showtabs' => array(
+        'field_name' => 'gcalendar_showtabs',
+        'label' => t('Show Tabs'),
+        'entity_type' => 'node',
+        'bundle' => 'gcalendar',
+        'required' => FALSE,
+        'widget' => array(
+          'type' => 'options_onoff',
+        ),
+      ),
+      'gcalendar_showcalendars' => array(
+        'field_name' => 'gcalendar_showcalendars',
+        'label' => t('Show Calendar List'),
+        'entity_type' => 'node',
+        'bundle' => 'gcalendar',
+        'required' => FALSE,
+        'widget' => array(
+          'type' => 'options_onoff',
+        ),
+      ),
+      'gcalendar_showtz' => array(
+        'field_name' => 'gcalendar_showtz',
+        'label' => t('Show Time Zone'),
+        'entity_type' => 'node',
+        'bundle' => 'gcalendar',
+        'required' => FALSE,
+        'default_value' => array(
+          0 => array(
+            'value' => '1',
+          ),
+        ),
+        'widget' => array(
+          'type' => 'options_onoff',
+        ),
+      ),
+      'gcalendar_view' => array(
+        'field_name' => 'gcalendar_view',
+        'label' => t('Default View'),
+        'entity_type' => 'node',
+        'bundle' => 'gcalendar',
+        'required' => TRUE,
+        'default_value' => array(
+          0 => array(
+            'value' => 'MONTH',
+          ),
+        ),
+        'widget' => array(
+          'type' => 'options_select',
+        ),
+      ),
+      'gcalendar_width' => array(
+        'field_name' => 'gcalendar_width',
+        'label' => t('Width'),
+        'entity_type' => 'node',
+        'bundle' => 'gcalendar',
+        'required' => TRUE,
+        'default_value' => array(
+          0 => array(
+            'value' => '650',
+          ),
+        ),
+        'widget' => array(
+          'type' => 'text_textfield',
+        ),
+      ),
+      'gcalendar_height' => array(
+        'field_name' => 'gcalendar_height',
+        'label' => t('Height'),
+        'entity_type' => 'node',
+        'bundle' => 'gcalendar',
+        'required' => TRUE,
+        'default_value' => array(
+          0 => array(
+            'value' => '500',
+          ),
+        ),
+        'widget' => array(
+          'type' => 'text_textfield',
+        ),
+      ),
+      'gcalendar_wkst' => array(
+        'field_name' => 'gcalendar_wkst',
+        'label' => t('Week Starts On'),
+        'entity_type' => 'node',
+        'bundle' => 'gcalendar',
+        'required' => TRUE,
+        'default_value' => array(
+          0 => array(
+            'value' => '1',
+          ),
+        ),
+        'widget' => array(
+          'type' => 'options_select',
+        ),
+      ),
+      'gcalendar_color' => array(
+        'field_name' => 'gcalendar_color',
+        'label' => t('Text Color'),
+        'description' => t('Use hex color code'),
+        'entity_type' => 'node',
+        'bundle' => 'gcalendar',
+        'required' => TRUE,
+        'default_value' => array(
+          0 => array(
+            'value' => 'AB8B00',
+          ),
+        ),
+        'widget' => array(
+          'type' => 'text_textfield',
+        ),
+      ),
+      'gcalendar_bgcolor' => array(
+        'field_name' => 'gcalendar_bgcolor',
+        'label' => t('Background Color'),
+        'description' => t('Use hex color code'),
+        'entity_type' => 'node',
+        'bundle' => 'gcalendar',
+        'required' => TRUE,
+        'default_value' => array(
+          0 => array(
+            'value' => 'FFFFFF',
+          ),
+        ),
+        'widget' => array(
+          'type' => 'text_textfield',
+        ),
+      ),
+    );
+
+    foreach ($fields as $field) {
+      field_create_field($field);
+    }
+
+    foreach ($instances as $instance) {
+      field_create_instance($instance);
+    }
+  }
+}
+
+/**
+ * Implements hook_form().
+ */
+function middlebury_google_calendar_form($node, $form_state) {
+  return node_content_form($node, $form_state);
+}
