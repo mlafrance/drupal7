@@ -102,4 +102,4 @@
 	url = http://git.drupal.org/project/transliteration.git
 [submodule "sites/all/modules/link"]
 	path = sites/all/modules/link
-	url = http://git.drupal.org/project/link.git
+	url = git://github.com/middlebury/drupal-link.git
