@@ -1,0 +1,176 @@
+<?php
+
+define('MIDDLEBURY_MIDDLAB_MODULE_PATH', drupal_get_path('module', 'middlebury_middlab'));
+define('MIDDLEBURY_MIDDLAB_SITE_URL', 'http://sites.middlebury.edu/middlab/xmlrpc.php');
+define('MIDDLEBURY_MIDDLAB_SITE_ID', '1433');
+
+/**
+ * Implements hook_node_info().
+ */
+function middlebury_middlab_node_info() {
+  return array(
+    'middlab' => array(
+      'name' => t('MiddLab Widget'),
+      'base' => 'middlebury_middlab',
+      'description' => t('A widget to place in your sidebar to show MiddLab projects'),
+      'title_label' => t('Title'),
+      'locked' => TRUE,
+    ),
+  );
+}
+
+/**
+ * Implements hooke_node_type_insert().
+ */
+function middlebury_middlab_node_type_insert($content_type) {
+  if ($content_type->type == 'middlab') {
+    $fields = array(
+      'middlab_categories' => array(
+        'field_name' => 'middlab_categories',
+        'type' => 'list_text',
+        'cardinality' => -1,
+        'settings' => array(
+          'allowed_values_function' => 'middlebury_middlab_allowed_values',
+        ),
+      ),
+    );
+
+    $instances = array(
+      'middlab_categories' => array(
+        'field_name' => 'middlab_categories',
+        'label' => t('Categories'),
+        'entity_type' => 'node',
+        'bundle' => 'middlab',
+        'required' => FALSE,
+        'widget' => array(
+          'type' => 'options_buttons',
+        ),
+      ),
+    );
+
+    foreach ($fields as $field) {
+      field_create_field($field);
+    }
+
+    foreach ($instances as $instance) {
+      field_create_instance($instance);
+    }
+  }
+}
+
+/**
+ * Implements hook_form().
+ */
+function middlebury_middlab_form($node, $form_state) {
+  return node_content_form($node, $form_state);
+}
+
+/**
+ * Callback function that answers a list of allowed values for the middlab_categories field.
+ *
+ * @return array
+ *   A list of allowed values for the middlab_categories field.
+ */
+function middlebury_middlab_allowed_values() {
+  $categories = xmlrpc(MIDDLEBURY_MIDDLAB_SITE_URL, array(
+    'wp.getCategories' => array(
+      MIDDLEBURY_MIDDLAB_SITE_ID,
+      WORDPRESS_USER,
+      WORDPRESS_PASS
+    )
+  ));
+  $options = $parents = array();
+
+  foreach ($categories as $category) {
+    if ($category['parentId'] != 0) {
+      $options[$category['parentId']][$category['rssUrl']] = $category['description'];
+    }
+    else {
+      $parents[$category['categoryId']] = $category['description'];
+    }
+  }
+  ksort($options);
+
+  $values = array();
+  foreach ($options as $parent => $list) {
+    asort($list);
+    foreach ($list as $catid => $item) {
+      $values[$catid] = (!empty($parents[$parent]) ? $parents[$parent] : '') . ': ' . $item;
+    }
+  }
+
+  return $values;
+}
+
+/**
+ * Implements hook_theme_registry_alter().
+ */
+function middlebury_middlab_theme_registry_alter(&$theme_registry) {
+  $theme_registry_copy = $theme_registry;
+  _theme_process_registry($theme_registry_copy, 'phptemplate', 'theme_engine', 'middlebury_middlab_theme', MIDDLEBURY_MIDDLAB_MODULE_PATH);
+
+  $theme_registry += array_diff_key($theme_registry_copy, $theme_registry);
+
+  $hooks = array('node');
+  foreach ($hooks as $h) {
+    if (!isset($theme_registry[$h]['theme paths'])) {
+      $theme_registry[$h]['theme paths'] = array();
+    }
+
+    if (is_array($theme_registry[$h]['theme paths'])) {
+      $first_element = array_shift($theme_registry[$h]['theme paths']);
+      if ($first_element) {
+        array_unshift($theme_registry[$h]['theme paths'], $first_element, MIDDLEBURY_MIDDLAB_MODULE_PATH);
+      }
+      else {
+        array_unshift($theme_registry[$h]['theme paths'], MIDDLEBURY_MIDDLAB_MODULE_PATH);
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess_HOOK().
+ */
+function middlebury_middlab_preprocess_node(&$vars) {
+  if ($vars['node']->type == 'middlab') {
+    drupal_add_css(MIDDLEBURY_MIDDLAB_MODULE_PATH . '/middlebury_middlab.css');
+
+    $wrapper = $vars['node'];
+    try {
+      $wrapper = entity_metadata_wrapper('node', $vars['node']);
+    } catch (UnexpectedValueException $e) {
+    }
+
+    $categories = $wrapper->middlab_categories->value();
+    if (!empty($categories)) {
+      // Be sure to prevent infinite loops if no posts are available.
+      // Since we may have to try several random categories before finding
+      // one with posts, set a sensible maximum number of tries.
+      $i = 0;
+      $max = count($categories) * 10;
+      while ((!isset($post) || !$post) && $i < $max) {
+        $i++;
+        $category = $categories[array_rand($categories)];
+
+        if (empty($category))
+          continue;
+
+        $feed = middlebury_monster_menus_get_simplepie($category);
+        if ($feed === FALSE)
+          continue;
+
+        $posts = $feed->get_items();
+        $post = $posts[array_rand($posts)];
+        if ($post) {
+          $title = $post->get_item_tags('', 'title');
+          $link = $post->get_item_tags('', 'link');
+          $description = $post->get_item_tags('', 'description');
+          $vars['middlab_title'] = $title[0]['data'];
+          $vars['middlab_link'] = $link[0]['data'];
+          $vars['middlab_description'] = $description[0]['data'];
+        }
+      }
+    }
+  }
+}
