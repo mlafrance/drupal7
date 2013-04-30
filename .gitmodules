@@ -103,3 +103,6 @@
 [submodule "sites/all/modules/link"]
 	path = sites/all/modules/link
 	url = git://github.com/middlebury/drupal-link.git
+[submodule "sites/all/modules/bundle_copy"]
+	path = sites/all/modules/bundle_copy
+	url = http://git.drupal.org/project/bundle_copy.git
