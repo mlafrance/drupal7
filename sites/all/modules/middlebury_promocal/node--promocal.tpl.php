@@ -1,3 +1,9 @@
+<?php
+/**
+ * @file
+ * A default template file for the Promotional Calendar node.
+ */
+?>
 <article class="<?php print $classes; ?>">
   <header>
     <h1><?php print $title; ?></h1>
