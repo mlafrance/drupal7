@@ -1,3 +1,9 @@
+<?php
+/**
+ * @file
+ * A default template file for the MiddLab Widget node.
+ */
+?>
 <article class="<?php print $classes . ' c' . rand(1, 14); ?>">
   <header>
     <h1><a href="<?php print $middlab_link; ?>"><?php print $middlab_title; ?></a></h1>
