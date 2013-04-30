@@ -1,0 +1,397 @@
+<?php
+
+/**
+ * Implements hooke_menu().
+ */
+function middlebury_story_module() {
+  $items = array();
+
+  $items['middlebury_story/submit'] = array(
+    'page callback' => 'middlebury_story_handle_post',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  $items['middlebury_story/get'] = array(
+    'page callback' => 'middlebury_story_get_stories',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  $items['middlebury_story/tags'] = array(
+    'page callback' => 'middlebury_story_get_tags',
+    'access calback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  $items['middlebury_story/colors'] = array(
+    'page callback' => 'middlebury_story_get_colors',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  $items['middlebury_story/feed'] = array(
+    'page callback' => 'middlebury_story_get_feed',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/config/middlebury/middlebury_story'] = array(
+    'title' => t('Story Submission Settings'),
+    'description' => 'Configure settings for the Submit a Story form.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('middlebury_story_admin_settings'),
+    'access arguments' => array('administer middlebury_story'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+/**
+ * Provide settings page.
+ *
+ * @return array
+ */
+function middlebury_story_admin_settings() {
+  $form['mail'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Email Notification Settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+  $form['mail']['middlebury_story_recipients'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Recipients'),
+    '#default_value' => variable_get('middlebury_story_recipients', ''),
+    '#size' => 75,
+    '#description' => t('An <a href="http://www.faqs.org/rfcs/rfc2822">RFC 2822</a> complient email address string. <br/><br/>Examples: <ul><li>user@example.com</li><li>user@example.com, anotheruser@example.com</li><li>User &lt;user@example.com&gt;</li><li>User &lt;user@example.com&gt;, Another User &lt;anotheruser@example.com&gt;</li></ul>'),
+  );
+  $form['mail']['middlebury_story_subject'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Subject'),
+    '#default_value' => variable_get('middlebury_story_subject', middlebury_story_default_subject()),
+    '#size' => 75,
+    '#description' => t('The subject that the submission notification email will use. @name, @email, @story, and @tags will be replaced with the equivalent submitted values.'),
+  );
+  $form['mail']['middlebury_story_body'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Body'),
+    '#default_value' => variable_get('middlebury_story_body', middlebury_story_default_body()),
+    '#cols' => 75,
+    '#rows' => 10,
+    '#description' => t('The body that the submission notification email will use. @name, @email, @story, and @tags will be replaced with the equivalent submitted values. Note that the @story will be word-wrapped to 75 characters.'),
+  );
+
+  $form['form'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Form Display Settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+  $form['form']['middlebury_story_bar_initial_offset'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Bar Offset'),
+    '#default_value' => variable_get('middlebury_story_bar_initial_offset', 40),
+    '#size' => 5,
+    '#maxlength' => 5,
+    '#description' => t('The number of normal stories to place before the first "Submit Your Story" bar. Default is 40.'),
+  );
+  $form['form']['middlebury_story_bar_frequency'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Bar Frequency'),
+    '#default_value' => variable_get('middlebury_story_bar_frequency', 50),
+    '#size' => 5,
+    '#maxlength' => 5,
+    '#description' => t('The number of normal stories to place between each "Submit Your Story" bar. Default is 50.'),
+  );
+
+  $form['waveform'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Waveform Settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+  $form['waveform']['middlebury_story_open_story'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Open Story Nids'),
+    '#default_value' => variable_get('middlebury_story_open_story', ''),
+    '#size' => 50,
+    '#maxlength' => 255,
+    '#description' => t(middlebury_story_get_open_stories()),
+  );
+  $form['waveform']['middlebury_story_open_offset'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Open Story Offset'),
+    '#default_value' => variable_get('middlebury_story_open_offset', ''),
+    '#size' => 5,
+    '#maxlength' => 5,
+    '#description' => t('The number of stories to the left of the story that will be open when the homepage initially loads'),
+  );
+  $form['waveform']['middlebury_story_waveform_colors'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Waveform Colors'),
+    '#cols' => 50,
+    '#rows' => 5,
+    '#default_value' => variable_get('middlebury_story_waveform_colors', '#c28c5d,#8b7326,#c4af81,#c28c5d,#de6824,#8b7326,#c4af81,#c8a802,#7a8ea2,#bec5bb,#c09f77,#a5aeae,#405b4d,#0055af,#3e5ad9,#0c78ff,#65adf2,#a1d1f6,#5eb5ff,#689b81'),
+    '#description' => t('Comma separated list of hex codes for the colors to use on the homepage stories.'),
+  );
+
+  $form['waveform_override'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Override Homepage Waveform'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#description' => t('Rather than use the Home tag in the Story taxonomy, show stories with a different tag'),
+  );
+  $form['waveform_override']['middlebury_story_override_tag'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Alternate Waveform Tag'),
+    '#default_value' => variable_get('middlebury_story_override_tag', ''),
+    '#size' => 50,
+    '#maxlength' => 255,
+    '#description' => t('A taxonomy term to termporarily use for the list of homepage stories'),
+    '#autocomplete_path' => 'middlebury_story/tags',
+  );
+  $form['waveform_stories']['middlebury_story_override_start'] = array(
+    '#type' => 'date',
+    '#title' => t('Override Start Date'),
+    '#default_value' => variable_get('middlebury_story_override_start', array()),
+    '#description' => t('Start the override on this day, at midnight'),
+  );
+  $form['waveform_stories']['middlebury_story_override_end'] = array(
+    '#type' => 'date',
+    '#title' => t('Override End Date'),
+    '#default_value' => variable_get('middlebury_story_override_end', array()),
+    '#description' => t('End the override on this day, at midnight'),
+  );
+
+  $form['#submit'][] = 'middlebury_story_admin_settings_submit';
+  return system_settings_form($form);
+}
+
+/**
+ * Answers an HTML list of the currently open stories ordered by their node id.
+ *
+ * @return string
+ *   An HTML list of the currently open stories ordered by their node id.
+ */
+function middlebury_story_get_open_stories() {
+  $stories = variable_get('middlebury_story_open_story', '');
+  $description = 'Comma separated list of node ids of the stories that will be open when the homepage initially loads. Current open stories:<ul>';
+  $stories = preg_split('/,/', $stories);
+  sort($stories);
+  foreach ($stories as $story) {
+    $node = node_load($story);
+    $description .= '<li>' . l($story . ' - ' . $node->title, 'node/' . $story) . '</li>';
+  }
+  $description .= '</ul>';
+
+  return $description;
+}
+
+/**
+ * Implements hook_form_submit().
+ */
+function middlebury_story_admin_settings_submit(&$form_id, &$form_value) {
+  _middlebury_story_clear_cache();
+}
+
+/**
+ * Implements hook_permission().
+ */
+function middlebury_story_permission() {
+  return array('administer middlebury_story');
+}
+
+/**
+ * Handle the POSTing of a new story.
+ */
+function middlebury_story_handle_post() {
+  drupal_add_http_header('Content-Type', 'text/plain');
+
+  try {
+    print middlebury_story_send(trim(check_plain($_POST['name'])), trim(check_plain($_POST['email'])), trim(filter_xss($_POST['story'])), trim(check_plain($_POST['tags'])));
+    watchdog('middlebury_story', 'Story submitted by @name (@email).', array('@name' => $_POST['name'], '@email' => $_POST['email']), WATCHDOG_INFO);
+  } catch (InvalidArgumentException $e) {
+    drupal_add_http_header('Status', '400 Bad Request');
+    print $e->getMessage();
+    watchdog('middlebury_story', $e->getMessage(), array(), WATCHDOG_NOTICE);
+  } catch (Exception $e) {
+    drupal_add_http_header('Status', '500 Internal Server Error');
+    print $e->getMessage();
+    watchdog('middlebury_story', $e->getMessage(), array(), WATCHDOG_ERROR);
+  }
+}
+
+/**
+ * Save a story.
+ * Exceptions are thrown on error.
+ *
+ * @param string $name
+ *   The name of the person who submitted the story.
+ * @param string $email
+ *   The email address of the person who submitted the story.
+ * @param string $story
+ *   A short description of the story.
+ * @param string $tags
+ *   Tags to associate with the story.
+ *
+ * @return string
+ *   A status message to display to the user.
+ */
+function middlebury_story_send($name, $email, $story, $tags) {
+  if (!preg_match('/[a-z]+/i', $name))
+    throw new InvalidArgumentException(t('You must specify a name.'));
+  if (!preg_match('/^[A-Z0-9._%+-]+@(?:[A-Z0-9-]+\.)+[A-Z]{2,4}$/i', $email))
+    throw new InvalidArgumentException(t('You must specify a valid email address.'));
+  if (!preg_match('/[a-z]+/i', $story))
+    throw new InvalidArgumentException(t('You must specify a story.'));
+
+  $from = (string)variable_get('middlebury_story_from', '');
+  $recipients = (string)variable_get('middlebury_story_recipients', '');
+  $subject = (string)variable_get('middlebury_story_subject', middlebury_story_default_subject());
+  $body = (string)variable_get('middlebury_story_body', middlebury_story_default_body());
+
+  if (!strlen(trim($recipients)))
+    throw new UnexpectedValueException("Submission failed, no recipients configured.");
+
+  $subject = t($subject, array('@name' => $name, '@email' => $email, '@story' => drupal_substr($story, 0, 25) . '...', '@tags' => $tags));
+  $body = wordwrap(t($body, array('@name' => $name, '@email' => $email, '@story' => $story, '@tags' => $tags)));
+
+  if (!mail($recipients, $subject, $body))
+    throw new UnexpectedValueException("An internal error has occurred in email sending.");
+
+  return t("Thank you @name, your story has been submitted successfully.", array('@name' => $name));
+}
+
+/**
+ * Answer the default subject for a submission.
+ *
+ * @return string
+ *   The default subject for a submission.
+ */
+function middlebury_story_default_subject() {
+  return 'Story Submission from @name';
+}
+
+/**
+ * Answer the default body for a story.
+ *
+ * @return string
+ */
+function middlebury_story_default_body() {
+  return
+"Name:
+
+    @name
+
+Email:
+
+    @email
+
+Tags:
+
+    @tags
+
+Story:
+
+@story
+";
+}
+
+/**
+ * Answer a JSON string of colors.
+ *
+ * @return string
+ *   A JSON string of colors.
+ */
+function middlebury_story_get_colors() {
+  drupal_add_http_header('Access-Control-Allow-Origin', '*');
+  print drupal_json(explode(',', trim(variable_get('middlebury_story_waveform_colors', '#c28c5d,#8b7326,#c4af81,#c28c5d,#de6824,#8b7326,#c4af81,#c8a802,#7a8ea2,#bec5bb,#c09f77,#a5aeae,#405b4d,#0055af,#3e5ad9,#0c78ff,#65adf2,#a1d1f6,#5eb5ff,#689b81'))));
+}
+
+/**
+ * Answer an array of stories.
+ *
+ * @return string
+ *   An array of stories.
+ */
+function middlebury_story_get_stories($term) {
+  $term = $term ? $term : 'Home';
+  $vid = 11;
+
+  $cache = cache_get('waveform_stories_' . $term);
+  if (!empty($cache->data)) {
+    print unserialize($cache->data);
+  }
+  else {
+    $waveform_stories = array();
+    $colors = explode(',', variable_get('middlebury_story_waveform_colors', '#c28c5d,#8b7326,#c4af81,#c28c5d,#de6824,#8b7326,#c4af81,#c8a802,#7a8ea2,#bec5bb,#c09f77,#a5aeae,#405b4d,#0055af,#3e5ad9,#0c78ff,#65adf2,#a1d1f6,#5eb5ff,#689b81'));
+    $open_stories = array();
+
+    $override_tag = variable_get('middlebury_story_override_tag', '');
+    $override_start = variable_get('middlebury_story_override_start', '');
+    $override_end = variable_get('middlebury_story_override_end', '');
+
+    if ($term == 'Home' && $override_tag && $override_start && $override_end && strtotime('now') >= strtotime($override_start['month'] . '/' . $override_start['day'] . '/' . $override_start['year']) && strtotime('now') <= strtotime($override_end['month'] . '/' . $override_end['day'] . '/' . $override['year'])) {
+      $term = $override_tag;
+      $vid = '1';
+    }
+  }
+}
+
+/**
+ * Answer an array of tags.
+ *
+ * @return array
+ *   An array of tags.
+ */
+function middlebury_story_get_tags($string) {
+  $tags = array();
+  if ($string) {
+    foreach (taxonomy_get_tree(1) as $term) {
+      if (preg_match("/$string/i", $term->name)) {
+        $tags[$term->name] = $term->name;
+      }
+    }
+  }
+
+  return drupal_json($tags);
+}
+
+/**
+ * Implements hook_node_delete().
+ */
+function middlebury_story_node_delete($node) {
+  if ($node->type == 'story') {
+    _submit_story_clear_cache();
+  }
+}
+
+/**
+ * Implements hook_node_insert().
+ */
+function middlebury_story_node_insert($node) {
+  if ($node->type == 'story') {
+    _submit_story_clear_cache();
+  }
+}
+
+/**
+ * Implements hook_node_update().
+ */
+function middlebury_story_node_update($node) {
+  if ($node->type == 'story') {
+    _submit_story_clear_cache();
+  }
+}
+
+/**
+ * Helpder function to clear the story cache.
+ */
+function _submit_story_clear_cache() {
+  // Clear the Drupal cache
+  $terms = taxonomy_get_tree(11);
+  for ($i = 0; $i < count($terms); $i++) {
+    cache_clear_all('waveform_stories_' . $terms[$i]->name, 'cache');
+  }
+
+  // Clear the Varnish cache of the stories JSON and XML feeds
+  middlebury_purge_varnish_url('^/(middlebury_stories_feed|middlebury_story)/');
+}
