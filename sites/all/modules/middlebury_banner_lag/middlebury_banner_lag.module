@@ -1,0 +1,81 @@
+<?php
+
+define('MIDDLEBURY_BANNER_LAG_MODULE_PATH', drupal_get_path('module', 'middlebury_banner_lag'));
+
+/**
+ * Implements hook_block_info().
+ */
+function middlebury_banner_lag_block_info() {
+  $blocks['apply_lag'] = array(
+    'info' => t('Middlebury Banner Apply Lag'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+
+  $blocks['finish_lag'] = array(
+    'info' => t('Middlebury Banner Finish Lag'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_veiw().
+ */
+function middlebury_banner_lag_block_view($delta = '') {
+  $GLOBALS['conf']['cache'] = FALSE;
+
+  try {
+    $conn = new PDO('oci:dbname=' . MIDDLEBURY_BANNER_SNAP, MIDDLEBURY_BANNER_USER, MIDDLEBURY_BANNER_PASS);
+    $column = drupal_strtoupper($delta);
+
+    $comm = $conn->prepare("SELECT " . $column . " FROM MIDD_DBA.DATAGUARD_STATS ORDER BY CAPTURE_DATE DESC");
+    $comm->execute();
+    $row = $comm->fetch();
+    $parts = preg_split('/[\s:]/', trim($row[$column]));
+    if (!empty($parts[1]) && !empty($parts[2]) && !empty($parts[3])) {
+      $block['content'] = (float)$parts[1] . 'h ' . (float)$parts[2] . 'm ' . (float)$parts[3] . 's';
+    }
+
+    return $block;
+  } catch (Exception $ex) {
+    // An Oracle error occurred.
+  }
+}
+
+/**
+ * Implements hook_theme_registry_alter().
+ */
+function middlebury_banner_lag_theme_registry_alter(&$theme_registry) {
+  $theme_registry_copy = $theme_registry;
+  _theme_process_registry($theme_registry_copy, 'phptemplate', 'theme_engine', 'middlebury_banner_lag_theme', MIDDLEBURY_BANNER_LAG_MODULE_PATH);
+
+  $theme_registry += array_diff_key($theme_registry_copy, $theme_registry);
+
+  $hooks = array('block');
+  foreach ($hooks as $h) {
+    if (!isset($theme_registry[$h]['theme paths'])) {
+      $theme_registry[$h]['theme paths'] = array();
+    }
+
+    if (is_array($theme_registry[$h]['theme paths'])) {
+      $first_element = array_shift($theme_registry[$h]['theme paths']);
+      if ($first_element) {
+        array_unshift($theme_registry[$h]['theme paths'], $first_element, MIDDLEBURY_BANNER_LAG_MODULE_PATH);
+      }
+      else {
+        array_unshift($theme_registry[$h]['theme paths'], MIDDLEBURY_BANNER_LAG_MODULE_PATH);
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_coder_review_ignore().
+ */
+function middlebury_banner_lag_coder_review_ignore() {
+  return array(
+    'path' => drupal_get_path('module', 'middlebury_banner_lag'),
+    'line prefix' => drupal_get_path('module', 'middlebury_banner_lag'),
+  );
+}
