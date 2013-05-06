@@ -370,11 +370,10 @@ function middlebury_get_color_scheme($mmtid) {
     foreach ($results as $record) {
       if ($record->color_scheme != '0') {
         $result = $record->color_scheme;
-        break;
       }
-    }
 
-    $mmtid = $data->parent;
+      $mmtid = $record->parent;
+    }
   }
 
   if ($result == NULL) $result = 'basic';
