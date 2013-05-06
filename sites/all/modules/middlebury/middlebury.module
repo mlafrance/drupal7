@@ -705,6 +705,15 @@ function middlebury_purge_varnish_url($regex) {
 }
 
 /**
+ * Implements hook_rdf_namespaces().
+ */
+function middlebury_rdf_namespaces() {
+  return array(
+    'fb' => 'http://www.facebook.com/2008/fbml',
+  );
+}
+
+/**
  * Menu callback to redirect you to a personal home page.
  */
 function middlebury_site_goto($username) {
