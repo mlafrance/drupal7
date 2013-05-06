@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Install hooks for the Midd Module. Adds a color_scheme field to mm_tree.
+ */
+
+/**
  * Implements hook_install().
  */
 function middlebury_install() {

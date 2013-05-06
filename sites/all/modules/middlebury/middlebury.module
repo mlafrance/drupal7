@@ -193,6 +193,9 @@ function middlebury_block_view($delta = '') {
   }
 }
 
+/**
+ * Implements hook_content_edit_submit().
+ */
 function middlebury_content_edit_submit($form_id, &$form_values) {
   db_query("UPDATE {mm_tree} SET color_scheme = '%s' WHERE mmtid = %d",
     array($form_values['values']['color_scheme'], $form_values['values']['path']));
@@ -268,6 +271,9 @@ function middlebury_form_alter(&$form, &$form_state) {
   }
 }
 
+/**
+ * Implements hook_form_FORM_alter().
+ */
 function middlebury_form_mm_ui_content_edit_alter(&$form, &$form_state) {
   $schemes = array(
     '' => 'Use scheme from parent',
@@ -290,14 +296,23 @@ function middlebury_form_mm_ui_content_edit_alter(&$form, &$form_state) {
   $form['#submit'][] = 'middlebury_content_edit_submit';
 }
 
+/**
+ * Implements hook_form_FORM_alter().
+ */
 function middlebury_form_webform_components_form_alter(&$form, &$form_state) {
   drupal_add_css(drupal_get_path('module', 'middlebury') . '/middlebury.css');
 }
 
+/**
+ * Implements hook_form_FORM_alter().
+ */
 function middlebury_form_webform_emails_form_alter(&$form, &$form_state) {
   drupal_add_css(drupal_get_path('module', 'middlebury') . '/middlebury.css');
 }
 
+/**
+ * Implements hook_form_FORM_alter().
+ */
 function middlebury_form_views_exposed_form_alter(&$form, &$form_state) {
   if ($form['submit']['#id'] == 'edit-submit-cid-records' ||
       $form['submit']['#id'] == 'edit-submit-uro-records' ||
@@ -337,13 +352,22 @@ function middlebury_form_views_exposed_form_alter(&$form, &$form_state) {
   }
 }
 
+/**
+ * Answer the name of a color scheme for the page.
+ *
+ * @param $mmtid
+ *   The Monster Menus Tree ID of the page to look up.
+ *
+ * @return string
+ *   The CSS class name of a color scheme to add to the body element.
+ */
 function middlebury_get_color_scheme($mmtid) {
   $result = NULL;
 
   while (is_numeric($mmtid) && $result == NULL && $mmtid != "1") {
     $results = db_query("SELECT color_scheme, parent FROM {mm_tree} WHERE mmtid = :mmtid", array(':mmtid' => $mmtid));
 
-    foreach($results as $record) {
+    foreach ($results as $record) {
       if ($record->color_scheme != '0') {
         $result = $record->color_scheme;
         break;
@@ -384,6 +408,15 @@ function middlebury_get_directory($uid) {
   return $record;
 }
 
+/**
+ * Answer the URL chunk of the top-level of the current part of the site tree.
+ *
+ * @param $mmtid
+ *   The Monster Menus Tree ID of the current page.
+ *
+ * @return string
+ *   The URL chunk of the current top-level page, e.g. 'academics'.
+ */
 function middlebury_get_toplevel($mmtid) {
   if (empty($_REQUEST['q']))
     return '';
@@ -466,6 +499,9 @@ function middlebury_news_image_submit($form_id, &$form_values) {
   }
 }
 
+/**
+ * Implements hook_preprocess_node().
+ */
 function middlebury_preprocess_node(&$vars) {
 
   // Run content-type-specific preprocess functions
@@ -476,6 +512,9 @@ function middlebury_preprocess_node(&$vars) {
 
 }
 
+/**
+ * Implements hook_preprocess_node().
+ */
 function middlebury_preprocess_node_news(&$vars) {
   $max_width = 120;
 
@@ -529,6 +568,9 @@ function middlebury_preprocess_node_news(&$vars) {
   $vars['date'] = date('F j, Y', $vars['node']->field_altdate[0]['value'] ? strtotime($vars['node']->field_altdate[0]['value']) : (isset($vars['node']->publish_on) ? $vars['node']->publish_on : $vars['node']->revision_timestamp));
 }
 
+/**
+ * Implements hook_preprocess_node().
+ */
 function middlebury_preprocess_node_profile(&$vars) {
   middlebury_hide_sidebar();
 
@@ -650,12 +692,15 @@ function middlebury_preprocess_node_profile(&$vars) {
 }
 
 /**
- * Modify variables in the page template
+ * Implements hook_preprocess_page().
  */
 function middlebury_preprocess_page(&$vars) {
   $vars['color_scheme'] = middlebury_get_color_scheme(arg(1));
 }
 
+/**
+ * Implements hook_profile_biblio_submit().
+ */
 function middlebury_profile_biblio_submit($form_id, &$form_values) {
   if (!empty($form_values['values']['field_user'][0]['uid'])) {
     $biblios = array();
@@ -671,10 +716,13 @@ function middlebury_profile_biblio_submit($form_id, &$form_values) {
 }
 
 /**
- * purge URLs from varnish.
+ * Purge URLs from varnish.
  *
- * @param string $regex.
+ * @param $regex
+ *   A regular expression pattern to match against URLs in the varnish cache.
+ *
  * @return boolean
+ *   Whether the cache was successfully cleared.
  */
 function middlebury_purge_varnish_url($regex) {
   if (defined('MIDD_PURGE_VARNISH_URL') && defined('MIDD_PURGE_VARNISH_ACCESS_KEY')) {
@@ -715,23 +763,15 @@ function middlebury_rdf_namespaces() {
 
 /**
  * Menu callback to redirect you to a personal home page.
+ *
+ * @param $username
+ *   The Active Directory sAMAccountName of a person.
  */
 function middlebury_site_goto($username) {
   $user = user_load_by_mail($username . '@middlebury.edu');
   if (!empty($user->user_mmtid)) {
     drupal_goto('mm/' . $user->user_mmtid);
   }
-}
-
-/**
- * Menu callback function to fetch vcard data from a specific node.
- */
-function middlebury_vcard_fetch($node) {
-  $vars = array('node' => $node);
-
-  middlebury_preprocess_node_profile($vars);
-
-  vcard_fetch($vars['vcard']);
 }
 
 /**
@@ -825,6 +865,20 @@ function middlebury_repec_rss() {
 }
 
 /**
+ * Menu callback function to fetch vcard data from a specific node.
+ *
+ * @param $node
+ *   The node ID of a profile node.
+ */
+function middlebury_vcard_fetch($node) {
+  $vars = array('node' => $node);
+
+  middlebury_preprocess_node_profile($vars);
+
+  vcard_fetch($vars['vcard']);
+}
+
+/**
  * Implements hook_views_api().
  */
 function middlebury_views_api() {
@@ -833,12 +887,18 @@ function middlebury_views_api() {
   );
 }
 
+/**
+ * Implements hook_views_data_alter().
+ */
 function middlebury_views_data_alter(&$data) {
   $data['node_data_field_news_image']['field_news_image_mmtid']['field']['handler'] = 'middlebury_handler_field_news_image';
   $data['node_data_field_story_image']['field_story_image_mmtid']['field']['handler'] = 'middlebury_handler_field_story_image';
   $data['node_data_field_profile_photo']['field_profile_photo_mmtid']['field']['handler'] = 'middlebury_handler_field_profile_photo';
 }
 
+/**
+ * Implements hook_views_handlers().
+ */
 function middlebury_views_handlers() {
   return array(
     'info' => array(
@@ -858,6 +918,9 @@ function middlebury_views_handlers() {
   );
 }
 
+/**
+ * Implements hook_views_exposed_form_submit().
+ */
 function middlebury_views_exposed_form_submit($form_id, &$form_values) {
   foreach ($form_values['values'] as $id => $field) {
     if (!is_array($field) || empty($field)) continue;
@@ -867,6 +930,9 @@ function middlebury_views_exposed_form_submit($form_id, &$form_values) {
   }
 }
 
+/**
+ * Implements hook_views_pre_execute().
+ */
 function middlebury_views_pre_execute(&$view) {
   if ($view->name == 'Health_Handbook_Tags') {
     $search = array('GROUP BY nid');
@@ -899,6 +965,17 @@ function middlebury_views_pre_execute(&$view) {
   }
 }
 
+/**
+ * Given an RSS feed item of an event from the Scoreboard, return an array of formatted event information.
+ *
+ * @param $namespace
+ *   The RSS namespace.
+ * @param $event
+ *   An RSS event item.
+ *
+ * @return array
+ *   A well formatted array of event information.
+ */
 function _middlebury_compile_event($namespace, $event) {
   module_load_include('inc', 'rss_page', 'simplepie');
   $sportName = $event->get_item_tags($namespace, "sportName");
