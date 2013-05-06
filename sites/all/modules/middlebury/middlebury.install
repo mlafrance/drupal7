@@ -1,0 +1,30 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function middlebury_install() {
+  $schema = drupal_get_schema('mm_tree');
+  db_add_field('mm_tree', 'color_scheme', $schema['fields']['color_scheme']);
+}
+
+/**
+ * Implements hook_schema_alter().
+ */
+function middlebury_schema_alter(&$schema) {
+  $schema['mm_tree']['fields']['color_scheme'] = array(
+    'type' => 'varchar',
+    'length' => '255',
+    'not null' => FALSE,
+    'default' => NULL,
+    'initial' => NULL,
+    'description' => t('The color scheme to use for this page.'),
+  );
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function middlebury_uninstall() {
+  db_drop_field('mm_tree', 'color_scheme');
+}

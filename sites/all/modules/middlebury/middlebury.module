@@ -341,10 +341,13 @@ function middlebury_get_color_scheme($mmtid) {
   $result = NULL;
 
   while (is_numeric($mmtid) && $result == NULL && $mmtid != "1") {
-    $data = db_fetch_object(db_query("SELECT color_scheme, parent FROM {mm_tree} WHERE mmtid = %d", $mmtid));
+    $results = db_query("SELECT color_scheme, parent FROM {mm_tree} WHERE mmtid = :mmtid", array(':mmtid' => $mmtid));
 
-    if ($data->color_scheme != '0') {
-      $result = $data->color_scheme;
+    foreach($results as $record) {
+      if ($record->color_scheme != '0') {
+        $result = $record->color_scheme;
+        break;
+      }
     }
 
     $mmtid = $data->parent;
