@@ -173,3 +173,6 @@
 [submodule "sites/all/modules/kml"]
 	path = sites/all/modules/kml
 	url = http://git.drupal.org/project/kml.git
+[submodule "sites/all/modules/openlayers"]
+	path = sites/all/modules/openlayers
+	url = http://git.drupal.org/project/openlayers.git
