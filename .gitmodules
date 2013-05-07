@@ -118,3 +118,6 @@
 [submodule "sites/all/modules/metatag"]
 	path = sites/all/modules/metatag
 	url = http://git.drupal.org/project/metatag.git
+[submodule "sites/all/modules/gcal_events"]
+	path = sites/all/modules/gcal_events
+	url = http://git.drupal.org/project/gcal_events.git
