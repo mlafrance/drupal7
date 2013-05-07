@@ -121,3 +121,6 @@
 [submodule "sites/all/modules/gcal_events"]
 	path = sites/all/modules/gcal_events
 	url = http://git.drupal.org/project/gcal_events.git
+[submodule "sites/all/modules/insert_block"]
+	path = sites/all/modules/insert_block
+	url = http://git.drupal.org/project/insert_block.git
