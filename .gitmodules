@@ -139,3 +139,6 @@
 [submodule "sites/all/modules/memcache"]
 	path = sites/all/modules/memcache
 	url = http://git.drupal.org/project/memcache.git
+[submodule "sites/all/modules/mimemail"]
+	path = sites/all/modules/mimemail
+	url = http://git.drupal.org/project/mimemail.git
