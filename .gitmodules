@@ -130,3 +130,6 @@
 [submodule "sites/all/modules/mimedetect"]
 	path = sites/all/modules/mimedetect
 	url = http://git.drupal.org/project/mimedetect.git
+[submodule "sites/all/modules/auto_nodetitle"]
+	path = sites/all/modules/auto_nodetitle
+	url = http://git.drupal.org/project/auto_nodetitle.git
