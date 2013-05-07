@@ -115,3 +115,6 @@
 [submodule "sites/all/modules/wysiwyg"]
 	path = sites/all/modules/wysiwyg
 	url = http://git.drupal.org/project/wysiwyg.git
+[submodule "sites/all/modules/metatag"]
+	path = sites/all/modules/metatag
+	url = http://git.drupal.org/project/metatag.git
