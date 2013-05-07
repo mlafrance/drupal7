@@ -1,0 +1,233 @@
+/* Middlebury College Styles */
+/* by White Whale Web Services */
+/* modified by Middlebury College Web Development */
+
+/* Reset defaults */
+html { font-size:100%; }
+body,p,h1,h2,h3,h4,h5,h6,ul,ol,li,dl,dt,dd,table,th,td,img,form,label,iframe { margin:0; padding:0; font-size:1em; line-height:inherit; font-weight:inherit; color:inherit; border:none; }
+h1,h2,h3,h4,h5,h6 { font-weight:normal; }
+input,select,textarea,button { font-size:1em; line-height:inherit; font-family:inherit; margin:0; }
+input[type=button],input[type=submit],button { overflow:visible; }
+input[disabled],select[disabled],textarea[disabled],button[disabled] { opacity:0.75; }
+
+/* HTML5 elements */
+article,aside,figure,footer,header,hgroup,nav,section { display:block; }
+
+/* Global styles */
+a { color:#272C6F; text-decoration:none; border-bottom:1px dotted #114477; padding:0.07em; }
+  a:hover { color:#003366; border-bottom:1px solid #003366; background-color:#EEFFCC; }
+blockquote { border-left:1px solid #D4D6C8; padding:10px 18px; margin:10px 10px 18px 10px; font-family:Georgia, serif; font-size:1.2em; color:#999966; }
+dd { width:24em; font-family:Georgia, serif; color:#333366; }
+dl { width:41.1em; margin:0.6em 0; padding:0; }
+dt { width:15em; clear:both; }
+dt, dd { float:left; margin:0; padding:0.5em; border-top:1px solid #666666; }
+fieldset { margin-bottom:1em; }
+form { margin-bottom:1em; }
+h1 { font-size:1.6em; font-weight:bold; color:#012; }
+h2 { font-size:1.6em; color:#084B71; }
+h3 { font-size:1.4em; color:#4F3E1E; }
+  h3 a { border-bottom:1px dotted #114477; padding:1px; }
+  h3 a:hover {color:#003366; border-bottom:1px solid:#003366; background-color:#EEFFCC; }
+h4 { font-weight:bold; font-size:1.2em; color:#666666; }
+h5 { font-size:1.1em; color:#666666; font-weight:bold; }
+h6 { font-weight:bold; color:#666666; }
+h1, h2, h3, h4, h5, h6 { margin-bottom:6px; }
+input { padding:2px; }
+  input.radio, input.checkbox { margin-right:10px; }
+p { margin-bottom:1em; }
+pre { font-size:1.1em; }
+table { margin-bottom:1em; }
+  table.layout td {font-size:1em; color:inherit; padding:0 20px 20px 0; background:none; border:none; vertical-align:top; }
+  table.layout tr:hover td { background:none; color:inherit; }
+td { font-size:0.929em; color:#404040; font-weight:normal; padding:8px; background:#FFFFFF; border-top:1px solid transparent; }
+  td:hover { background:#EFEEE9; color:#404040; }
+textarea { padding:10px; }
+th { font-family:sans-serif; font-size:0.929em; line-height:1.1em; color:#404040; font-weight:normal; padding:8px; background-color:#EFEFEA; border-bottom:1px solid #CCCC99; border-top:3px solid #666633; }
+ul,ol { margin-left:1.5em; margin-bottom:0.8em; }
+  li { margin:0.4em 0; }
+
+/* Body top to bottom */
+body { background:#071427 url(http://www.middlebury.edu/sites/all/themes/midd/images/design/bluegradient.jpg) no-repeat center top; font-family:"Helvetica Neue",Arial,Helvetica,sans-serif; color:#221100; font-size:0.875em; line-height:1.4; }
+.skiplink { position:absolute; top:0; left:-9999px; width:9em; padding:5px; color:#0000FF; background-color:#FFFF99; border:1px solid #999933; text-align:center; z-index:9999; }
+.skiplink:focus { left:0; }
+.container { width:960px; margin:0 auto; position:relative; clear:both; }
+.clear { clear:both; }
+
+  /* Header */
+  .leftlinks { position:absolute; top:22px; left:18px; }
+  .leftlinks a { color:#FFFFFF; text-decoration:none; border:0; }
+  .leftlinks a:hover { background:transparent; border-bottom:1px dotted #FFFFFF; }
+
+  input[type=search] { -webkit-appearance:textfield; }
+  form.search { position:absolute; top:18px; right:0; }
+    form.search label { display:none; }
+    .search_query { background-color:#1F2630; border:1px solid #365783; font-size:0.929em; color:#D2D4D6; padding:2px 4px; width:10em; }
+    .search_submit { border:none; background-color:transparent; font-weight:bold; font-size:0.857em; color:#D2D4D6; padding:0; height:16px; margin-right:-8px; }
+    .search_submit.ir { text-indent:-999em; overflow:hidden; background:url(http://www.middlebury.edu/sites/all/themes/midd/images/design/arrow_go.gif) no-repeat center center; width:8px; padding:0 4px; margin-right:-4px; }
+
+  .container h1.wordmark { font-family:Garamond,"Times New Roman",serif; margin:0 auto; width:206px; padding:24px 0 18px; font-size:3.2em; line-height:1; color:#fff; background-color:transparent; border:none; }
+    h1.wordmark a { font-weight:normal; background-color:transparent; border:none; padding:0; color:#fff; }
+
+  .navigation ul { width:936px; padding:0 12px; height:2.57em; font-size:1.5em; line-height:24px; font-family:Garamond,"Times New Roman",serif; margin:0; }
+    .navigation li { list-style-type:none; float:left; margin:0; text-align:center; }
+      .navigation li a { text-decoration:none; border:none; padding:0; display:block; }
+      .navigation li a:hover { background-color:transparent; }
+      .navigation ul.ir li a { position:relative; overflow:hidden; text-indent:-999em; height:24px; }
+        .navigation ul.ir li a span { position:absolute; top:0; right:0; width:100%; height:100%; }
+    .navigation li.top { margin:0 21px 6px 0; }
+      .navigation li.top a { color:#FFFFFF; }
+      .navigation li.top a:hover { color:#CCCC99; }
+        .navigation li.top a span { background-image:url(http://www.middlebury.edu/sites/all/themes/midd/images/design/nav_top.gif); }
+    .navigation li.bottom { margin-right:17px; }
+      .navigation li.bottom a { color:#73A2E6; }
+      .navigation li.bottom a:hover { color:#FFFFFF; }
+        .navigation li.bottom a span { background-image:url(http://www.middlebury.edu/sites/all/themes/midd/images/design/nav_bottom.gif); }
+    .nav_admissions { width:116px; }
+      .nav_admissions a span { background-position:0 0; }
+      .nav_admissions a:hover span { background-position:0 -24px; }
+      .nav_admissions.active a span { background-position:0 -48px; }
+      .nav_admissions.active a:hover span { background-position:0 -72px; }
+    .nav_academics { width:109px; }
+      .nav_academics a span { background-position:-137px 0; }
+      .nav_academics a:hover span { background-position:-137px -24px; }
+      .nav_academics.active a span { background-position:-137px -48px; }
+      .nav_academics.active a:hover span { background-position:-137px -72px; }
+    .nav_studentlife { width:118px; }
+      .nav_studentlife a span { background-position:-268px 0; }
+      .nav_studentlife a:hover span { background-position:-268px -24px; }
+      .nav_studentlife.active a span { background-position:-268px -48px; }
+      .nav_studentlife.active a:hover span { background-position:-269px -72px; }
+    .nav_athletics { width:91px; }
+      .nav_athletics a span { background-position:-407px 0; }
+      .nav_athletics a:hover span { background-position:-407px -24px; }
+      .nav_athletics.active a span { background-position:-407px -48px; }
+      .nav_athletics.active a:hover span { background-position:-407px -72px; }
+    .nav_arts { width:48px; }
+      .nav_arts a span { background-position:-519px 0; }
+      .nav_arts a:hover span { background-position:-519px -24px; }
+      .nav_arts.active a span { background-position:-519px -48px; }
+      .nav_arts.active a:hover span { background-position:-519px -72px; }
+    .nav_international { width:236px; }
+      .nav_international a span { background-position:-589px 0; }
+      .nav_international a:hover span { background-position:-589px -24px; }
+      .nav_international.active a span { background-position:-589px -48px; }
+      .nav_international.active a:hover span { background-position:-589px -72px; }
+    .navigation li.nav_middlab { width:90px; margin-right:0; float:right; }
+      .nav_middlab a span { background-position:-847px 0; }
+      .nav_middlab a:hover span { background-position:-847px -24px; }
+      .nav_middlab.active a span { background-position:-847px -48px; }
+      .nav_middlab.active a:hover span { background-position:-847px -72px; }
+    .nav_about { width:173px; }
+      .nav_about a span { background-position:0 0; }
+      .nav_about a:hover span { background-position:0 -24px; }
+      .nav_about.active a span { background-position:0 -48px; }
+      .nav_about.active a:hover span { background-position:0 -72px; }
+    .nav_sustainability { width:138px; }
+      .nav_sustainability a span { background-position:-194px 0; }
+      .nav_sustainability a:hover span { background-position:-194px -24px; }
+      .nav_sustainability.active a span { background-position:-194px -48px; }
+      .nav_sustainability.active a:hover span { background-position:-194px -72px; }
+    .nav_giving { width:73px; }
+      .nav_giving a span { background-position:-353px 0; }
+      .nav_giving a:hover span { background-position:-353px -24px; }
+      .nav_giving.active a span { background-position:-353px -48px; }
+      .nav_giving.active a:hover span { background-position:-353px -72px; }
+    .nav_news { width:115px; }
+      .nav_news a span { background-position:-447px 0; }
+      .nav_news a:hover span { background-position:-447px -24px; }
+      .nav_news.active a span { background-position:-447px -48px; }
+      .nav_news.active a:hover span { background-position:-447px -72px; }
+    .nav_events { width:181px; }
+      .nav_events a span { background-position:-584px 0; }
+      .nav_events a:hover span { background-position:-584px -24px; }
+      .nav_events.active a span { background-position:-584px -48px; }
+      .nav_events.active a:hover span { background-position:-584px -72px; }
+    .navigation li.nav_offices { width:171px; margin-right:0; float:right; }
+      .nav_offices a span { background-position:-787px 0; }
+      .nav_offices a:hover span { background-position:-787px -24px; }
+      .nav_offices.active a span { background-position:-787px -48px; }
+      .nav_offices.active a:hover span { background-position:-787px -72px; }
+
+  /* Page Content */
+  .pagecontent { position:relative; margin-top:18px; background:url(http://www.middlebury.edu/sites/all/themes/midd/images/design/background_content.gif) repeat-y left top; }
+
+    /* Left Column */
+    .left { float:left; width:204px; padding:18px 18px 15em; color:#FFFFFF; font-size:0.929em; }
+      ul.menu { margin:0px; list-style-type:none; background-color:#0d1e29; }
+      ul.menu a { text-decoration:none; color:#fff; border: 0; }
+      ul.menu a:hover { text-decoration: underline; color:#ccff66; background-color:transparent; }
+      div.content > ul.menu { margin-top: 12px; width:222px; float:left; }
+      div.content > ul.menu > li { margin: 0px; border-top:1px solid #323f3f; }
+      div.content > ul.menu > li > a { display: none; }
+      div.content > ul.menu > li > ul.menu > li { padding:4px 12px; margin:0; border-bottom:1px solid #323f3f; }
+      div.content > ul.menu > li > ul.menu > li > a { font-weight:bold; }
+      div.content > ul.menu > li > ul.menu > li.expanded > ul > li { list-style-type: none; }
+      div.content > ul.menu > li > ul.menu > li.expanded > a { color:#cccc99; }
+      div.content > ul.menu > li > ul.menu > li.expanded > ul.menu { margin-left:18px; }
+      div.content > ul.menu > li > ul.menu > li.expanded > ul.menu > li.expanded > ul.menu { color: #fff; list-style-type: circle; margin-left: 18px; }
+      div.content > ul.menu > li > ul.menu > li.expanded > ul.menu li.here { color:#ccff66; }
+      div.content > ul.menu > li > ul.menu > li.expanded > ul.menu li.here > a { color:#ccff66; }
+      .left h3 { font-size:1em; font-weight:bold; color:#ccc; }
+      .left .node { clear:left; padding-top:30px; }
+      .left.blue h4 { color:#aaa; }
+      .left.blue a:hover { background-color:transparent; }
+      .left.blue .tags { color:#fff; }
+        .left.blue .tags li a { border-color:#323F3F !important; background-color:#0D1E29; color:#fff; -webkit-border-radius:3px; }
+      .left.blue .mm-gallery-caption { color:#aaa; margin-top:4px; }
+      .left.blue #block-monster-menus-8 a { color:#cf6; border-bottom-color:#cf6; }
+      .left.blue #block-monster-menus-8 a:hover { background-color:#003466; }
+
+    /* Content Region */
+    .page { float:left; width:684px; background-color:#FFFFFF; border-top:4px solid #CCCC99; padding:18px; }
+
+  /* Footer */
+  #block-system-powered-by { display:none; }
+  .footer { visibility:hidden; background-color:#003366; line-height:30px; margin-top:30px; font-size:1.1em; font-family:Garamond,"Times New Roman",serif; color:#FFFFFF; position:relative; }
+    .footer a { color:#FFFFFF; border-color:#CCCCCC; padding:0; outline:none; }
+    .footer a:hover { border:none; color:#003366; background-color:#83B2F9; }
+    .footer ul { list-style-type:none; margin:0; }
+      .footer ul li { float:left; margin:0 6px; height:30px; }
+        .footer ul li a { border:none; display:block; height:30px; padding:0 6px; overflow:hidden; position:relative; text-align:center; }
+          .footer ul li a span { height:100%; position:absolute; top:0; left:0; width:100%; background-image:url(http://www.middlebury.edu/sites/all/themes/midd/images/design/nav_footer.gif); }
+        .footer ul li a:hover { background-color:transparent; }
+      .gateways_students { width:126px; }
+        .gateways_students a span { background-position:0 0; }
+        .gateways_students a:hover span { background-position:0 -30px; }
+        .gateways_students.active a span { background-position:0 -60px; }
+        .gateways_students.active a:hover span { background-position:0 -90px; }
+      .gateways_parents { width:63px; }
+        .gateways_parents a span { background-position:-144px 0; }
+        .gateways_parents a:hover span { background-position:-144px -30px; }
+        .gateways_parents.active a span { background-position:-144px -60px; }
+        .gateways_parents.active a:hover span { background-position:-144px -90px; }
+      .gateways_staff { width:111px; }
+        .gateways_staff a span { background-position:-225px 0; }
+        .gateways_staff a:hover span { background-position:-225px -30px; }
+        .gateways_staff.active a span { background-position:-225px -60px; }
+        .gateways_staff.active a:hover span { background-position:-225px -90px; }
+      .gateways_alumni { width:92; }
+        .gateways_alumni a span { background-position:-354px 0; }
+        .gateways_alumni a:hover span { background-position:-354px -30px; }
+        .gateways_alumni.active a span { background-position:-354px -60px; }
+        .gateways_alumni.active a:hover span { background-position:-354px -90px; }
+      .quick_go { width:92px; }
+        .quick_go a span { background-position:-433px 0; }
+        .quick_go a:hover span { background-position:-433px -30px; }
+        .quick_go.active a span { background-position:-433px -60px; }
+        .quick_go.active a:hover span { background-position:-433px -90px; }
+      .quick_contact { width:236px; }
+        .quick_contact a span { background-position:-542px 0; }
+        .quick_contact a:hover span { background-position:-542px -30px; }
+        .quick_contact.active a span { background-position:-542px -60px; }
+        .quick_contact.active a:hover span { background-position:-542px -90px; }
+      .footer_right { float:right; }
+        .footer ul li { position:relative; }
+          .footer ul li a { outline:none; }
+          .footer ul li .contents { display:none; position:absolute; top:30px; left:0; padding:12px; background:url(http://www.middlebury.edu/sites/all/themes/midd/images/design/dkblue_95trans.png); min-width:240px; color:#FFFFFF; font-family:"Helvetica Neue",Arial,Helvetica,sans-serif; font-size:0.929em; line-height:1.4; }
+          .footer ul li.active .contents { display:block; }
+            .footer ul li .contents a { display:inline; width:auto; color:#FFE371; padding:0; }
+            .footer ul li .contents a:hover { color:#FFFFAA; }
+            .quick_go .contents { width:300px; }
+            .quick_go .contents ul { width:50%; float:left; }
+              .footer ul li .contents ul li { display:block; float:none; margin:0 0 0.4em 0; }
+    .footer_panel { height:300px; background:#527546 url(http://www.middlebury.edu/sites/all/themes/midd/images/design/footer_campusaerial.jpg) no-repeat center top; display:none; }
