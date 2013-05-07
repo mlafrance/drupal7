@@ -155,3 +155,6 @@
 [submodule "sites/all/modules/wysiwyg_filter"]
 	path = sites/all/modules/wysiwyg_filter
 	url = http://git.drupal.org/project/wysiwyg_filter.git
+[submodule "sites/all/modules/feeds"]
+	path = sites/all/modules/feeds
+	url = http://git.drupal.org/project/feeds.git
