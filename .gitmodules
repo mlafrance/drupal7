@@ -145,3 +145,7 @@
 [submodule "sites/all/modules/sharethis"]
 	path = sites/all/modules/sharethis
 	url = http://git.drupal.org/project/sharethis.git
+
+[submodule "sites/all/modules/twitter_pull"]
+	path = sites/all/modules/twitter_pull
+	url = http://git.drupal.org/project/twitter_pull.git
