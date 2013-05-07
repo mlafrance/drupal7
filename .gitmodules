@@ -149,3 +149,6 @@
 [submodule "sites/all/modules/twitter_pull"]
 	path = sites/all/modules/twitter_pull
 	url = http://git.drupal.org/project/twitter_pull.git
+[submodule "sites/all/modules/vcard"]
+	path = sites/all/modules/vcard
+	url = http://git.drupal.org/project/vcard.git
