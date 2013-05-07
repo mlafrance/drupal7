@@ -142,3 +142,6 @@
 [submodule "sites/all/modules/mimemail"]
 	path = sites/all/modules/mimemail
 	url = http://git.drupal.org/project/mimemail.git
+[submodule "sites/all/modules/sharethis"]
+	path = sites/all/modules/sharethis
+	url = http://git.drupal.org/project/sharethis.git
