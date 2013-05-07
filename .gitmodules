@@ -152,3 +152,6 @@
 [submodule "sites/all/modules/vcard"]
 	path = sites/all/modules/vcard
 	url = http://git.drupal.org/project/vcard.git
+[submodule "sites/all/modules/wysiwyg_filter"]
+	path = sites/all/modules/wysiwyg_filter
+	url = http://git.drupal.org/project/wysiwyg_filter.git
