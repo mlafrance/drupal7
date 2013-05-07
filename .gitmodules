@@ -164,3 +164,6 @@
 [submodule "sites/all/modules/feeds_oai_pmh"]
 	path = sites/all/modules/feeds_oai_pmh
 	url = http://git.drupal.org/project/feeds_oai_pmh.git
+[submodule "sites/all/modules/location"]
+	path = sites/all/modules/location
+	url = http://git.drupal.org/project/location.git
