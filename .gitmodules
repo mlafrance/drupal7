@@ -136,3 +136,6 @@
 [submodule "sites/all/modules/job_scheduler"]
 	path = sites/all/modules/job_scheduler
 	url = http://git.drupal.org/project/job_scheduler.git
+[submodule "sites/all/modules/memcache"]
+	path = sites/all/modules/memcache
+	url = http://git.drupal.org/project/memcache.git
