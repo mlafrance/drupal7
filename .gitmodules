@@ -170,3 +170,6 @@
 [submodule "sites/all/modules/location_feeds"]
 	path = sites/all/modules/location_feeds
 	url = http://git.drupal.org/project/location_feeds.git
+[submodule "sites/all/modules/kml"]
+	path = sites/all/modules/kml
+	url = http://git.drupal.org/project/kml.git
