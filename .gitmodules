@@ -161,3 +161,6 @@
 [submodule "sites/all/modules/feeds_tamper"]
 	path = sites/all/modules/feeds_tamper
 	url = http://git.drupal.org/project/feeds_tamper
+[submodule "sites/all/modules/feeds_oai_pmh"]
+	path = sites/all/modules/feeds_oai_pmh
+	url = http://git.drupal.org/project/feeds_oai_pmh.git
