@@ -5,6 +5,60 @@
  * Implements handlers for alerting Middlebury about emergencies.
  */
 
+define('MIDDLEBURY_ALERT_MODULE_PATH', drupal_get_path('module', 'middlebury_alert'));
+
+/**
+ * Implements hook_block_info().
+ */
+function middlebury_alert_block_info() {
+  $blocks['middlebury_alert'] = array(
+    'info' => t('Middlebury Alert Messages'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_veiw().
+ */
+function middlebury_alert_block_view($delta = '') {
+  $GLOBALS['conf']['cache'] = FALSE;
+
+  $message = middlebury_alert_message();
+
+  $block['content'] = empty($message) ? "No alert" : $message;
+
+  return $block;
+}
+
+/**
+ * Implements hook_theme_registry_alter().
+ */
+function middlebury_alert_theme_registry_alter(&$theme_registry) {
+  $theme_registry_copy = $theme_registry;
+  _theme_process_registry($theme_registry_copy, 'phptemplate', 'theme_engine', 'middlebury_alert_theme', MIDDLEBURY_ALERT_MODULE_PATH);
+
+  $theme_registry += array_diff_key($theme_registry_copy, $theme_registry);
+
+  $hooks = array('block');
+  foreach ($hooks as $h) {
+    if (!isset($theme_registry[$h]['theme paths'])) {
+      $theme_registry[$h]['theme paths'] = array();
+    }
+
+    if (is_array($theme_registry[$h]['theme paths'])) {
+      $first_element = array_shift($theme_registry[$h]['theme paths']);
+      if ($first_element) {
+        array_unshift($theme_registry[$h]['theme paths'], $first_element, MIDDLEBURY_ALERT_MODULE_PATH);
+      }
+      else {
+        array_unshift($theme_registry[$h]['theme paths'], MIDDLEBURY_ALERT_MODULE_PATH);
+      }
+    }
+  }
+}
+
 /**
  * Implements hook_menu().
  */
