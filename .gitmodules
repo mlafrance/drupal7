@@ -197,3 +197,6 @@
 [submodule "sites/all/modules/millennium"]
 	path = sites/all/modules/millennium
 	url = http://git.drupal.org/project/millennium.git
+[submodule "sites/all/modules/schema"]
+	path = sites/all/modules/schema
+	url = http://git.drupal.org/project/schema.git
