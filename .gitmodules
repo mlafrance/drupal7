@@ -194,3 +194,6 @@
 [submodule "sites/all/modules/google_website_optimizer"]
 	path = sites/all/modules/google_website_optimizer
 	url = http://git.drupal.org/project/google_website_optimizer.git
+[submodule "sites/all/modules/millennium"]
+	path = sites/all/modules/millennium
+	url = http://git.drupal.org/project/millennium.git
