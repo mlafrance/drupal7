@@ -176,3 +176,6 @@
 [submodule "sites/all/modules/openlayers"]
 	path = sites/all/modules/openlayers
 	url = http://git.drupal.org/project/openlayers.git
+[submodule "sites/all/modules/biblio"]
+	path = sites/all/modules/biblio
+	url = http://git.drupal.org/project/biblio.git
