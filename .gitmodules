@@ -182,3 +182,6 @@
 [submodule "sites/all/modules/content_taxonomy"]
 	path = sites/all/modules/content_taxonomy
 	url = http://git.drupal.org/project/content_taxonomy.git
+[submodule "sites/all/modules/data"]
+	path = sites/all/modules/data
+	url = http://git.drupal.org/project/data.git
