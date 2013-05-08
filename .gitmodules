@@ -179,3 +179,6 @@
 [submodule "sites/all/modules/biblio"]
 	path = sites/all/modules/biblio
 	url = http://git.drupal.org/project/biblio.git
+[submodule "sites/all/modules/content_taxonomy"]
+	path = sites/all/modules/content_taxonomy
+	url = http://git.drupal.org/project/content_taxonomy.git
