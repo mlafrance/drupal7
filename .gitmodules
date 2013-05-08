@@ -185,3 +185,9 @@
 [submodule "sites/all/modules/data"]
 	path = sites/all/modules/data
 	url = http://git.drupal.org/project/data.git
+[submodule "sites/all/modules/diff"]
+	path = sites/all/modules/diff
+	url = http://git.drupal.org/project/diff.git
+[submodule "sites/all/modules/elements"]
+	path = sites/all/modules/elements
+	url = http://git.drupal.org/project/elements.git
