@@ -191,3 +191,6 @@
 [submodule "sites/all/modules/elements"]
 	path = sites/all/modules/elements
 	url = http://git.drupal.org/project/elements.git
+[submodule "sites/all/modules/google_website_optimizer"]
+	path = sites/all/modules/google_website_optimizer
+	url = http://git.drupal.org/project/google_website_optimizer.git
