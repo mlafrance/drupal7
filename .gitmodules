@@ -203,3 +203,6 @@
 [submodule "sites/all/modules/entityreference"]
 	path = sites/all/modules/entityreference
 	url = http://git.drupal.org/project/entityreference.git
+[submodule "sites/all/modules/references"]
+	path = sites/all/modules/references
+	url = http://git.drupal.org/project/references.git
