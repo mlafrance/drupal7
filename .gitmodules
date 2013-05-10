@@ -200,3 +200,6 @@
 [submodule "sites/all/modules/mailsystem"]
 	path = sites/all/modules/mailsystem
 	url = http://git.drupal.org/project/mailsystem.git
+[submodule "sites/all/modules/entityreference"]
+	path = sites/all/modules/entityreference
+	url = http://git.drupal.org/project/entityreference.git
