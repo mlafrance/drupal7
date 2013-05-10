@@ -197,3 +197,6 @@
 [submodule "sites/all/modules/schema"]
 	path = sites/all/modules/schema
 	url = http://git.drupal.org/project/schema.git
+[submodule "sites/all/modules/mailsystem"]
+	path = sites/all/modules/mailsystem
+	url = http://git.drupal.org/project/mailsystem.git
