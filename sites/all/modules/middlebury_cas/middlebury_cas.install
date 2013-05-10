@@ -28,7 +28,7 @@ function middlebury_cas_install() {
   foreach ($rename as $new => $old) {
     if (($val = variable_get($old, '-1234abcd-')) !== '-1234abcd-') {
       variable_set($new, $val);
-      variable_delete($old);
+      variable_del($old);
     }
   }
 
