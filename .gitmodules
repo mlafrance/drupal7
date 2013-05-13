@@ -206,3 +206,6 @@
 [submodule "sites/all/modules/references"]
 	path = sites/all/modules/references
 	url = http://git.drupal.org/project/references.git
+[submodule "sites/all/modules/computed_field"]
+	path = sites/all/modules/computed_field
+	url = http://git.drupal.org/project/computed_field.git
