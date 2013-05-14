@@ -209,3 +209,6 @@
 [submodule "sites/all/modules/computed_field"]
 	path = sites/all/modules/computed_field
 	url = http://git.drupal.org/project/computed_field.git
+[submodule "sites/all/modules/media"]
+	path = sites/all/modules/media
+	url = http://git.drupal.org/project/media.git
