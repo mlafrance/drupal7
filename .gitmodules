@@ -212,3 +212,6 @@
 [submodule "sites/all/modules/media"]
 	path = sites/all/modules/media
 	url = http://git.drupal.org/project/media.git
+[submodule "sites/all/modules/rules"]
+	path = sites/all/modules/rules
+	url = http://git.drupal.org/project/rules.git
