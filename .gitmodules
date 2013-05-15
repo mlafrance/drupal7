@@ -215,3 +215,6 @@
 [submodule "sites/all/modules/rules"]
 	path = sites/all/modules/rules
 	url = http://git.drupal.org/project/rules.git
+[submodule "sites/all/modules/storypal"]
+	path = sites/all/modules/storypal
+	url = http://git.drupal.org/project/storypal.git
