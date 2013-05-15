@@ -218,3 +218,6 @@
 [submodule "sites/all/modules/storypal"]
 	path = sites/all/modules/storypal
 	url = http://git.drupal.org/project/storypal.git
+[submodule "sites/all/libraries/storify"]
+	path = sites/all/libraries/storify
+	url = https://github.com/Polzme/storify.git
