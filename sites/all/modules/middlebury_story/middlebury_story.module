@@ -3,7 +3,7 @@
 /**
  * Implements hooke_menu().
  */
-function middlebury_story_module() {
+function middlebury_story_menu() {
   $items = array();
 
   $items['middlebury_story/submit'] = array(
@@ -32,7 +32,7 @@ function middlebury_story_module() {
     'type' => MENU_CALLBACK,
   );
   $items['admin/config/middlebury/middlebury_story'] = array(
-    'title' => t('Story Submission Settings'),
+    'title' => 'Story Submission Settings',
     'description' => 'Configure settings for the Submit a Story form.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('middlebury_story_admin_settings'),
@@ -333,6 +333,106 @@ function middlebury_story_get_stories($term) {
       $term = $override_tag;
       $vid = '1';
     }
+
+    $result = db_query("SELECT {node}.nid AS nid, RAND() AS _random FROM {node} LEFT JOIN {mm_recycle} ON {node}.nid = {mm_recycle}.id AND ({mm_recycle}.type = 'node') LEFT JOIN {taxonomy_index} ON {node}.nid = {taxonomy_index}.nid LEFT JOIN {taxonomy_term_data} ON {taxonomy_index}.tid = {taxonomy_term_data}.tid LEFT JOIN {taxonomy_vocabulary} ON {taxonomy_term_data}.vid = {taxonomy_vocabulary}.vid WHERE ({node}.type IN ('story')) AND ({mm_recycle}.id IS NULL) AND ({node}.promote <> 0) AND ({node}.status <> 0) AND ({taxonomy_vocabulary}.vid = :vid) AND ({taxonomy_term_data}.name = :name) ORDER BY _random ASC", array(':vid' => $vid, ':name' => $term));
+
+    $i = 0;
+    foreach ($result as $record) {
+      $story = array();
+      $wrapper = node_load($record->nid);
+      try {
+        $wrapper = entity_metadata_wrapper('node', $wrapper);
+      } catch (UnexpectedValueException $e) {
+      }
+      $story['title'] = $wrapper->title->value();
+      $image_field = $wrapper->field_story_image->value();
+      if (!empty($image_field['nid'])) {
+        $image_node = node_load($image_field['nid']);
+        try {
+          $image_node = entity_metadata_wrapper('node', $image_node);
+        } catch (UnexpectedValueException $e) {
+        }
+        $image_multimedia = $image_node->field_multimedia->value();
+        $image_file = file_load($image_multimedia[0]['fid']);
+        $image_page = base_path() . 'media/view/' . $image_node->nid->value() . '/original/' . $image_file->filename;
+        if (!is_null($image_file)) {
+          $image_info = image_get_info($image_file->uri);
+          if ($image_info['height'] > 240) {
+            $image_info['width'] = 240 * $image_info['height'] / $image_info['width'];
+            $image_info['height'] = 240;
+          }
+          $story['image'] = $image_page;
+          $story['height'] = $image_info['height'];
+          $story['width'] = $image_info['width'];
+        }
+        else {
+          $story['image'] = base_path() . drupal_get_path('theme', 'midd') . 'images/bars/placeholder1.jpg';
+          $story['height'] = 216;
+          $story['width'] = 402;
+        }
+      }
+      else {
+        $story['image'] = base_path() . drupal_get_path('theme', 'midd') . 'images/bars/placeholder1.jpg';
+        $story['height'] = 216;
+        $story['width'] = 402;
+      }
+      $image_bw_field = $wrapper->field_story_bwimage->value();
+      if (!empty($image_bw_field)) {
+        $image_bw_node = node_load($image_bw_field['nid']);
+        try {
+          $image_bw_node = entity_metadata_wrapper('node', $image_bw_node);
+        } catch (UnexpectedValueException $e) {
+        }
+        $image_bw_multimedia = $image_bw_node->field_multimedia->value();
+        $image_bw_file = file_load($image_bw_multimedia[0]['fid']);
+        $story['bwimage'] = base_path() . 'media/view/' . $image_bw_node->nid->value() . '/original/' . $image_bw_file->filename;
+      }
+      else {
+        $story['bwimage'] = $story['image'];
+      }
+      $body_text = $wrapper->body->value();
+      $field_video = $wrapper->field_video->value();
+      if (!empty($field_video)) {
+        $story['video'] = $field_video;
+      }
+      else {
+        $matches = array();
+        preg_match('/a href=\"([^\"]+)\"/', $body_text['value'], $matches);
+        $story['url'] = $matches[1] ? $matches[1] : '';
+      }
+      $story['text'] = utf8_encode(function_exists('midd_convert_ms') ? midd_convert_ms($body_text['value']) : $body_text['value']);
+      $story['color'] = $wrapper->field_barcolor->value() ? $wrapper->field_barcolor->value() : $colors[$i % count($colors)];
+      $story['id'] = $wrapper->nid->value();
+      $story['video_extra'] = $wrapper->field_videoextra->value() ? $wrapper->fieldvideo_extra->value() : '';
+      if (in_array($wrapper->nid->value(), explode(',', variable_get('middlebury_story_open_story', 0)))) {
+        $story['open'] = TRUE;
+        $open_stories[] = $story;
+      }
+      else {
+        $waveform_stories[] = $story;
+      }
+      $i++;
+    }
+
+    foreach ($open_stories as $open_story) {
+      array_splice($waveform_stories, variable_get('middlebury_story_open_offset', (int)(count($waveform_stories) / 2)), count($waveform_stories), array_merge(array($open_story), array_slice($waveform_stories, variable_get('middlebury_story_open_offset', (int)(count($waveform_stories) / 2)))));
+    }
+
+    $submit = array();
+    $submit[0]['title'] = 'Submit your story';
+    $submit[0]['submit'] = TRUE;
+    $submit[0]['height'] = 250;
+    $submit_offset = (int)variable_get('middlebury_story_bar_initial_offset', 40);
+    $submit_freq = (int)variable_get('middlebury_story_bar_frequency', 50);
+    for ($i = $submit_offset; $i < count($waveform_stories); $i = $i + $submit_freq) {
+      $submit[0]['id'] = 's' . $i;
+      array_splice($waveform_stories, $i, 0, $submit);
+    }
+
+    $print_stories = 'var waveformStories = ' . json_encode($waveform_stories);
+    cache_set('waveform_stories_' . $term, serialize($print_stories), 'cache', CACHE_PERMANENT);
+    header('Content-Type:text/javascript');
+    print $print_stories;
   }
 }
 
