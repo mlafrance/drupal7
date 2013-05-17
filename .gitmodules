@@ -221,3 +221,6 @@
 [submodule "sites/all/libraries/storify"]
 	path = sites/all/libraries/storify
 	url = https://github.com/Polzme/storify.git
+[submodule "sites/all/modules/modernizr"]
+	path = sites/all/modules/modernizr
+	url = http://git.drupal.org/project/modernizr.git
