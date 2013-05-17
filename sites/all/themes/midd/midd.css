@@ -44,37 +44,70 @@ td { font-size:0.929em; color:#404040; font-weight:normal; padding:8px; backgrou
 textarea { padding:10px; }
 th { font-family:sans-serif; font-size:0.929em; line-height:1.1em; color:#404040; font-weight:normal; padding:8px; background-color:#EFEFEA; border-bottom:1px solid #CCCC99; border-top:3px solid #666633; }
 ul,ol { margin-left:1.5em; margin-bottom:0.8em; }
-  li { margin:0.4em 0; }
+  li { margin:0.4em 0px; }
 
 /* Body top to bottom */
 body { background:#071427 url(http://www.middlebury.edu/sites/all/themes/midd/images/design/bluegradient.jpg) no-repeat center top; font-family:"Helvetica Neue",Arial,Helvetica,sans-serif; color:#221100; font-size:0.875em; line-height:1.4; }
-.skiplink { position:absolute; top:0; left:-9999px; width:9em; padding:5px; color:#0000FF; background-color:#FFFF99; border:1px solid #999933; text-align:center; z-index:9999; }
-.skiplink:focus { left:0; }
-.container { width:960px; margin:0 auto; position:relative; clear:both; }
+.skiplink { position:absolute; top:0px; left:-9999px; width:9em; padding:5px; color:#0000FF; background-color:#FFFF99; border:1px solid #999933; text-align:center; z-index:9999; }
+.skiplink:focus { left:0px; }
+.container { width:960px; margin:0px auto; position:relative; clear:both; }
 .clear { clear:both; }
 
   /* Header */
   .leftlinks { position:absolute; top:22px; left:18px; }
-  .leftlinks a { color:#FFFFFF; text-decoration:none; border:0; }
+  .leftlinks a { color:#FFFFFF; text-decoration:none; border:0px; }
   .leftlinks a:hover { background:transparent; border-bottom:1px dotted #FFFFFF; }
 
   input[type=search] { -webkit-appearance:textfield; }
-  form.search { position:absolute; top:18px; right:0; }
+  form.search { position:absolute; top:18px; right:0px; }
     form.search label { display:none; }
     .search_query { background-color:#1F2630; border:1px solid #365783; font-size:0.929em; color:#D2D4D6; padding:2px 4px; width:10em; }
-    .search_submit { border:none; background-color:transparent; font-weight:bold; font-size:0.857em; color:#D2D4D6; padding:0; height:16px; margin-right:-8px; }
-    .search_submit.ir { text-indent:-999em; overflow:hidden; background:url(http://www.middlebury.edu/sites/all/themes/midd/images/design/arrow_go.gif) no-repeat center center; width:8px; padding:0 4px; margin-right:-4px; }
+    .search_submit { border:none; background-color:transparent; font-weight:bold; font-size:0.857em; color:#D2D4D6; padding:0px; height:16px; margin-right:-8px; }
+    .search_submit.ir { text-indent:-999em; overflow:hidden; background:url(http://www.middlebury.edu/sites/all/themes/midd/images/design/arrow_go.gif) no-repeat center center; width:8px; padding:0px 4px; margin-right:-4px; }
 
-  .container h1.wordmark { font-family:Garamond,"Times New Roman",serif; margin:0 auto; width:206px; padding:24px 0 18px; font-size:3.2em; line-height:1; color:#fff; background-color:transparent; border:none; }
-    h1.wordmark a { font-weight:normal; background-color:transparent; border:none; padding:0; color:#fff; }
+  .container h1.wordmark { font-family:Garamond,"Times New Roman",serif; margin:0px auto; width:206px; padding:24px 0px 18px; font-size:3.2em; line-height:1; color:#fff; background-color:transparent; border:none; }
+    h1.wordmark a { font-weight:normal; background-color:transparent; border:none; padding:0px; color:#fff; }
+    .homepage .wordmark { padding:42px 0px 0px; }
 
-  .navigation ul { width:936px; padding:0 12px; height:2.57em; font-size:1.5em; line-height:24px; font-family:Garamond,"Times New Roman",serif; margin:0; }
-    .navigation li { list-style-type:none; float:left; margin:0; text-align:center; }
-      .navigation li a { text-decoration:none; border:none; padding:0; display:block; }
+  .homepage .waveform { height:300px; }
+  .waveform { visibility:hidden; color:#FFFFFF; height:240px; margin:18px 0px; position:relative; overflow:hidden; }
+    .slider { position:absolute; left:0px; top:0px; height:100%; margin-right:-12000px; }
+    .waveform .stories { list-style-type:none; margin:0px; height:100%; padding:0px 8px; float:left; }
+      .bar { height:100%; width:14px; padding:0px 8px; overflow:hidden; position:relative; margin:0px; float:left; }
+        .bar_contents { position:absolute; left:8px; right:8px; }
+          .bar_title { font-weight:bold; font-size:1em; padding-bottom:2px; overflow:hidden; position:relative; }
+          .bar_title a { text-decoration:none; border:none; color:#FFFFFF; }
+          .bar_target { margin:-8px; padding:8px; cursor:pointer; z-index:100; position:relative; }
+            .bar_color { background-color:#73A2E6; position:relative; overflow:hidden; width:100%; }
+              .bar_color .bar_image_bw,.bar_color .bar_image { position:absolute; top:50%; left:0px; }
+                .bar_color .bar_image a { position:absolute; top:0px; left:0px; width:100%; height:100%; border:none; background:none; }
+          .bar_text { font-size:0.929em; line-height:1.3; padding:2px 0px; overflow:hidden; position:relative; }
+            .bar_text div { position:relative; margin-top:3px; }
+            .bar_text a { color:#9CC7E6; }
+            .bar_text a:hover { text-decoration:underline; color:#333333; }
+      .disabled .bar_target { cursor:default; }
+        .disabled .bar_color { background-color:#37424F; }
+      .submit .bar_color { background-color:transparent !important; border:1px dashed #FFFFFF; }
+      .bar.header { width:auto; margin-right:-16px; }
+        .bar.header h1 { position:absolute; top:40px; left:0px; width:100%; color:#FFFFFF; font-family:Garamond,"Times New Roman",serif; font-size:14em; line-height:1; text-align:center; }
+          .bar.header h1 img { float:none; }
+        .bar.header img { margin:0px 16px 0px 0px; float:left; }
+      .waveform.nojs .slider { width:1410px; left:50%; margin-left:-713px; }
+      .waveform .stories.nojs { display:block; background:url(http://www.middlebury.edu/sites/all/themes/midd/images/design/waveform_nojs.png) no-repeat top center; width:1410px; }
+      .waveform .stories.nojs .bar { position:absolute; top:0px; left:690px; width:360px; }
+        .waveform .stories.nojs .bar .bar_title,.waveform .stories.nojs .bar .bar_text { width:360px; }
+        .waveform .stories.nojs .bar_color { height:220px; }
+        .waveform .stories.nojs .bar_text { top:0px; }
+  .bar_pointer { color:#003366; background-color:#C3E2F5; border:1px solid #FFFFFF; line-height:24px; -moz-box-shadow:0px 0px 8px #000000; -webkit-box-shadow:0px 0px 8px #000000; position:fixed; display:none; z-index:1200; padding:0px 5px; font-weight:bold; white-space:nowrap; font-size:0.929em; }
+  .bar_pointer_arrow { width:43px; height:12px; position:absolute; left:-5px; top:0px; background-image:(http://www.middlebury.edu/sites/all/themes/midd/images/design/bar_pointer_arrow.png); z-index:1210; }
+
+  .navigation ul { width:936px; padding:0px 12px; height:2.57em; font-size:1.5em; line-height:24px; font-family:Garamond,"Times New Roman",serif; margin:0px; }
+    .navigation li { list-style-type:none; float:left; margin:0px; text-align:center; }
+      .navigation li a { text-decoration:none; border:none; padding:0px; display:block; }
       .navigation li a:hover { background-color:transparent; }
       .navigation ul.ir li a { position:relative; overflow:hidden; text-indent:-999em; height:24px; }
-        .navigation ul.ir li a span { position:absolute; top:0; right:0; width:100%; height:100%; }
-    .navigation li.top { margin:0 21px 6px 0; }
+        .navigation ul.ir li a span { position:absolute; top:0px; right:0px; width:100%; height:100%; }
+    .navigation li.top { margin:0px 21px 6px 0px; }
       .navigation li.top a { color:#FFFFFF; }
       .navigation li.top a:hover { color:#CCCC99; }
         .navigation li.top a span { background-image:url(http://www.middlebury.edu/sites/all/themes/midd/images/design/nav_top.gif); }
@@ -83,70 +116,95 @@ body { background:#071427 url(http://www.middlebury.edu/sites/all/themes/midd/im
       .navigation li.bottom a:hover { color:#FFFFFF; }
         .navigation li.bottom a span { background-image:url(http://www.middlebury.edu/sites/all/themes/midd/images/design/nav_bottom.gif); }
     .nav_admissions { width:116px; }
-      .nav_admissions a span { background-position:0 0; }
-      .nav_admissions a:hover span { background-position:0 -24px; }
-      .nav_admissions.active a span { background-position:0 -48px; }
-      .nav_admissions.active a:hover span { background-position:0 -72px; }
+      .nav_admissions a span { background-position:0px 0px; }
+      .nav_admissions a:hover span { background-position:0px -24px; }
+      .nav_admissions.active a span { background-position:0px -48px; }
+      .nav_admissions.active a:hover span { background-position:0px -72px; }
     .nav_academics { width:109px; }
-      .nav_academics a span { background-position:-137px 0; }
+      .nav_academics a span { background-position:-137px 0px; }
       .nav_academics a:hover span { background-position:-137px -24px; }
       .nav_academics.active a span { background-position:-137px -48px; }
       .nav_academics.active a:hover span { background-position:-137px -72px; }
     .nav_studentlife { width:118px; }
-      .nav_studentlife a span { background-position:-268px 0; }
+      .nav_studentlife a span { background-position:-268px 0px; }
       .nav_studentlife a:hover span { background-position:-268px -24px; }
       .nav_studentlife.active a span { background-position:-268px -48px; }
       .nav_studentlife.active a:hover span { background-position:-269px -72px; }
     .nav_athletics { width:91px; }
-      .nav_athletics a span { background-position:-407px 0; }
+      .nav_athletics a span { background-position:-407px 0px; }
       .nav_athletics a:hover span { background-position:-407px -24px; }
       .nav_athletics.active a span { background-position:-407px -48px; }
       .nav_athletics.active a:hover span { background-position:-407px -72px; }
     .nav_arts { width:48px; }
-      .nav_arts a span { background-position:-519px 0; }
+      .nav_arts a span { background-position:-519px 0px; }
       .nav_arts a:hover span { background-position:-519px -24px; }
       .nav_arts.active a span { background-position:-519px -48px; }
       .nav_arts.active a:hover span { background-position:-519px -72px; }
     .nav_international { width:236px; }
-      .nav_international a span { background-position:-589px 0; }
+      .nav_international a span { background-position:-589px 0px; }
       .nav_international a:hover span { background-position:-589px -24px; }
       .nav_international.active a span { background-position:-589px -48px; }
       .nav_international.active a:hover span { background-position:-589px -72px; }
-    .navigation li.nav_middlab { width:90px; margin-right:0; float:right; }
-      .nav_middlab a span { background-position:-847px 0; }
+    .navigation li.nav_middlab { width:90px; margin-right:0px; float:right; }
+      .nav_middlab a span { background-position:-847px 0px; }
       .nav_middlab a:hover span { background-position:-847px -24px; }
       .nav_middlab.active a span { background-position:-847px -48px; }
       .nav_middlab.active a:hover span { background-position:-847px -72px; }
     .nav_about { width:173px; }
-      .nav_about a span { background-position:0 0; }
-      .nav_about a:hover span { background-position:0 -24px; }
-      .nav_about.active a span { background-position:0 -48px; }
-      .nav_about.active a:hover span { background-position:0 -72px; }
+      .nav_about a span { background-position:0px 0px; }
+      .nav_about a:hover span { background-position:0px -24px; }
+      .nav_about.active a span { background-position:0px -48px; }
+      .nav_about.active a:hover span { background-position:0px -72px; }
     .nav_sustainability { width:138px; }
-      .nav_sustainability a span { background-position:-194px 0; }
+      .nav_sustainability a span { background-position:-194px 0px; }
       .nav_sustainability a:hover span { background-position:-194px -24px; }
       .nav_sustainability.active a span { background-position:-194px -48px; }
       .nav_sustainability.active a:hover span { background-position:-194px -72px; }
     .nav_giving { width:73px; }
-      .nav_giving a span { background-position:-353px 0; }
+      .nav_giving a span { background-position:-353px 0px; }
       .nav_giving a:hover span { background-position:-353px -24px; }
       .nav_giving.active a span { background-position:-353px -48px; }
       .nav_giving.active a:hover span { background-position:-353px -72px; }
     .nav_news { width:115px; }
-      .nav_news a span { background-position:-447px 0; }
+      .nav_news a span { background-position:-447px 0px; }
       .nav_news a:hover span { background-position:-447px -24px; }
       .nav_news.active a span { background-position:-447px -48px; }
       .nav_news.active a:hover span { background-position:-447px -72px; }
     .nav_events { width:181px; }
-      .nav_events a span { background-position:-584px 0; }
+      .nav_events a span { background-position:-584px 0px; }
       .nav_events a:hover span { background-position:-584px -24px; }
       .nav_events.active a span { background-position:-584px -48px; }
       .nav_events.active a:hover span { background-position:-584px -72px; }
-    .navigation li.nav_offices { width:171px; margin-right:0; float:right; }
-      .nav_offices a span { background-position:-787px 0; }
+    .navigation li.nav_offices { width:171px; margin-right:0px; float:right; }
+      .nav_offices a span { background-position:-787px 0px; }
       .nav_offices a:hover span { background-position:-787px -24px; }
       .nav_offices.active a span { background-position:-787px -48px; }
       .nav_offices.active a:hover span { background-position:-787px -72px; }
+
+  .affiliates { clear:both; color:#FFFFFF; font-family:Garamond,"Times New Roman",serif; font-style:italic; line-height:20px; margin:40px auto 0; text-align:center; width:930px; }
+    .affiliates h2 { color:#FFFFFF; font-size:1.2em; font-variant:small-caps; margin:0; }
+    .affiliates ul { font-size:1.2em; list-style-type:none; margin:0 auto; width:892px; }
+      .affiliates li { float:left; margin:0; padding:0 23px; }
+        .affiliates li a { background-color:transparent; border:medium none; color:#C7DBD7; display:block; padding:0; position:relative; }
+        .affiliates li a:hover { color:#FFFFFF; }
+      .affiliates.ir li a, .affiliates.ir h2 { height:25px; overflow:hidden; position:relative; text-indent:-999em; }
+      .affiliates.ir li a span, .affiliates.ir h2 span { background-image:url(http://www.middlebury.edu/sites/all/themes/midd/images/design/nav_affiliates_rev.gif); height:100%; position:absolute; right:0; top:0; width:100%; }
+      .affiliates h2 span { background-position:center 0; }
+      .affiliates_languageschools { padding-bottom:5px; width:207px; }
+        .affiliates_languageschools a span { background-position:0px -25px; }
+        .affiliates_languageschools a:hover span { background-position:0px -50px; }
+      .affiliates_schoolsabroad { width:192px; }
+        .affiliates_schoolsabroad a span { background-position:-217px -25px; }
+        .affiliates_schoolsabroad a:hover span { background-position:-217px -50px; }
+      .affiliates_breadloaf { width:352px; }
+        .affiliates_breadloaf a span { background-position:-425px -25px; }
+        .affiliates_breadloaf a:hover span { background-position:-425px -50px; }
+      li.affiliates_mmla { clear:left; margin-left:67px; width:292px; }
+        .affiliates_mmla a span { background-position:-793px -25px; }
+        .affiliates_mmla a:hover span { background-position:-793px -50px; }
+      .affiliates_miis { width:308px; }
+        .affiliates_miis a span { background-position:-1084px -25px; }
+        .affiliates_miis a:hover span { background-position:-1084px -50px; }
 
   /* Page Content */
   .pagecontent { position:relative; margin-top:18px; background:url(http://www.middlebury.edu/sites/all/themes/midd/images/design/background_content.gif) repeat-y left top; }
@@ -181,7 +239,6 @@ body { background:#071427 url(http://www.middlebury.edu/sites/all/themes/midd/im
     .page { float:left; width:684px; background-color:#FFFFFF; border-top:4px solid #CCCC99; padding:18px; }
 
   /* Footer */
-  #block-system-powered-by { display:none; }
   .footer { visibility:hidden; background-color:#003366; line-height:30px; margin-top:30px; font-size:1.1em; font-family:Garamond,"Times New Roman",serif; color:#FFFFFF; position:relative; }
     .footer a { color:#FFFFFF; border-color:#CCCCCC; padding:0; outline:none; }
     .footer a:hover { border:none; color:#003366; background-color:#83B2F9; }

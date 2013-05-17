@@ -6,9 +6,9 @@
       <li class="gateways_staff"><a href="http://facstaff.middlebury.edu">Faculty &amp; Staff<span></span></a></li>
       <li class="gateways_alumni quick_footer"><a href="http://alumni.middlebury.edu">Alumni<span></span></a>
         <ul class="quick_footer contents">
-          <li><a href="<?php print base_path(); ?>"alumni>Undergraduate Alumni</a></li>
-          <li><a href="<?php print base_path(); ?>"alumni/ls>Language Schools</a></li>
-          <li><a href="<?php print base_path(); ?>"alumni/blse>Bread Loaf School of English</a></li>
+          <li><a href="<?php print base_path(); ?>alumni">Undergraduate Alumni</a></li>
+          <li><a href="<?php print base_path(); ?>alumni/ls">Language Schools</a></li>
+          <li><a href="<?php print base_path(); ?>alumni/blse">Bread Loaf School of English</a></li>
           <li><a href="http://alumni.middlebury.edu">Monterey Institute</a></li>
         </ul>
       </li>
