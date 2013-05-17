@@ -317,6 +317,7 @@ function middlebury_story_get_stories($term) {
   $vid = 11;
 
   $cache = cache_get('waveform_stories_' . $term);
+  drupal_add_http_header('Content-Type', 'text/javascript');
   if (!empty($cache->data)) {
     print unserialize($cache->data);
   }
@@ -431,7 +432,6 @@ function middlebury_story_get_stories($term) {
 
     $print_stories = 'var waveformStories = ' . json_encode($waveform_stories);
     cache_set('waveform_stories_' . $term, serialize($print_stories), 'cache', CACHE_PERMANENT);
-    header('Content-Type:text/javascript');
     print $print_stories;
   }
 }
