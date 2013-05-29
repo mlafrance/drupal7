@@ -11,10 +11,11 @@ var settings = {
     fps : 60, // frames per second
     refreshRate : 100, // how often to listen for a mouse move event
     threshold : 20 // how many pixels does the mouse have to have moved to register the change?
-  },
-  homepage = jQuery('body').is('#midd_homepage');
+  };
 
 jQuery(document).ready(function(jQuery) {
+  homepage = jQuery('body').is('#midd_homepage');
+
   // create the indexOf function if it does not exist
   if(!Array.indexOf) {
     Array.prototype.indexOf = function(obj) {
@@ -74,15 +75,15 @@ jQuery(document).ready(function(jQuery) {
     story_number = 0;
   if(ie6) pointer.add(pointerArrow).css('visibility','hidden'); // in IE 6, hide the pointer arrow
   if(window.waveformStories) {
-    if(homepage) {
+    if (homepage) {
       var openStoryInterval = setInterval(function() {
-        if(startOpen.length = 1) {
+        if (startOpen.length > 1) {
           var open = stories.find('.open'); // find any open story
           if(open.length) open.closeStory();
-          next_id = '#'+open.attr('id');
+          next_id = '#' + open.attr('id');
           if(openedStories.length == startOpen.length) openedStories = new Array();
           while (next_id == '#' + open.attr('id') || openedStories.indexOf(next_id) > -1) {
-            next_id = '#story' + startOpen[Math.floor(Math.random()*startOpen.length)]+'_bar';
+            next_id = '#story'+startOpen[Math.floor(Math.random()*startOpen.length)]+'_bar';
           }
           openedStories.push(next_id);
           jQuery(next_id).openStory();
@@ -281,7 +282,7 @@ jQuery.fn.extend({
     var story = this.removeClass('open'),
       details = story.data('details');
     details.bar_image.add(details.bar_image_bw).stop(true).find('img').unbind('load'); // stop any animations and remove any upcoming load events
-    details.bar_image.fadeto(500,0,function() { // fade out the full image
+    details.bar_image.fadeTo(500,0,function() { // fade out the full image
       details.bar_image.empty(); // and remove it
       details.bar_image_bw.fadeTo(500,0,function() { // fade out the BW image
         details.bar_image_bw.empty(); // and remove it

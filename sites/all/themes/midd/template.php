@@ -21,5 +21,6 @@ function midd_preprocess_html(&$vars) {
 function midd_preprocess_page(&$vars) {
   if ($vars['is_front']) {
     drupal_add_js(base_path() . 'middlebury_story/get/Home');
+    drupal_add_library('system', 'effects');
   }
 }
