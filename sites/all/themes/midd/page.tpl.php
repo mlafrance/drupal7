@@ -5,8 +5,11 @@
     <?php print render($page['left']); ?>
   </nav>
   <section class="page">
-    <?php print render($page['right']); ?>
+    <aside class="sidebar">
+      <?php print render($page['right']); ?>
+    </aside>
     <section class="body">
+      <?php print render($breadcrumb); ?>
       <?php print render($page['content']); ?>
     </section>
   </section>

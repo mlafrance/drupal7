@@ -1,6 +1,26 @@
 <?php
 
 /**
+ * Returns HTML for a breadcrumb.
+ *
+ * @param array $variables
+ *   An associative array containing:
+ *   - breadcrumb: An array containing the breadcrumb links.
+ *
+ * @ingroup themeable
+ */
+function midd_breadcrumb($variables) {
+  if (!empty($variables)) {
+    $breadcrumb = $variables['breadcrumb'];
+    $title = drupal_get_title();
+    if (!empty($title)) {
+      $breadcrumb[] = $title;
+    }
+    return '<nav class="breadcrumb">' . implode(' &raquo; ', $breadcrumb) . '</nav>';
+  }
+}
+
+/**
  * Implements hook_preprocess_html().
  */
 function midd_preprocess_html(&$vars) {
