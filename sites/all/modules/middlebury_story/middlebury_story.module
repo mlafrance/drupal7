@@ -347,7 +347,7 @@ function middlebury_story_get_stories($term) {
       }
       $story['title'] = $wrapper->title->value();
       $image_field = $wrapper->field_story_image->value();
-      if (!empty($image_field['nid'])) {
+      if (false && !empty($image_field['nid'])) {
         $image_node = node_load($image_field['nid']);
         try {
           $image_node = entity_metadata_wrapper('node', $image_node);
@@ -378,7 +378,7 @@ function middlebury_story_get_stories($term) {
         $story['width'] = 402;
       }
       $image_bw_field = $wrapper->field_story_bwimage->value();
-      if (!empty($image_bw_field)) {
+      if (false && !empty($image_bw_field)) {
         $image_bw_node = node_load($image_bw_field['nid']);
         try {
           $image_bw_node = entity_metadata_wrapper('node', $image_bw_node);
@@ -485,7 +485,7 @@ function middlebury_story_node_update($node) {
 /**
  * Helpder function to clear the story cache.
  */
-function _submit_story_clear_cache() {
+function _middlebury_story_clear_cache() {
   // Clear the Drupal cache
   $terms = taxonomy_get_tree(11);
   for ($i = 0; $i < count($terms); $i++) {
