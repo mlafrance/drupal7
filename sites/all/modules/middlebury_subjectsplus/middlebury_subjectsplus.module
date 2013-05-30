@@ -22,7 +22,7 @@ function middlebury_subjectsplus_filter_info() {
  * Implements hook_filter_FILTER_process().
  */
 function _middlebury_subjectsplus_process($text, $filter, $format, $langcode, $cache, $cache_id) {
-  return preg_replace_callback('\[subjectsplus\s?([^\]]*)\]/', 'middlebury_subjectsplus_replace', $text);
+  return preg_replace_callback('/\[subjectsplus\s?([^\]]*)\]/', 'middlebury_subjectsplus_replace', $text);
 }
 
 /**
