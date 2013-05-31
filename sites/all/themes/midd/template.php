@@ -67,13 +67,10 @@ function midd_preprocess_node__qa(&$variables) {
  * @see page.tpl.php
  */
 function midd_preprocess_page(&$variables) {
-  if ($variables['is_front']) {
-    drupal_add_js(base_path() . 'middlebury_story/get/Home');
-    drupal_add_library('system', 'effects');
-  }
+  $page = mm_content_get(arg(1), array(MM_GET_FLAGS));
 
-  if (in_array(arg(1), array(71596,71654,73622,72112,73832,73777,73808,73711,72381))) {
-    drupal_add_js(base_path() . 'middlebury_story/get/' . drupal_get_title());
+  if ($variables['is_front'] || (!empty($page->flags) && in_array('has_waveform', array_keys($page->flags)))) {
+    drupal_add_js(base_path() . 'middlebury_story/get/' . ($variables['is_front'] ? 'Home' : drupal_get_title()));
     drupal_add_library('system', 'effects');
   }
 }
