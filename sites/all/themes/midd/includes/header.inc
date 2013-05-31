@@ -1,7 +1,7 @@
 <header class="container">
   <?php global $user; ?>
   <?php header('Parse-ESI: true'); ?>
-  <esi:include src="<?php print base_path() . drupal_get_path('theme', 'midd'); ?>/head_links.html"></esi:include>
+  <esi:include src="<?php print base_path() . drupal_get_path('theme', 'midd'); ?>/includes/head_links.html"></esi:include>
   <form class="search" action="<?php print base_path(); ?>search" method="get" target="_top">
     <label for="midd_search_query">Search Midd</label>
     <input type="search" id="midd_search_query" class="search_query x-webkit-speech" name="q2" placeholder="Search Midd" x-webkit-speech required>

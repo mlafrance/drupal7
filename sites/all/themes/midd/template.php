@@ -71,4 +71,9 @@ function midd_preprocess_page(&$variables) {
     drupal_add_js(base_path() . 'middlebury_story/get/Home');
     drupal_add_library('system', 'effects');
   }
+
+  if (in_array(arg(1), array(71596,71654,73622,72112,73832,73777,73808,73711,72381))) {
+    drupal_add_js(base_path() . 'middlebury_story/get/' . drupal_get_title());
+    drupal_add_library('system', 'effects');
+  }
 }
