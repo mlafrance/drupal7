@@ -21,25 +21,53 @@ function midd_breadcrumb($variables) {
 }
 
 /**
- * Implements hook_preprocess_html().
+ * Prepares variables for html.tpl.php.
+ *
+ * @see html.tpl.php
  */
-function midd_preprocess_html(&$vars) {
+function midd_preprocess_html(&$variables) {
   $args = arg();
   if (!empty($args[1])) {
-    //$vars['classes_array'][] = middlebury_get_color_scheme($args[1]);
+    $variables['classes_array'][] = middlebury_get_color_scheme($args[1]);
   }
 
-  if ($vars['is_front']) {
-    $vars['classes_array'][] = 'homepage';
-    $vars['attributes_array']['id'] = 'midd_homepage';
+  if ($variables['is_front']) {
+    $variables['classes_array'][] = 'homepage';
+    $variables['attributes_array']['id'] = 'midd_homepage';
   }
 }
 
 /**
- * Implements hook_preprocess_page().
+ * Prepares variables for node.tpl.php
+ *
+ * @see node.tpl.php
  */
-function midd_preprocess_page(&$vars) {
-  if ($vars['is_front']) {
+function midd_preprocess_node(&$variables) {
+  $function = __FUNCTION__ . '__' . $variables['node']->type;
+  if (function_exists($function)) {
+    $function($variables);
+  }
+}
+
+/**
+ * Prepares variables for node--qa.tpl.php
+ *
+ * @see node.tpl.php
+ */
+function midd_preprocess_node__qa(&$variables) {
+  $selector = preg_replace("/[^a-zA-Z0-9\.\*#>\+~:\[\]\(\)\-_=;&,!\^$|\/\s]/", "", $variables['node']->field_selector['und'][0]['value']);
+  $script = "jQuery(function() { jQuery('input.quickaccess').quickaccess({selector:'" . $selector . "',maxresults:15}); });";
+  drupal_add_js($script, 'inline');
+  drupal_add_js(drupal_get_path('theme', 'midd') . '/scripts/quickaccess.js');
+}
+
+/**
+ * Prepares variables for page.tpl.php
+ *
+ * @see page.tpl.php
+ */
+function midd_preprocess_page(&$variables) {
+  if ($variables['is_front']) {
     drupal_add_js(base_path() . 'middlebury_story/get/Home');
     drupal_add_library('system', 'effects');
   }

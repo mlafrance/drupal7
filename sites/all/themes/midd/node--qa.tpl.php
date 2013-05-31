@@ -5,6 +5,7 @@
     </header>
   <?php endif; ?>
   <section class="contents">
+    <input class="quickaccess" type="text" />
     <?php hide($content['links']); ?>
     <?php print render($content); ?>
     <?php if ($display_submitted): ?>
