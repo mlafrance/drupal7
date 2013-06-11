@@ -81,7 +81,13 @@ function midd_preprocess_node__donation_thermometer(&$variables) {
  * @see node.tpl.php
  */
 function midd_preprocess_node__qa(&$variables) {
-  $selector = preg_replace("/[^a-zA-Z0-9\.\*#>\+~:\[\]\(\)\-_=;&,!\^$|\/\s]/", "", $variables['node']->field_selector['und'][0]['value']);
+  $wrapper = $variables['node'];
+  try {
+    $wrapper = entity_metadata_wrapper('node', $variables['node']);
+  } catch(UnexpectedValueException $e) {
+  }
+
+  $selector = preg_replace("/[^a-zA-Z0-9\.\*#>\+~:\[\]\(\)\-_=;&,!\^$|\/\s]/", "", $wrapper->field_selector->value());
   $script = "jQuery(function() { jQuery('input.quickaccess').quickaccess({selector:'" . $selector . "',maxresults:15}); });";
   drupal_add_js($script, 'inline');
   drupal_add_js(drupal_get_path('theme', 'midd') . '/scripts/quickaccess.js');
