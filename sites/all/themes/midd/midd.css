@@ -314,6 +314,11 @@ body { background:#071427 url(images/bluegradient.jpg) no-repeat center top; fon
 
 /* Content Types */
 
+  /* Donations Thermometer */
+  .node-donation-thermometer .value { color:transparent; }
+  .node-donation-thermometer.classic-m .gauge { width:180px; height:180px; position:relative; background:#333333 url(images/thermometer.gif) top left no-repeat; }
+  .node-donation-thermometer.classic-m .value { position:absolute; left:0px; bottom:0px; text-align:center; width:100%; background:#0D5A92 url(images/thermometer.gif) bottom right no-repeat; }
+
   /* Quick Access */
   .qa_results { border:1px solid #CCCCCC; width:14em; background-color:#FFFFFF; z-index:200; position:relative; }
   .qa_results_list { list-style-type:none; padding:0px; margin:0px; line-height:1.2em; }

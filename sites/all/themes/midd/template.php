@@ -50,6 +50,32 @@ function midd_preprocess_node(&$variables) {
 }
 
 /**
+ * Prepares variables for node--donation_thermometer.tpl.php
+ *
+ * @see node.tpl.php
+ */
+function midd_preprocess_node__donation_thermometer(&$variables) {
+  drupal_add_js(drupal_get_path('theme', 'midd') . '/scripts/donation_thermometer.js');
+
+  $variables['currency'] = '$';
+
+  $wrapper = $variables['node'];
+  try {
+    $wrapper = entity_metadata_wrapper('node', $variables['node']);
+  } catch(UnexpectedValueException $e) {
+  }
+
+  $target = $wrapper->field_donation_target->value();
+  $amount = $wrapper->field_donation_amount->value();
+  if (!empty($target) && !empty($amount)) {
+    $variables['percent'] = ($amount/$target)*100;
+  }
+
+  $type = $wrapper->field_donation_type->value();
+  $variables['type'] = empty($type) ? "classic-m" : $type;
+}
+
+/**
  * Prepares variables for node--qa.tpl.php
  *
  * @see node.tpl.php
