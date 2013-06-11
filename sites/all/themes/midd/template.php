@@ -99,11 +99,12 @@ function midd_preprocess_node__qa(&$variables) {
  * @see page.tpl.php
  */
 function midd_preprocess_page(&$variables) {
+  drupal_add_library('system', 'ui');
+  drupal_add_library('system', 'effects');
+
   $page = mm_content_get(arg(1), array(MM_GET_FLAGS));
 
   if ($variables['is_front'] || (!empty($page->flags) && in_array('has_waveform', array_keys($page->flags)))) {
     drupal_add_js(base_path() . 'middlebury_story/get/' . ($variables['is_front'] ? 'Home' : drupal_get_title()));
-    drupal_add_library('system', 'ui');
-    drupal_add_library('system', 'effects');
   }
 }
