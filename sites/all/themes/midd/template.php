@@ -71,6 +71,7 @@ function midd_preprocess_page(&$variables) {
 
   if ($variables['is_front'] || (!empty($page->flags) && in_array('has_waveform', array_keys($page->flags)))) {
     drupal_add_js(base_path() . 'middlebury_story/get/' . ($variables['is_front'] ? 'Home' : drupal_get_title()));
+    drupal_add_library('system', 'ui');
     drupal_add_library('system', 'effects');
   }
 }

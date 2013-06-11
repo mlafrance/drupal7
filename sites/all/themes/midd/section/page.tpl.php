@@ -149,6 +149,10 @@
   <?php print render($page['address']); ?>
   <div class="clear"></div>
 </article>
-<?php print render($page['carousel']); ?>
+<section id="midd_carousel" class="carousel">
+  <div class="slider">
+    <?php print render($page['carousel']); ?>
+  </div>
+</section>
 <?php include_once(drupal_get_path('theme', 'midd') . '/includes/footer.inc'); ?>
 <?php print render($page['footer']); ?>

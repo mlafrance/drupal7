@@ -238,6 +238,13 @@ jQuery(document).ready(function(jQuery) {
 
   /**** END WAVEFORM ****/
 
+  // Carousel
+  var carousel = jQuery('#midd_carousel');
+  if (carousel.length) {
+    carousel.slider();
+    jQuery('#midd_content').append('<div class="carousel_arrow"></div>');
+  }
+
   // Footer positioning and panel
   var footerPanel = jQuery('#midd_footer_panel');
   jQuery(window).resize(nudgeFooter).resize();

@@ -251,6 +251,16 @@ body { background:#071427 url(images/bluegradient.jpg) no-repeat center top; fon
         .breadcrumb a { padding-bottom:0px; }
         .breadcrumb a:hover { border-bottom:1px solid #999999; background-color:#EEEEEE; color:#333333; }
 
+  /* Carousel */
+  .carousel_arrow { position:absolute; left:258px; bottom:-43px; width:49px; height:43px; background-image:url(images/carousel_arrow.png); z-index:100; }
+  .carousel { color:#FFFFFF; height:240px; margin:18px 0px; position:relative; overflow:hidden; }
+    .region-carousel a { color:#CCFF66; text-decoration:none; border:none; padding:0px; }
+    .region-carousel a:hover { color:#A9D4FF; text-decoration:underline; border:none; background-color:transparent; border-bottom:1px dotted; }
+    .region-carousel h2, .region-carousel h3, .region-carousel h4, .region-carousel h5, .region-carousel h6 { color:#83B2F9; }
+  .carousel .block { border:dashed #FFFFFF; border-width:1px 1px 1px 0px; list-style-type:none; height:238px; margin:0px; }
+    .carousel .node, .carousel .link-wrapper { border-left:1px dashed #FFFFFF; height:180px; padding:30px; margin:0px; float:left; }
+    .carousel .content > a { display:none; }
+
   /* Footer */
   .footer { visibility:hidden; background-color:#003366; line-height:30px; margin-top:30px; font-size:1.1em; font-family:Garamond,"Times New Roman",serif; color:#FFFFFF; position:relative; }
     .footer a { color:#FFFFFF; border-color:#CCCCCC; padding:0; outline:none; }
