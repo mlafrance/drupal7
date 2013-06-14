@@ -35,6 +35,8 @@ function midd_preprocess_html(&$variables) {
     $variables['classes_array'][] = 'homepage';
     $variables['attributes_array']['id'] = 'midd_homepage';
   }
+
+  $variables['classes_array'][] = monster_menus_custom_theme();
 }
 
 /**

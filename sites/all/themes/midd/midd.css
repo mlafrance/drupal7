@@ -209,6 +209,37 @@ body { background:#071427 url(images/bluegradient.jpg) no-repeat center top; fon
   /* Page Content */
   .pagecontent { position:relative; margin-top:18px; background:url(images/background_content.gif) repeat-y left top; }
 
+    /* Taskbar */
+    .taskbar { position:relative; padding:0px 18px; height:40px; line-height:40px; background-color:#EEEEDD; font-family:"Helvetica Neue",Arial,Helvetica,sans-serif; font-size:0.929em; z-index:400; }
+      .taskbar_back, .taskbar_forward { color:#221100; border:none; padding:none; display:block; height:34px; line-height:34px; position:absolute; top:3px; }
+        .taskbar_back { padding:0px 6px 0px 37px; left:3px; background:url(images/taskbar_back.gif) no-repeat left top; }
+        .taskbar_forward { padding:0px 37px 0px 6px; right:3px; background:url(images/taskbar_forward.gif) no-repeat right top; }
+          .taskbar_back strong, .taskbar_forward strong { color:#003366; }
+          .taskbar_back:hover { background-color:#DDDDDD; background-position:left bottom; }
+          .taskbar_forward:hover { background-color:#DDDDDD; background-position:right bottom; }
+      .taskbar_dropdowns { position:absolute; top:0px; right:0px; z-index:400; }
+        .dropdown_label { float:left; }
+      .taskbar .node { position:relative; float:left; margin:3px; }
+        .taskbar .node h1 { font-family:Verdana,"Lucida Grande",Lucida,sans-serif; font-weight:normal; font-size:0.846em; text-transform:uppercase; letter-spacing:0.1em; cursor:pointer; color:#222222; line-height:28px; padding:3px 30px 3px 6px; background:#83B2F9 url(images/dropdown_pointer.png) no-repeat right top; }
+          .taskbar .node h1 a { color:inherit; border:none; }
+          .taskbar .node h1 a:hover { background:transparent; }
+        .taskbar .node .contents { background:#0D1E29; color:#FFFFFF; line-height:1.4em; display:none; position:absolute; top:33px; left:0px; z-index:500; min-width:100%; }
+          .taskbar .node .contents a { color:#CCCCCC; padding:0px; border:none; background-color:transparent; }
+          .taskbar .node .contents a:hover { color:#FFFFAA; }
+          .taskbar .node .contents ul { list-style-type:none; margin:0px; padding:12px; }
+            .taskbar .node .contents ul li { margin:0px 0px 0.4em; }
+        .taskbar .node.last .contents { right:0px; left:auto; }
+        .taskbar .node.active h1 { background-color:#003366; color:#FFFFFF; background-position:right bottom; }
+        .taskbar .node.active .contents { display:block; }
+        .taskbar .node.dark h1 { color:#FFFFFF; background-color:#003366; background-position:right bottom; }
+          .dark.active h1 { background-color:#83B2F9; color:#222222; }
+        .taskbar .node.red h1 { color:#FFFFFF; background-color:#790E39; background-position:right bottom; }
+          .red.active h1 { background-color:#FF7171; color:#222222; }
+        .taskbar .node.silver h1 { background-color:#767B91; color:#222222; background-position:right bottom; }
+          .silver.active h1 { background-color:#767B91; color:#222222; }
+        .taskbar .node.gray h1 { background-color:#8C8C8C; color:#FFFFFF; background-position:right bottom; }
+          .gray.active h1 { background-color:#8C8C8C; color:#222222; }
+
     /* Left Column */
     .left { float:left; width:204px; padding:18px 18px 15em; color:#FFFFFF; font-size:0.929em; }
       ul.menu { margin:0px; background-color:#0d1e29; }
@@ -333,6 +364,23 @@ body { background:#071427 url(images/bluegradient.jpg) no-repeat center top; fon
   .qa_selected { background-color:#EEEEDD; }
   .qa_blur, .qa_noquery, .qa_nonefound { display:none; }
   .qa_toomany li { padding:2px 0.5em; }
+
+/* Page Themes */
+
+  /* Department */
+  .midd_department .pagecontent { background-color:#FFFFFF; }
+  .midd_department .left, .midd_department .region-address { color:#221100; }
+    .midd_department .left a, .midd_department .region-address a { color:#272C6F; border-bottom-color:#114477; }
+    .midd_department .left a:hover, .midd_department .region-address a:hover { background-color:#EEFFCC; color:#333300; }
+  .midd_department .page { border-top:0px; }
+  .midd_department ul.menu { margin-left:0px; background:#FFFFFF; }
+    .midd_department ul.menu li { background-color:transparent; border-color:#CCCCCC; }
+      .midd_department ul.menu li a { color:#272C6F; padding-left:6px; }
+      .midd_department ul.menu li a:hover { color:#333300; background:#FFFFFF; }
+    .midd_department ul.menu li.active a { color:#333300; }
+      .midd_department ul.menu li.active ul { margin-left:18px; }
+    .midd_department ul.menu li.active ul li a { color:#272C6F; }
+      .midd_department ul.menu li.current a, .midd_department ul.menu li.active ul li.current a { color:#660000; }
 
 /* Color schemes:  Leaf, Apple, Sun, Lake, Grape, Basic */
 
