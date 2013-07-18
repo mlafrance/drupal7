@@ -15,6 +15,11 @@ var settings = {
 
 jQuery(document).ready(function(jQuery) {
   homepage = jQuery('body').is('#midd_homepage');
+  if (jQuery('body').hasClass('page-mm-71654')) {
+    jQuery('#block-monster-menus-1 ul ul li').each(function(i) {
+      if (i > 6) this.style.display = 'none';
+    });
+  }
 
   // create the indexOf function if it does not exist
   if(!Array.indexOf) {
