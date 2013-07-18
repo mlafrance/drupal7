@@ -1,0 +1,6 @@
+name = Midd TinyMCE Module
+description = Provides consistent default settings for the WYSIWYG Editor.
+core = 7.x
+package = Middlebury
+dependencies[] = wysiwyg
+files[] = middlebury_tinymce.module
