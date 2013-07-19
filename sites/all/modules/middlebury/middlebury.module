@@ -197,8 +197,12 @@ function middlebury_block_view($delta = '') {
  * Implements hook_content_edit_submit().
  */
 function middlebury_content_edit_submit($form_id, &$form_values) {
-  db_query("UPDATE {mm_tree} SET color_scheme = '%s' WHERE mmtid = %d",
-    array($form_values['values']['color_scheme'], $form_values['values']['path']));
+  db_update('mm_tree')
+    ->fields(array(
+      'color_scheme' => $form_values['values']['color_scheme'],
+    ))
+    ->condition('mmtid', $form_values['values']['path'])
+    ->execute();
 }
 
 /**
