@@ -26,6 +26,9 @@ function midd_breadcrumb($variables) {
  * @see html.tpl.php
  */
 function midd_preprocess_html(&$variables) {
+  drupal_add_css('//cdn.middlebury.edu/middlebury.edu/2010/css/midd.css', 'external');
+  drupal_add_js('//cdn.middlebury.edu/middlebury.edu/2010/js/midd.js', 'external');
+
   $args = arg();
   if (!empty($args[1])) {
     $variables['classes_array'][] = middlebury_get_color_scheme($args[1]);
