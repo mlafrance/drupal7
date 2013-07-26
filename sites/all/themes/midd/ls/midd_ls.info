@@ -1,0 +1,12 @@
+name = Midd LS
+base theme = midd
+description = Theme for Middlebury Language Schools top-level page
+core = 7.x
+engine = phptemplate
+
+regions[header] = Header
+regions[left] = Left Sidebar
+regions[right] = Right Sidebar
+regions[content] = Content
+regions[carousel] = Carousel
+regions[footer] = Footer
