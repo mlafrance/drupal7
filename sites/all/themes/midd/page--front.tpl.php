@@ -8,7 +8,7 @@
           <div class="bar_title">Welcome to Middlebury College</div>
           <div class="bar_target">
             <div class="bar_color">
-              <img src="<?php print $base_path . drupal_get_path('theme', 'midd'); ?>/images/bar_nojs.jpg" alt="Students on Midd's Vermont campus" width="360" height="220" />
+              <img src="//cdn.middlebury.edu/middlebury.edu/2010/images/bar_nojs.jpg" alt="Students on Midd's Vermont campus" width="360" height="220" />
             </div>
           </div>
           <div class="bar_text">

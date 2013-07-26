@@ -270,6 +270,7 @@ function midd_preprocess_page(&$variables) {
   $page = mm_content_get(arg(1), array(MM_GET_FLAGS));
 
   if ($variables['is_front'] || (!empty($page->flags) && in_array('has_waveform', array_keys($page->flags)))) {
+    drupal_add_js('//cdn.middlebury.edu/middlebury.edu/2010/js/waveform.js', 'external');
     drupal_add_js(base_path() . 'middlebury_story/get/' . ($variables['is_front'] ? 'Home' : drupal_get_title()));
   }
 }

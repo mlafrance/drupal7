@@ -8,7 +8,7 @@
     <input type="submit" id="midd_search_submit" class="search_submit" value="Go">
     <input type="hidden" id="midd_ajax_search_url" value="<?php print base_path(); ?>go/search">
   </form>
-  <h1 class="wordmark"><a href="<?php echo base_path(); ?>"><img src="<?php print base_path() . drupal_get_path('theme', 'midd'); ?>/images/logo.png" width="206" height="39" alt="Middlebury" /></a></h1>
+  <h1 class="wordmark"><a href="<?php echo base_path(); ?>"><img src="//cdn.middlebury.edu/middlebury.edu/2010/images/logo.png" width="206" height="39" alt="Middlebury" /></a></h1>
   <?php $alias = middlebury_get_toplevel(arg(1)); ?>
   <?php if (empty($is_front) || !$is_front): ?>
     <?php include_once(drupal_get_path('theme', 'midd') . '/includes/navigation.inc'); ?>
