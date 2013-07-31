@@ -1,6 +1,6 @@
-name = Midd Department
-base theme = midd
-description = Theme for Middlebury College academic department pages
+name = Midd LS Graduate
+base theme = midd_ls
+description = Theme for Middlebury Language Schools graduate pages
 core = 7.x
 engine = phptemplate
 
@@ -8,10 +8,8 @@ regions[header] = Header
 regions[quicklinks] = Quick Links
 regions[banner] = Site Banner
 regions[left] = Left Sidebar
-regions[right] = Right Sidebar
 regions[content] = Content
+regions[right] = Right Sidebar
 regions[address] = Address
 regions[carousel] = Carousel
 regions[footer] = Footer
-
-stylesheets[all][] = midd_department.css

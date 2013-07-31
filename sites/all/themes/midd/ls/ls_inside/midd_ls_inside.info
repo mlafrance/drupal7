@@ -1,6 +1,6 @@
-name = Midd Department
-base theme = midd
-description = Theme for Middlebury College academic department pages
+name = Midd LS Inside
+base theme = midd_ls
+description = Theme for Middlebury Language Schools inside pages
 core = 7.x
 engine = phptemplate
 
@@ -13,5 +13,3 @@ regions[content] = Content
 regions[address] = Address
 regions[carousel] = Carousel
 regions[footer] = Footer
-
-stylesheets[all][] = midd_department.css

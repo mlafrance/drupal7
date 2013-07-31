@@ -8,6 +8,9 @@
       <?php print render($page['quicklinks']); ?>
     </section>
   </nav>
+  <section class="banner">
+    <?php print render($page['banner']); ?>
+  </section>
   <nav class="left">
     <?php print render($page['left']); ?>
   </nav>
