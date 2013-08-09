@@ -26,6 +26,7 @@
     <?php if (!empty($page['quicklinks'])): ?>
       <section class="taskbar_dropdowns">
         <div class="dropdown_label">Quick links to</div>
+        <?php print render($page['quicklinks']); ?>
       </section>
     <?php endif; ?>
   </nav>

@@ -21,11 +21,12 @@
   </nav>
 </header>
 <article id="midd_content" class="pagecontent container">
-  <nav class="taskbar">
+  <nav id="midd_taskbar" class="taskbar">
     <a class="taskbar_back" href="<?php print $base_path; ?>ls">Return to <strong>Language Schools Home</strong></a>
     <?php if (!empty($page['quicklinks'])): ?>
       <section class="taskbar_dropdowns">
         <div class="dropdown_label">Quick links to</div>
+        <?php print render($page['quicklinks']); ?>
       </section>
     <?php endif; ?>
   </nav>
