@@ -1,7 +1,7 @@
 <?php print render($page['header']); ?>
 <?php include_once(drupal_get_path('theme', 'midd') . '/includes/header.inc'); ?>
 <article id="midd_content" class="pagecontent container">
-  <nav class="taskbar">
+  <nav id="midd_taskbar" class="taskbar">
     <a class="taskbar_back" href="<?php echo base_path(); ?>academics/">Return to <strong>Departments &amp; Programs</strong></a>
     <section class="taskbar_dropdowns">
       <div class="dropdown_label">Quick links for</div>
