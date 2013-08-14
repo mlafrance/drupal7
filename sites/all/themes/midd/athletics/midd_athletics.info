@@ -1,0 +1,14 @@
+name = Midd Athletics
+base theme = midd
+description = Theme for Middlebury Athletics pages
+core = 7.x
+engine = phptemplate
+
+regions[header] = Header
+regions[quicklinks] = Quick Links
+regions[left] = Left Sidebar
+regions[content] = Content
+regions[right] = Right Sidebar
+regions[address] = Address
+regions[carousel] = Carousel
+regions[footer] = Footer
