@@ -72,27 +72,27 @@ function middlebury_block_view($delta = '') {
 
     $block['subject'] = t('Scoreboard');
     ob_start();
-    print '<div class="box" id="scoreboard">';
-    print '<h2 id="header_scoreboard"><img src="' . base_path() . drupal_get_path('module', 'middlebury') . '/images/scoreboard.png" width="256" height="43" alt="Scoreboard"/></h2>';
-    print '<div class="RightNavScoreboard">';
+    print '<div class="box scoreboard">';
+    print '<h2 class="scoreboard_header"><img src="//cdn.middlebury.edu/middlebury.edu/2010/images/athletics/scoreboard.png" width="256" height="43" alt="Scoreboard"/></h2>';
+    print '<div>';
 
     ksort($lines);
     foreach ($lines as $sport => $event) {
-      print '<div class="RightNavScoreboardSport">';
-        print '<div class="RightNavScoreboardSportHeader">';
-          print '<div class="RightNavScoreboardHeaderLeft">';
+      print '<div class="scoreboard_sport">';
+        print '<div class="scoreboard_sport_header">';
+          print '<div class="scoreboard_header_left">';
           print '<a href="' . $event['link'] . '">' . $event['title'] . '</a></div>';
           if (!empty($records[$sport])):
-            print '<div class="RightNavScoreboardHeaderRight">(' . $records[$sport] . ')</div>';
+            print '<div class="scoreboard_header_right">(' . $records[$sport] . ')</div>';
           endif;
         print '</div>';
         if (isset($event['last'])):
-          print '<div class="RightNavScoreBoardAltItem">';
-            print '<div class="RightNavScoreboardItemDate">' . $event['last']['date'] . '</div>';
-            print '<div class="RightNavScoreboardItemScore">';
+          print '<div class="scoreboard_alt_item">';
+            print '<div class="scoreboard_item_date">' . $event['last']['date'] . '</div>';
+            print '<div class="scoreboard_item_score">';
             print $event['last']['score'];
             print '</div>';
-            print '<div class="RightNavScoreboardItemOpp">' . $event['last']['opponent'];
+            print '<div class="scoreboard_item_opp">' . $event['last']['opponent'];
             if ($event['last']['footnote']) {
               if (!array_key_exists($event['last']['footnote'], $footnotes)) {
                 $footnotes[$event['last']['footnote']] = array_shift($chrSymbols);
@@ -102,10 +102,10 @@ function middlebury_block_view($delta = '') {
             print '</div>';
           print '</div>';
         endif;
-        print '<div class="RightNavScoreBoardItem">';
-          print '<div class="RightNavScoreboardItemDate">' . $event['next']['date'] . '</div>';
-          print '<div class="RightNavScoreboardItemScore">' . $event['next']['time'] . '</div>';
-          print '<div class="RightNavScoreboardItemOpp">' . $event['next']['opponent'];
+        print '<div class="scoreboard_item">';
+          print '<div class="scoreboard_item_date">' . $event['next']['date'] . '</div>';
+          print '<div class="scoreboard_item_score">' . $event['next']['time'] . '</div>';
+          print '<div class="scoreboard_item_opp">' . $event['next']['opponent'];
           if ($event['next']['footnote']) {
             if (!array_key_exists($event['next']['footnote'], $footnotes)) {
               $footnotes[$event['next']['footnote']] = array_shift($chrSymbols);
@@ -125,7 +125,7 @@ function middlebury_block_view($delta = '') {
 
     print '</p><div id="scoreboard_footer">';
       print '<a href="http://go.middlebury.edu/athletics/live">Live Coverage</a>';
-      print '<a href="' . MIDDLEBURY_SCOREBOARD_FEEDURL . '?active=true&season=' . $season . '" class="rssfeed"><img src="' . base_path() . drupal_get_path('theme', 'midd') . '/images/social/feed.png" width="24" height="24" alt="RSS Feed" /></a>';
+      print '<a href="' . MIDDLEBURY_SCOREBOARD_FEEDURL . '?active=true&season=' . $season . '" class="rssfeed"><img src="//cdn.middlebury.edu/middlebury.edu/2010/images/feed.png" width="24" height="24" alt="RSS Feed" /></a>';
     print '</div>';
 
     print '</div>';
