@@ -1,0 +1,370 @@
+<?php
+
+define('MIDDLEBURY_GOOGLE_CUSTOM_SEARCH_MODULE_PATH', drupal_get_path('module', 'middlebury_google_custom_search'));
+
+/**
+ * Return search results from the Course Catalog. Prints a JSON string.
+ *
+ * @param string $query
+ *   The search query which will be passed to the Course Catalog.
+ * @param string $catalog
+ *   The Course Catalog to search. One of MCUG, MIIS, BLSE, or MCLS.
+ */
+function middlebury_google_custom_search_catalog($query, $catalog) {
+  if (($library = libraries_detech('simplepie')) === FALSE || empty($library['installed']))
+    return;
+
+  if (!in_array(drupal_strtoupper($catalog), array('MCUG', 'MIIS', 'BLSE', 'MCLS')))
+    return;
+
+  $base_url = "http://catalog.middlebury.edu/courses/searchxml/catalog/catalog%2F" . check_plain($catalog) . "/keywords/";
+
+  libraries_load('simplepie');
+  $file = new SimplePie_File($base_url . urlencode(check_plain($query)));
+  $body = str_replace('& ', '&ampl; ', $file->body);
+
+  $feed = new SimplePie();
+  $feed->set_raw_data($body);
+  $feed->init();
+  $feed->handle_content_type();
+  $results = array();
+
+  foreach ($feed->get_items() as $result) {
+    $r = array();
+    $r['result'] = '<div><a href="' . $result->get_link(0) . '">' . $result->get_title() . '</a><br />' . $result->get_description() . '</div>';
+    $results[] = $r;
+  }
+
+  if (count($feed->get_items()) == 0) {
+    $result = array();
+    $result['result'] = '<p>No results found for <b>' . $query . '</b>.</p><p>Go to the <a href="http://catalog.middlebury.edu">Course Catalog</a>.</p>';
+    $results[] = $result;
+  }
+
+  drupal_json_output($results);
+}
+
+/**
+ * Return results from the Online Directory. Prints a JSON string.
+ *
+ * @param string $query
+ *   The search query which will be passed to the Online Directory.
+ * @param string $company
+ *   The Online Directory to search. One of midd or miis.
+ */
+function middlebury_google_custom_search_directory($query, $company) {
+  if ($company != 'midd' || $company != 'miis')
+    return;
+
+  $base_url = 'http://web.middlebury.edu/database/directory';
+  $tmp = new SoapClient($base_url . 'WebDirectory.asmx?WSDL', array('trace' => TRUE));
+  $results = $tmp->simpleSearch(array('query' => trim(check_plain($query)), 'company' => check_plain('company')));
+
+  $xml = new SimpleXMLElement($results->simpleSearchResult->any);
+  $results = array();
+
+  if (count($xml->record) == 0) {
+    $result = array();
+    $result['result'] = '<p>No results found for <b>' . check_plain($query) . '</b>.</p><p>Go to the <a href="http://go.' . check_plain($company) . '.edu/directory">Directory</a>.</p>';
+    $results[] = $result;
+  }
+  else {
+    foreach ($xml->record as $record) {
+      $r = '<div class="vcard"><h4 class="fn"><a href="' . $base_url . '?displayname=' . $record['displayname'] . '">' . $record['displayname'] . '</a></h4>';
+
+      $p = array();
+      foreach ($record->property as $property) {
+        $p[(string)$property['name']] = (string)$property['value'];
+      }
+
+      $street = $city = $state = $zip = '';
+      if (!empty($p['extensionattribute3'])) {
+        $csz = array();
+        preg_match('/(.*)<br \/>([A-Za-z\s]+), ([A-Z]{2}) ([0-9]{5})/', $p['extensionattribute3'], $csz);
+        if (!empty($csz[1])) $street = trim($csz[1]);
+        if (!empty($csz[2])) $city = $csz[2];
+        if (!empty($csz[3])) $state = $csz[3];
+        if (!empty($csz[4])) $zip = $csz[4];
+      }
+
+      $org = 'Middlebury College';
+      if ($company == 'miis') $org = 'MIIS';
+
+      if (!empty($p['title'])) $r .= '<h5 class="title">' . $p['title'] . '</h5>';
+      if (!empty($p['mail'])) $r .= '<a class="email" href="mailto:' . $p['mail'] . '">' . $p['mail'] . '</a><br />';
+      if (!empty($p['telephonenumber'])) $r .= 'Phone:&nbsp;<span class="tel"><span class="type">work</span>' . $p['telephonenumber'] . '</span><br />';
+      if (!empty($p['othertelephone'])) $r .= 'Fax:&nbsp;<span class="tel"><span class="type">fax</span>' . $p['othertelephone'] . '</span><br />';
+      if (!empty($p['extensionattribute3'])) {
+        if (!empty($p['department']) && $p['department'] == 'student') {
+          $r .= '<address class="adr"><span class="type">work</span>';
+          if (!empty($street)) $r .= '<span class="organization-name street-address">' . $street . '</span><br />';
+          if (!empty($city) && !empty($state) && !empty($zip)) $r .= '<span class="locality">' . $city . '</span>, <span class="region">' . $state . '</span> <span class="postal-code">' . $zip . '</span>';
+          $r .= '</address>';
+        }
+        else {
+          $r .= '<address class="adr"><span class="type">work</span><span class="org"><span class="organization-name">' . $org . '</span><br />';
+          if (!empty($p['department'])) $r .= '<span class="organization-unit street-address extended-address">' . $p['department'] . '</span></span><br />';
+          if (!empty($p['extensionattribute4'])) $r .= '<span>, <span class="region">' . $state . '</span> <span class="postal-code">' . $zip . '</span>';
+          $r .= '</address>';
+        }
+      }
+      if (!empty($p['extensionattribute8'])) $r .= 'Office Hours:&nbsp;' . $p['extensionattribute8'] . '<br />';
+
+      $r .= '</div>';
+      $results[] = array('result' => $r);
+    }
+  }
+
+  drupal_json_output($results);
+}
+
+/**
+ * Implements hook_form().
+ */
+function middlebury_google_custom_search_form($node, $form_state) {
+  return node_content_form($node, $form_state);
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function middlebury_google_custom_search_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'views_exposed_form') {
+    $form['#action'] = request_uri();
+  }
+}
+
+/**
+ * Create a frameset for searches with GO shortcuts to display a bar notifying the user.
+ *
+ * @param string $code
+ *   The GO code to look up.
+ */
+function middlebury_google_custom_search_go($code) {
+  try {
+    if (function_exists('middlebury_go_fetch_url')) {
+      $go_url = middlebury_go_fetch_url(str_replace(' ', '+', $go));
+    }
+  } catch (Exception $e) {
+
+  }
+?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+  <head><title>Search Results</title></head>
+  <frameset rows="30px,*">
+    <frame marginheight="0" marginwidth="0" scrolling="no" noresize="noresize" src="<?php print base_path() . drupal_get_path('module', 'middlebury_google_custom_search'); ?>/searchbar.php?search=<?php print $go; ?>" />
+    <frame id="contentFrame" src="<?php print $go_url; ?>" />
+  </frameset>
+</html>
+<?php
+}
+
+/**
+ * Implements hook_menu().
+ */
+function middlebury_google_custom_search_menu() {
+  $items = array();
+
+  $items['middlebury_google_custom_search/catalog'] = array(
+    'page callback' => 'middlebury_google_custom_search_catalog',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['middlebury_google_custom_search/directory'] = array(
+    'page callback' => 'middlebury_google_custom_search_directory',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['middlebury_google_custom_search/go'] = array(
+    'page callback' => 'middlebury_google_custom_search_go',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_node_info().
+ */
+function middlebury_google_custom_search_node_info() {
+  return array(
+    'google_custom_search' => array(
+      'name' => t('Google Custom Search'),
+      'base' => 'middlebury_google_custom_search',
+      'description' => t('Embeds a Google Custom Search Engine.'),
+      'title_label' => t('Title'),
+      'locked' => TRUE,
+    ),
+  );
+}
+
+/**
+ * Implements hook_node_type_insert().
+ */
+function middlebury_google_custom_search_node_type_insert($content_type) {
+  if ($content_type->type == 'google_custom_search') {
+    $fields = array(
+      'field_google_custom_search_id' => array(
+        'field_name' => 'field_google_custom_search_id',
+        'type' => 'text',
+        'cardinality' => 1,
+      ),
+      'field_google_custom_search_cat' => array(
+        'field_name' => 'field_google_custom_search_cat',
+        'type' => 'list_text',
+        'cardinality' => -1,
+        'settings' => array(
+          'allowed_values' => array(
+            'MCUG' => 'Middlebury College',
+            'MIIS' => 'MIIS',
+            'BLSE' => 'BLSE',
+            'MCLS' => 'Language Schools',
+          ),
+        ),
+      ),
+      'field_google_custom_search_dir' => array(
+        'field_name' => 'field_google_custom_search_dir',
+        'type' => 'list_text',
+        'cardinality' => -1,
+        'settings' => array(
+          'allowed_values' => array(
+            'middlebury' => 'Middlebury',
+            'miis' => 'MIIS',
+          ),
+        ),
+      ),
+      'field_google_custom_search_feed' => array(
+        'field_name' => 'field_google_custom_search_feed',
+        'type' => 'list_boolean',
+        'cardinality' => 1,
+        'settings' => array(
+          'allowed_values' => array(
+            '0' => 'Off',
+            '1' => 'Ask for Feedback',
+          ),
+        ),
+      ),
+    );
+
+    $instances = array(
+      'field_google_custom_search_id' => array(
+        'field_name' => 'field_google_custom_search_id',
+        'label' => t('Custom Search ID'),
+        'entity_type' => 'node',
+        'bundle' => 'google_custom_search',
+        'required' => TRUE,
+        'widget' => array(
+          'type' => 'text_textfield',
+        ),
+      ),
+      'field_google_custom_search_cat' => array(
+        'field_name' => 'field_google_custom_search_cat',
+        'label' => t('Include Links to Catalogs'),
+        'entity_type' => 'node',
+        'bundle' => 'google_custom_search',
+        'required' => FALSE,
+        'widget' => array(
+          'type' => 'options_buttons',
+        ),
+      ),
+      'field_google_custom_search_dir' => array(
+        'field_name' => 'field_google_custom_search_dir',
+        'label' => t('Include Links to Directories'),
+        'entity_type' => 'node',
+        'bundle' => 'google_custom_search',
+        'required' => FALSE,
+        'widget' => array(
+          'type' => 'options_buttons',
+        ),
+      ),
+      'field_google_custom_search_feed' => array(
+        'field_name' => 'field_google_custom_search_feed',
+        'label' => t('Ask for Feedback'),
+        'entity_type' => 'node',
+        'bundle' => 'google_custom_search',
+        'required' => FALSE,
+        'widget' => array(
+          'type' => 'options_onoff',
+        ),
+      ),
+    );
+
+    foreach ($fields as $field) {
+      field_create_field($field);
+    }
+
+    foreach ($instances as $instance) {
+      field_create_instance($instance);
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess_HOOK().
+ */
+function middlebury_google_custom_search_preprocess_node(&$vars) {
+  if ($vars['node']->type == 'gsearch') {
+    $vars['q2'] = (isset($_GET['q2'])) ? check_plain($_GET['q2']) : '';
+    $nocustom = isset($_GET['nocustom']) && $_GET['nocustom'] == 'true';
+    $go_url = FALSE;
+
+    if (!empty($vars['q2']) && !$nocustom) {
+      // check for custom search result pages
+      $alias = drupal_strtolower(str_replace(' ', '_', urldecode($vars['q2'])));
+
+      $results = db_query_range("SELECT t.mmtid FROM {mm_tree} t WHERE t.alias = :alias AND t.theme = 'midd_search_custom'", 0, 1, array(':alias' => $alias));
+
+      foreach ($results as $mmtid) {
+        $mmtid = 'mm/' . $mmtid;
+        drupal_goto($mmtid, array('query' => array('q2' => $vars['q2'], 'site2' => $site2)));
+      }
+
+      try {
+        if (function_exists('middlebury_go_fetch_url')) {
+          $go_url = middlebury_go_fetch_url(str_replace(' ', '+', $vars['q2']));
+          if (!empty($go_url)) {
+            drupal_goto('middlebury_google_custom_search/go' . $vars['q2']);
+          }
+        }
+      } catch (Exception $e) {
+
+      }
+    }
+
+    drupal_add_css('//cdn.middlebury.edu/common/2010/css/google_custom_search.css', 'external');
+    if (!empty($vars['node']->field_google_custom_search_id[$language->language][0]['value'])) {
+      drupal_add_js('//cdn.middlebury.edu/common/2010/js/google_custom_search.js', 'external');
+    }
+  }
+}
+
+/**
+ * Implements hook_theme_registry_alter().
+ */
+function middlebury_google_custom_search_theme_registry_alter(&$theme_registry) {
+  $theme_registry_copy = $theme_registry;
+  _theme_process_registry($theme_registry_copy, 'phptemplate', 'theme_engine', 'middlebury_google_custom_search_theme', MIDDLEBURY_GOOGLE_CUSTOM_SEARCH_MODULE_PATH);
+
+  $theme_registry += array_diff_key($theme_registry_copy, $theme_registry);
+
+  $hooks = array('node');
+  foreach ($hooks as $h) {
+    if (!isset($theme_registry[$h]['theme paths'])) {
+      $theme_registry[$h]['theme paths'] = array();
+    }
+
+    if (is_array($theme_registry[$h]['theme paths'])) {
+      $first_element = array_shift($theme_registry[$h]['theme paths']);
+      if ($first_element) {
+        array_unshift($theme_registry[$h]['theme paths'], $first_element, MIDDLEBURY_GOOGLE_CUSTOM_SEARCH_MODULE_PATH);
+      }
+      else {
+        array_unshift($theme_registry[$h]['theme paths'], MIDDLEBURY_GOOGLE_CUSTOM_SEARCH_MODULE_PATH);
+      }
+    }
+  }
+}

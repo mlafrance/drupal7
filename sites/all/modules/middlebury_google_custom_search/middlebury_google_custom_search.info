@@ -1,0 +1,5 @@
+name = Midd Google Custom Search Module
+description = Custom search module for Middlebury sites
+core = 7.x
+package = Middlebury
+files[] = middlebury_google_custom_search.module
