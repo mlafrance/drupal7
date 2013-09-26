@@ -224,3 +224,7 @@
 [submodule "sites/all/modules/modernizr"]
 	path = sites/all/modules/modernizr
 	url = http://git.drupal.org/project/modernizr.git
+[submodule "sites/all/modules/twitter"]
+	path = sites/all/modules/twitter
+	url = http://git.drupal.org/project/twitter.git
+	branch = 7.x-5.x
