@@ -6,7 +6,7 @@
   <?php endif; ?>
   <section class="contents">
     <form id="midd_google_custom_search" action="<?php print request_uri(); ?>" method="GET">
-      <input type="text" id="midd_google_custom_search_text" class="x-webkit-speech" name="q2"<?php if (!empty($q2)) print ' value="' . unldecode($q2) . '" class="filled"'; ?> x-webkit-speech />
+      <input type="text" id="midd_google_custom_search_text" class="x-webkit-speech" name="q2"<?php if (!empty($q2)) print ' value="' . urldecode($q2) . '" class="filled"'; ?> x-webkit-speech />
       <?php if (!empty($node->field_google_custom_search_go[$language->language][0]['value']) && $node->field_google_custom_search_go[$language->language][0]['value'] != 1): ?>
         <input type="hidden" name="nocustom" value="true" />
       <?php endif; ?>
