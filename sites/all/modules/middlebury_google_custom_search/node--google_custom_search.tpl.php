@@ -38,7 +38,7 @@
     <div id="midd_catalog_directory_results"></div>
     <span id="midd_google_custom_search_id"><?php print $node->field_google_custom_search_id[$language->language][0]['value']; ?></span>
     <script src="http://www.google.com/jsapi" type="text/javascript"></script>
-    <?php if (!empty($node->field_google_custom_search_feed[$language->language][0]['value'])) && $node->field_google_custom_search_feed[$language->language][0]['value'] == 1): ?>
+    <?php if (!empty($node->field_google_custom_search_feed[$language->language][0]['value']) && $node->field_google_custom_search_feed[$language->language][0]['value'] == 1): ?>
       <div class="box filled">
         <p>Help us make our search results better by giving us your <a href="mailto:webmaster@middlebury.edu?subject=Search Feedback for <?php print !empty($q2) ? $q2 : ''; ?>">feedback.</a></p>
       </div>
