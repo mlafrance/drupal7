@@ -1,0 +1,20 @@
+<?php
+
+/**
+ * Implements hook_library().
+ */
+function middlebury_libraries_library() {
+  $libraries = array();
+
+  $libraries['jquery.cycle'] = array(
+    'title' => t('jQuery Cycle'),
+    'version' => '2',
+    'js' => array(
+      '//cdn.middlebury.edu/common/2010/js/jquery.cycle2.min.js' => array(
+        'type' => 'external'
+      ),
+    ),
+  );
+
+  return $libraries;
+}
