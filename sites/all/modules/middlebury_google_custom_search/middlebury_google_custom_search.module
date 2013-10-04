@@ -10,8 +10,8 @@ define('MIDDLEBURY_GOOGLE_CUSTOM_SEARCH_MODULE_PATH', drupal_get_path('module', 
  * @param string $catalog
  *   The Course Catalog to search. One of MCUG, MIIS, BLSE, or MCLS.
  */
-function middlebury_google_custom_search_catalog($query, $catalog) {
-  if (($library = libraries_detech('simplepie')) === FALSE || empty($library['installed']))
+function middlebury_google_custom_search_catalog($catalog, $query) {
+  if (($library = libraries_detect('simplepie')) === FALSE || empty($library['installed']))
     return;
 
   if (!in_array(drupal_strtoupper($catalog), array('MCUG', 'MIIS', 'BLSE', 'MCLS')))
@@ -21,7 +21,7 @@ function middlebury_google_custom_search_catalog($query, $catalog) {
 
   libraries_load('simplepie');
   $file = new SimplePie_File($base_url . urlencode(check_plain($query)));
-  $body = str_replace('& ', '&ampl; ', $file->body);
+  $body = str_replace('& ', '&amp; ', $file->body);
 
   $feed = new SimplePie();
   $feed->set_raw_data($body);
@@ -52,13 +52,13 @@ function middlebury_google_custom_search_catalog($query, $catalog) {
  * @param string $company
  *   The Online Directory to search. One of midd or miis.
  */
-function middlebury_google_custom_search_directory($query, $company) {
-  if ($company != 'midd' || $company != 'miis')
+function middlebury_google_custom_search_directory($company, $query) {
+  if ($company != 'middlebury' && $company != 'miis')
     return;
 
-  $base_url = 'http://web.middlebury.edu/database/directory';
+  $base_url = 'http://web.middlebury.edu/database/directory/';
   $tmp = new SoapClient($base_url . 'WebDirectory.asmx?WSDL', array('trace' => TRUE));
-  $results = $tmp->simpleSearch(array('query' => trim(check_plain($query)), 'company' => check_plain('company')));
+  $results = $tmp->simpleSearch(array('query' => trim(check_plain($query)), 'company' => check_plain($company)));
 
   $xml = new SimpleXMLElement($results->simpleSearchResult->any);
   $results = array();
@@ -336,8 +336,10 @@ function middlebury_google_custom_search_preprocess_node(&$vars) {
     }
 
     drupal_add_css('//cdn.middlebury.edu/common/2010/css/google_custom_search.css', 'external');
-    if (!empty($vars['node']->field_google_custom_search_id[$language->language][0]['value'])) {
-      drupal_add_js('//cdn.middlebury.edu/common/2010/js/google_custom_search.js', 'external');
+    $wrapper = entity_metadata_wrapper('node', $vars['node']);
+    $google_custom_search_id = $wrapper->field_google_custom_search_id->value();
+    if (!empty($google_custom_search_id)) {
+      drupal_add_js('//cdn.middlebury.edu/common/2010/js/google_custom_search.js', array('type' => 'external', 'scope' => 'footer'));
     }
   }
 }
